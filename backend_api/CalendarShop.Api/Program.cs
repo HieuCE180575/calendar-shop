@@ -4,6 +4,7 @@ using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using CalendarShop.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +58,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseCors("AllowMobile");
 app.UseAuthentication();
 app.UseAuthorization();

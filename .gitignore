@@ -39,7 +39,7 @@ mobile_flutter/windows/flutter/ephemeral/
 # .NET / Visual Studio
 backend_api/**/bin/
 backend_api/**/obj/
-backend_api/.vs/
+backend_api/**/.vs/
 backend_api/**/*.user
 backend_api/**/*.rsuser
 backend_api/**/*.suo
