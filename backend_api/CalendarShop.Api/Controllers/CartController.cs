@@ -45,7 +45,6 @@ public class CartController : AppControllerBase
     {
         var product = await _db.Products.FindAsync(request.ProductId);
         if (product == null || product.IsDeleted || product.Status != "Active") return BadRequest("Sản phẩm không khả dụng.");
-        if (request.Quantity <= 0) return BadRequest("Số lượng không hợp lệ.");
         if (product.StockQuantity < request.Quantity) return BadRequest("Không đủ tồn kho.");
 
         var item = await _db.CartItems.FirstOrDefaultAsync(x => x.UserId == CurrentUserId && x.ProductId == request.ProductId);
@@ -69,7 +68,6 @@ public class CartController : AppControllerBase
     {
         var item = await _db.CartItems.FirstOrDefaultAsync(x => x.CartItemId == cartItemId && x.UserId == CurrentUserId);
         if (item == null) return NotFound();
-        if (request.Quantity <= 0) return BadRequest("Số lượng không hợp lệ.");
 
         item.Quantity = request.Quantity;
         item.IsSelected = request.IsSelected;

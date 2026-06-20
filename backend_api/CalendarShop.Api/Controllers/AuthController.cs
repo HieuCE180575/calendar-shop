@@ -24,9 +24,6 @@ public class AuthController : AppControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Email) && string.IsNullOrWhiteSpace(request.Phone))
-            return BadRequest("Email hoặc số điện thoại là bắt buộc.");
-
         var exists = await _db.Users.AnyAsync(x =>
             (!string.IsNullOrEmpty(request.Email) && x.Email == request.Email) ||
             (!string.IsNullOrEmpty(request.Phone) && x.Phone == request.Phone));
