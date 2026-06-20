@@ -1,23 +1,17 @@
-using CalendarShop.Api.Data;
 using CalendarShop.Api.Dtos;
-using CalendarShop.Api.Models;
+using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 
 namespace CalendarShop.Api.Controllers;
 
 public class ProductsController : AppControllerBase
 {
-    private readonly AppDbContext _db;
-    private readonly IMapper _mapper;
+    private readonly IProductService _productService;
 
-    public ProductsController(AppDbContext db, IMapper mapper)
+    public ProductsController(IProductService productService)
     {
-        _db = db;
-        _mapper = mapper;
+        _productService = productService;
     }
 
     [HttpGet]
@@ -30,46 +24,15 @@ public class ProductsController : AppControllerBase
         string? sort = "newest",
         bool includeHidden = false)
     {
-        var query = _db.Products.Where(x => !x.IsDeleted);
-
-        if (!includeHidden)
-            query = query.Where(x => x.Status == "Active");
-
-        if (categoryId.HasValue)
-            query = query.Where(x => x.CategoryId == categoryId);
-
-        if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(x => x.ProductName.Contains(search));
-
-        if (minPrice.HasValue)
-            query = query.Where(x => x.Price >= minPrice.Value);
-
-        if (maxPrice.HasValue)
-            query = query.Where(x => x.Price <= maxPrice.Value);
-
-        if (!string.IsNullOrWhiteSpace(calendarType))
-            query = query.Where(x => x.CalendarType == calendarType);
-
-        query = sort switch
-        {
-            "price_asc" => query.OrderBy(x => x.Price),
-            "price_desc" => query.OrderByDescending(x => x.Price),
-            _ => query.OrderByDescending(x => x.CreatedAt)
-        };
-
-        var products = await query.ProjectTo<ProductDto>(_mapper.ConfigurationProvider).ToListAsync();
+        var products = await _productService.GetAllProductsAsync(
+            categoryId, search, minPrice, maxPrice, calendarType, sort, includeHidden);
         return Ok(products);
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductDto>> GetById(int id)
     {
-        var product = await _db.Products
-            .Where(x => x.ProductId == id && !x.IsDeleted)
-            .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
-            .FirstOrDefaultAsync();
-
-        if (product == null) return NotFound();
+        var product = await _productService.GetProductByIdAsync(id);
         return Ok(product);
     }
 
@@ -77,22 +40,15 @@ public class ProductsController : AppControllerBase
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create(ProductCreateUpdateDto request)
     {
-        var product = _mapper.Map<Product>(request);
-        _db.Products.Add(product);
-        await _db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = product.ProductId }, await GetProductDto(product.ProductId));
+        var product = await _productService.CreateProductAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id = product.ProductId }, product);
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, ProductCreateUpdateDto request)
     {
-        var product = await _db.Products.FindAsync(id);
-        if (product == null || product.IsDeleted) return NotFound();
-
-        _mapper.Map(request, product);
-        product.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        await _productService.UpdateProductAsync(id, request);
         return NoContent();
     }
 
@@ -100,12 +56,7 @@ public class ProductsController : AppControllerBase
     [HttpPatch("{id:int}/stock")]
     public async Task<IActionResult> UpdateStock(int id, [FromBody] int stockQuantity)
     {
-        var product = await _db.Products.FindAsync(id);
-        if (product == null || product.IsDeleted) return NotFound();
-        product.StockQuantity = stockQuantity;
-        product.Status = stockQuantity <= 0 ? "OutOfStock" : product.Status;
-        product.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        await _productService.UpdateStockAsync(id, stockQuantity);
         return NoContent();
     }
 
@@ -113,11 +64,7 @@ public class ProductsController : AppControllerBase
     [HttpPatch("{id:int}/status")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status)
     {
-        var product = await _db.Products.FindAsync(id);
-        if (product == null || product.IsDeleted) return NotFound();
-        product.Status = status;
-        product.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        await _productService.UpdateStatusAsync(id, status);
         return NoContent();
     }
 
@@ -125,20 +72,7 @@ public class ProductsController : AppControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var product = await _db.Products.FindAsync(id);
-        if (product == null) return NotFound();
-        product.IsDeleted = true;
-        product.Status = "Hidden";
-        product.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        await _productService.DeleteProductAsync(id);
         return NoContent();
-    }
-
-    private async Task<ProductDto?> GetProductDto(int id)
-    {
-        return await _db.Products
-            .Where(x => x.ProductId == id)
-            .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
-            .FirstOrDefaultAsync();
     }
 }

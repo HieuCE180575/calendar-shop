@@ -58,6 +58,11 @@ try
 
     builder.Services.AddScoped<PasswordService>();
     builder.Services.AddScoped<JwtService>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<ICartService, CartService>();
+    builder.Services.AddScoped<ICategoryService, CategoryService>();
+    builder.Services.AddScoped<IProductService, ProductService>();
+    builder.Services.AddScoped<IOrderService, OrderService>();
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
