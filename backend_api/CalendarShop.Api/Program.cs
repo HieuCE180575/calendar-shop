@@ -10,6 +10,7 @@ using Serilog;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
+using AutoMapper;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -63,6 +64,7 @@ try
 
     builder.Services.AddFluentValidationAutoValidation();
     builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+    builder.Services.AddAutoMapper(typeof(Program));
 
     builder.Services.AddCors(options =>
     {

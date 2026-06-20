@@ -4,16 +4,20 @@ using CalendarShop.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 namespace CalendarShop.Api.Controllers;
 
 public class CategoriesController : AppControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IMapper _mapper;
 
-    public CategoriesController(AppDbContext db)
+    public CategoriesController(AppDbContext db, IMapper mapper)
     {
         _db = db;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -21,7 +25,7 @@ public class CategoriesController : AppControllerBase
     {
         var categories = await _db.Categories
             .OrderBy(x => x.CategoryName)
-            .Select(x => new CategoryDto(x.CategoryId, x.CategoryName, x.Description, x.Status))
+            .ProjectTo<CategoryDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
 
         return Ok(categories);
@@ -31,15 +35,10 @@ public class CategoriesController : AppControllerBase
     [HttpPost]
     public async Task<ActionResult<CategoryDto>> Create(CategoryCreateUpdateDto request)
     {
-        var category = new Category
-        {
-            CategoryName = request.CategoryName,
-            Description = request.Description,
-            Status = request.Status
-        };
+        var category = _mapper.Map<Category>(request);
         _db.Categories.Add(category);
         await _db.SaveChangesAsync();
-        return Ok(new CategoryDto(category.CategoryId, category.CategoryName, category.Description, category.Status));
+        return Ok(_mapper.Map<CategoryDto>(category));
     }
 
     [Authorize(Roles = "Admin")]
@@ -48,9 +47,8 @@ public class CategoriesController : AppControllerBase
     {
         var category = await _db.Categories.FindAsync(id);
         if (category == null) return NotFound();
-        category.CategoryName = request.CategoryName;
-        category.Description = request.Description;
-        category.Status = request.Status;
+
+        _mapper.Map(request, category);
         category.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return NoContent();

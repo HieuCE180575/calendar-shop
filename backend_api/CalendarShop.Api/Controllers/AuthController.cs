@@ -5,6 +5,7 @@ using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace CalendarShop.Api.Controllers;
 
@@ -13,12 +14,14 @@ public class AuthController : AppControllerBase
     private readonly AppDbContext _db;
     private readonly PasswordService _passwordService;
     private readonly JwtService _jwtService;
+    private readonly IMapper _mapper;
 
-    public AuthController(AppDbContext db, PasswordService passwordService, JwtService jwtService)
+    public AuthController(AppDbContext db, PasswordService passwordService, JwtService jwtService, IMapper mapper)
     {
         _db = db;
         _passwordService = passwordService;
         _jwtService = jwtService;
+        _mapper = mapper;
     }
 
     [HttpPost("register")]
@@ -30,15 +33,8 @@ public class AuthController : AppControllerBase
 
         if (exists) return BadRequest("Email hoặc số điện thoại đã tồn tại.");
 
-        var user = new User
-        {
-            FullName = request.FullName,
-            Email = request.Email,
-            Phone = request.Phone,
-            PasswordHash = _passwordService.Hash(request.Password),
-            Role = "Customer",
-            Status = "Active"
-        };
+        var user = _mapper.Map<User>(request);
+        user.PasswordHash = _passwordService.Hash(request.Password);
 
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
@@ -63,7 +59,7 @@ public class AuthController : AppControllerBase
     {
         var user = await _db.Users.FindAsync(CurrentUserId);
         if (user == null) return NotFound();
-        return Ok(ToUserDto(user));
+        return Ok(_mapper.Map<UserDto>(user));
     }
 
     [Authorize]
@@ -82,11 +78,6 @@ public class AuthController : AppControllerBase
 
     private AuthResponse ToAuthResponse(User user)
     {
-        return new AuthResponse(_jwtService.GenerateToken(user), ToUserDto(user));
-    }
-
-    private static UserDto ToUserDto(User user)
-    {
-        return new UserDto(user.UserId, user.FullName, user.Email, user.Phone, user.Role, user.Status, user.AvatarUrl);
+        return new AuthResponse(_jwtService.GenerateToken(user), _mapper.Map<UserDto>(user));
     }
 }

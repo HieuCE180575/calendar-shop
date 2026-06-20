@@ -4,6 +4,8 @@ using CalendarShop.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 namespace CalendarShop.Api.Controllers;
 
@@ -11,10 +13,12 @@ namespace CalendarShop.Api.Controllers;
 public class OrdersController : AppControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IMapper _mapper;
 
-    public OrdersController(AppDbContext db)
+    public OrdersController(AppDbContext db, IMapper mapper)
     {
         _db = db;
+        _mapper = mapper;
     }
 
     [HttpPost]
@@ -98,21 +102,22 @@ public class OrdersController : AppControllerBase
     public async Task<ActionResult<List<OrderDto>>> Mine()
     {
         var orders = await _db.Orders
-            .Include(x => x.OrderItems)
             .Where(x => x.UserId == CurrentUserId)
             .OrderByDescending(x => x.CreatedAt)
+            .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
-        return Ok(orders.Select(ToDto).ToList());
+        return Ok(orders);
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<OrderDto>> GetById(int id)
     {
         var order = await _db.Orders
-            .Include(x => x.OrderItems)
-            .FirstOrDefaultAsync(x => x.OrderId == id && x.UserId == CurrentUserId);
+            .Where(x => x.OrderId == id && x.UserId == CurrentUserId)
+            .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
         if (order == null) return NotFound();
-        return Ok(ToDto(order));
+        return Ok(order);
     }
 
     [HttpPut("{id:int}/cancel")]
@@ -144,11 +149,15 @@ public class OrdersController : AppControllerBase
     [HttpGet("admin")]
     public async Task<ActionResult<List<OrderDto>>> AdminGetAll(string? status, string? search)
     {
-        var query = _db.Orders.Include(x => x.OrderItems).AsQueryable();
+        var query = _db.Orders.AsQueryable();
         if (!string.IsNullOrWhiteSpace(status)) query = query.Where(x => x.Status == status);
         if (!string.IsNullOrWhiteSpace(search)) query = query.Where(x => x.CustomerName.Contains(search) || x.CustomerPhone.Contains(search));
-        var orders = await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
-        return Ok(orders.Select(ToDto).ToList());
+        
+        var orders = await query
+            .OrderByDescending(x => x.CreatedAt)
+            .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
+            .ToListAsync();
+        return Ok(orders);
     }
 
     [Authorize(Roles = "Admin")]
@@ -176,27 +185,9 @@ public class OrdersController : AppControllerBase
 
     private async Task<OrderDto> GetOrderDto(int orderId)
     {
-        var order = await _db.Orders.Include(x => x.OrderItems).FirstAsync(x => x.OrderId == orderId);
-        return ToDto(order);
-    }
-
-    private static OrderDto ToDto(Order order)
-    {
-        return new OrderDto(
-            order.OrderId,
-            order.UserId,
-            order.CustomerName,
-            order.CustomerPhone,
-            order.ShippingAddress,
-            order.SubTotal,
-            order.DiscountAmount,
-            order.ShippingFee,
-            order.TotalAmount,
-            order.PaymentMethod,
-            order.Status,
-            order.Note,
-            order.CreatedAt,
-            order.OrderItems.Select(i => new OrderItemDto(i.OrderItemId, i.ProductId, i.ProductName, i.ProductImageUrl, i.UnitPrice, i.Quantity, i.TotalPrice)).ToList()
-        );
+        return await _db.Orders
+            .Where(x => x.OrderId == orderId)
+            .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
+            .FirstAsync();
     }
 }

@@ -4,16 +4,20 @@ using CalendarShop.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 namespace CalendarShop.Api.Controllers;
 
 public class ProductsController : AppControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IMapper _mapper;
 
-    public ProductsController(AppDbContext db)
+    public ProductsController(AppDbContext db, IMapper mapper)
     {
         _db = db;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -26,7 +30,7 @@ public class ProductsController : AppControllerBase
         string? sort = "newest",
         bool includeHidden = false)
     {
-        var query = _db.Products.Include(x => x.Category).Where(x => !x.IsDeleted);
+        var query = _db.Products.Where(x => !x.IsDeleted);
 
         if (!includeHidden)
             query = query.Where(x => x.Status == "Active");
@@ -53,16 +57,16 @@ public class ProductsController : AppControllerBase
             _ => query.OrderByDescending(x => x.CreatedAt)
         };
 
-        var products = await query.Select(ToDtoExpression()).ToListAsync();
+        var products = await query.ProjectTo<ProductDto>(_mapper.ConfigurationProvider).ToListAsync();
         return Ok(products);
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductDto>> GetById(int id)
     {
-        var product = await _db.Products.Include(x => x.Category)
+        var product = await _db.Products
             .Where(x => x.ProductId == id && !x.IsDeleted)
-            .Select(ToDtoExpression())
+            .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
 
         if (product == null) return NotFound();
@@ -73,17 +77,7 @@ public class ProductsController : AppControllerBase
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create(ProductCreateUpdateDto request)
     {
-        var product = new Product
-        {
-            CategoryId = request.CategoryId,
-            ProductName = request.ProductName,
-            Description = request.Description,
-            Price = request.Price,
-            StockQuantity = request.StockQuantity,
-            ImageUrl = request.ImageUrl,
-            CalendarType = request.CalendarType,
-            Status = request.Status
-        };
+        var product = _mapper.Map<Product>(request);
         _db.Products.Add(product);
         await _db.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = product.ProductId }, await GetProductDto(product.ProductId));
@@ -96,14 +90,7 @@ public class ProductsController : AppControllerBase
         var product = await _db.Products.FindAsync(id);
         if (product == null || product.IsDeleted) return NotFound();
 
-        product.CategoryId = request.CategoryId;
-        product.ProductName = request.ProductName;
-        product.Description = request.Description;
-        product.Price = request.Price;
-        product.StockQuantity = request.StockQuantity;
-        product.ImageUrl = request.ImageUrl;
-        product.CalendarType = request.CalendarType;
-        product.Status = request.Status;
+        _mapper.Map(request, product);
         product.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return NoContent();
@@ -149,26 +136,9 @@ public class ProductsController : AppControllerBase
 
     private async Task<ProductDto?> GetProductDto(int id)
     {
-        return await _db.Products.Include(x => x.Category)
+        return await _db.Products
             .Where(x => x.ProductId == id)
-            .Select(ToDtoExpression())
+            .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
-    }
-
-    private static System.Linq.Expressions.Expression<Func<Product, ProductDto>> ToDtoExpression()
-    {
-        return x => new ProductDto(
-            x.ProductId,
-            x.CategoryId,
-            x.Category == null ? null : x.Category.CategoryName,
-            x.ProductName,
-            x.Description,
-            x.Price,
-            x.StockQuantity,
-            x.ImageUrl,
-            x.CalendarType,
-            x.Status,
-            x.CreatedAt
-        );
     }
 }

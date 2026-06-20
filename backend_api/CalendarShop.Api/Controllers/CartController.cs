@@ -4,6 +4,8 @@ using CalendarShop.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 namespace CalendarShop.Api.Controllers;
 
@@ -11,30 +13,21 @@ namespace CalendarShop.Api.Controllers;
 public class CartController : AppControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IMapper _mapper;
 
-    public CartController(AppDbContext db)
+    public CartController(AppDbContext db, IMapper mapper)
     {
         _db = db;
+        _mapper = mapper;
     }
 
     [HttpGet]
     public async Task<ActionResult<CartSummaryDto>> GetCart()
     {
         var items = await _db.CartItems
-            .Include(x => x.Product)
             .Where(x => x.UserId == CurrentUserId)
             .OrderByDescending(x => x.CreatedAt)
-            .Select(x => new CartItemDto(
-                x.CartItemId,
-                x.ProductId,
-                x.Product!.ProductName,
-                x.Product.ImageUrl,
-                x.Product.Price,
-                x.Quantity,
-                x.Product.StockQuantity,
-                x.IsSelected,
-                x.Product.Price * x.Quantity
-            ))
+            .ProjectTo<CartItemDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
 
         return Ok(new CartSummaryDto(items, items.Where(x => x.IsSelected).Sum(x => x.LineTotal)));
