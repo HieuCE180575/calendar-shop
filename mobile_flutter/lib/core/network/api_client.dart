@@ -38,9 +38,37 @@ class ApiClient {
   AppException handleError(Object error) {
     if (error is DioException) {
       final data = error.response?.data;
+
       if (data is String) return AppException(data);
-      if (data is Map && data['message'] != null)
-        return AppException(data['message'].toString());
+
+      if (data is Map) {
+        // 1. Validation errors (ValidationProblemDetails)
+        if (data['errors'] != null && data['errors'] is Map) {
+          final errorsMap = data['errors'] as Map;
+          final errorMessages = <String>[];
+          for (var value in errorsMap.values) {
+            if (value is List) {
+              errorMessages.addAll(value.map((e) => e.toString()));
+            } else {
+              errorMessages.add(value.toString());
+            }
+          }
+          if (errorMessages.isNotEmpty) {
+            return AppException(errorMessages.join('\n'));
+          }
+        }
+
+        // 2. Specific domain/business exception details
+        if (data['detail'] != null) {
+          return AppException(data['detail'].toString());
+        }
+
+        // 3. General error title
+        if (data['title'] != null) {
+          return AppException(data['title'].toString());
+        }
+      }
+
       return AppException(error.message ?? 'Có lỗi kết nối API');
     }
     return AppException(error.toString());

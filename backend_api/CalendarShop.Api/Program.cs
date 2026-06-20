@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using CalendarShop.Api.Middlewares;
+using CalendarShop.Api.Infrastructure;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -28,6 +29,9 @@ try
 
     builder.Services.AddScoped<PasswordService>();
     builder.Services.AddScoped<JwtService>();
+
+    builder.Services.AddProblemDetails();
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
     builder.Services.AddCors(options =>
     {
@@ -62,6 +66,9 @@ try
     });
 
     var app = builder.Build();
+
+    app.UseExceptionHandler();
+    app.UseStatusCodePages();
 
     if (app.Environment.IsDevelopment())
     {
