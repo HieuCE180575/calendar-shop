@@ -10,6 +10,7 @@ _$AuthResultModelImpl _$$AuthResultModelImplFromJson(
         Map<String, dynamic> json) =>
     _$AuthResultModelImpl(
       token: json['token'] as String,
+      refreshToken: json['refreshToken'] as String,
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
     );
 
@@ -17,5 +18,6 @@ Map<String, dynamic> _$$AuthResultModelImplToJson(
         _$AuthResultModelImpl instance) =>
     <String, dynamic>{
       'token': instance.token,
+      'refreshToken': instance.refreshToken,
       'user': instance.user,
     };

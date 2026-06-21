@@ -37,8 +37,8 @@ calendar-shop/
 ##  Công Nghệ Sử Dụng
 
 ### 📱 Mobile Client (Flutter)
-*   **State Management:** Riverpod (`flutter_riverpod`) kết hợp với **Freezed** cho Immutable State.
-*   **API Client:** Dio (`dio`) tích hợp logger định dạng và xử lý Token tự động.
+*   **State Management:** Riverpod (`flutter_riverpod`, `riverpod_annotation` & Riverpod Generator) kết hợp với **Freezed** cho Immutable State.
+*   **API Client:** Dio (`dio`) tích hợp logger định dạng và xử lý tự động làm mới mã thông báo (Auto-Refresh Token flow).
 *   **Mã hóa cục bộ:** `flutter_secure_storage` để lưu trữ Token JWT bảo mật.
 *   **Routing:** `go_router` hỗ trợ điều hướng dạng Declarative Routing.
 *   **Caching hình ảnh:** `cached_network_image` tối ưu hóa băng thông tải ảnh.

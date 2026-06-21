@@ -17,11 +17,10 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$AuthResult {
   String get token => throw _privateConstructorUsedError;
+  String get refreshToken => throw _privateConstructorUsedError;
   AppUser get user => throw _privateConstructorUsedError;
 
-  /// Create a copy of AuthResult
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AuthResultCopyWith<AuthResult> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -32,7 +31,7 @@ abstract class $AuthResultCopyWith<$Res> {
           AuthResult value, $Res Function(AuthResult) then) =
       _$AuthResultCopyWithImpl<$Res, AuthResult>;
   @useResult
-  $Res call({String token, AppUser user});
+  $Res call({String token, String refreshToken, AppUser user});
 
   $AppUserCopyWith<$Res> get user;
 }
@@ -47,18 +46,21 @@ class _$AuthResultCopyWithImpl<$Res, $Val extends AuthResult>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AuthResult
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? token = null,
+    Object? refreshToken = null,
     Object? user = null,
   }) {
     return _then(_value.copyWith(
       token: null == token
           ? _value.token
           : token // ignore: cast_nullable_to_non_nullable
+              as String,
+      refreshToken: null == refreshToken
+          ? _value.refreshToken
+          : refreshToken // ignore: cast_nullable_to_non_nullable
               as String,
       user: null == user
           ? _value.user
@@ -67,8 +69,6 @@ class _$AuthResultCopyWithImpl<$Res, $Val extends AuthResult>
     ) as $Val);
   }
 
-  /// Create a copy of AuthResult
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $AppUserCopyWith<$Res> get user {
@@ -86,7 +86,7 @@ abstract class _$$AuthResultImplCopyWith<$Res>
       __$$AuthResultImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String token, AppUser user});
+  $Res call({String token, String refreshToken, AppUser user});
 
   @override
   $AppUserCopyWith<$Res> get user;
@@ -100,18 +100,21 @@ class __$$AuthResultImplCopyWithImpl<$Res>
       _$AuthResultImpl _value, $Res Function(_$AuthResultImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of AuthResult
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? token = null,
+    Object? refreshToken = null,
     Object? user = null,
   }) {
     return _then(_$AuthResultImpl(
       token: null == token
           ? _value.token
           : token // ignore: cast_nullable_to_non_nullable
+              as String,
+      refreshToken: null == refreshToken
+          ? _value.refreshToken
+          : refreshToken // ignore: cast_nullable_to_non_nullable
               as String,
       user: null == user
           ? _value.user
@@ -124,16 +127,19 @@ class __$$AuthResultImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$AuthResultImpl implements _AuthResult {
-  const _$AuthResultImpl({required this.token, required this.user});
+  const _$AuthResultImpl(
+      {required this.token, required this.refreshToken, required this.user});
 
   @override
   final String token;
+  @override
+  final String refreshToken;
   @override
   final AppUser user;
 
   @override
   String toString() {
-    return 'AuthResult(token: $token, user: $user)';
+    return 'AuthResult(token: $token, refreshToken: $refreshToken, user: $user)';
   }
 
   @override
@@ -142,15 +148,15 @@ class _$AuthResultImpl implements _AuthResult {
         (other.runtimeType == runtimeType &&
             other is _$AuthResultImpl &&
             (identical(other.token, token) || other.token == token) &&
+            (identical(other.refreshToken, refreshToken) ||
+                other.refreshToken == refreshToken) &&
             (identical(other.user, user) || other.user == user));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, token, user);
+  int get hashCode => Object.hash(runtimeType, token, refreshToken, user);
 
-  /// Create a copy of AuthResult
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AuthResultImplCopyWith<_$AuthResultImpl> get copyWith =>
@@ -160,17 +166,17 @@ class _$AuthResultImpl implements _AuthResult {
 abstract class _AuthResult implements AuthResult {
   const factory _AuthResult(
       {required final String token,
+      required final String refreshToken,
       required final AppUser user}) = _$AuthResultImpl;
 
   @override
   String get token;
   @override
-  AppUser get user;
-
-  /// Create a copy of AuthResult
-  /// with the given fields replaced by the non-null parameter values.
+  String get refreshToken;
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  AppUser get user;
+  @override
+  @JsonKey(ignore: true)
   _$$AuthResultImplCopyWith<_$AuthResultImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

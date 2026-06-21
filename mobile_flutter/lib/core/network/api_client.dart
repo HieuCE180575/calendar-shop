@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../constants/api_constants.dart';
@@ -8,6 +9,8 @@ import 'api_logging_interceptor.dart';
 class ApiClient {
   final Dio dio;
   final TokenStorage tokenStorage;
+  bool _isRefreshing = false;
+  final List<Completer<String?>> _refreshCompleters = [];
 
   ApiClient({required this.tokenStorage})
     : dio = Dio(
@@ -27,7 +30,78 @@ class ApiClient {
           }
           handler.next(options);
         },
-        onError: (error, handler) {
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401) {
+            final options = error.requestOptions;
+
+            if (_isRefreshing) {
+              final completer = Completer<String?>();
+              _refreshCompleters.add(completer);
+              try {
+                final newToken = await completer.future;
+                if (newToken != null) {
+                  options.headers['Authorization'] = 'Bearer $newToken';
+                  final response = await dio.fetch(options);
+                  return handler.resolve(response);
+                }
+              } catch (_) {}
+              return handler.next(error);
+            }
+
+            _isRefreshing = true;
+            final completer = Completer<String?>();
+            _refreshCompleters.add(completer);
+
+            try {
+              final oldToken = await tokenStorage.getToken();
+              final refreshToken = await tokenStorage.getRefreshToken();
+
+              if (refreshToken != null && oldToken != null) {
+                final refreshDio = Dio(
+                  BaseOptions(
+                    baseUrl: ApiConstants.baseUrl,
+                    headers: {'Content-Type': 'application/json'},
+                  ),
+                );
+                
+                final response = await refreshDio.post(
+                  '/api/Auth/refresh',
+                  data: {
+                    'token': oldToken,
+                    'refreshToken': refreshToken,
+                  },
+                );
+
+                if (response.statusCode == 200 && response.data != null) {
+                  final data = response.data;
+                  final newToken = data['token'] as String;
+                  final newRefreshToken = data['refreshToken'] as String;
+
+                  await tokenStorage.saveToken(newToken);
+                  await tokenStorage.saveRefreshToken(newRefreshToken);
+
+                  for (var c in _refreshCompleters) {
+                    c.complete(newToken);
+                  }
+                  _refreshCompleters.clear();
+                  _isRefreshing = false;
+
+                  options.headers['Authorization'] = 'Bearer $newToken';
+                  final retryResponse = await dio.fetch(options);
+                  return handler.resolve(retryResponse);
+                }
+              }
+            } catch (e) {
+              for (var c in _refreshCompleters) {
+                c.complete(null);
+              }
+              _refreshCompleters.clear();
+              _isRefreshing = false;
+
+              await tokenStorage.clearTokens();
+              return handler.next(error);
+            }
+          }
           handler.next(error);
         },
       ),

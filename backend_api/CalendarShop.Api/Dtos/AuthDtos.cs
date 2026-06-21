@@ -14,4 +14,7 @@ public record UserDto(
     string? AvatarUrl
 );
 
-public record AuthResponse(string Token, UserDto User);
+public record AuthResponse(string Token, string RefreshToken, UserDto User);
+
+public record RefreshTokenRequest(string Token, string RefreshToken);
+

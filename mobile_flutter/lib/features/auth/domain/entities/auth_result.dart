@@ -7,6 +7,7 @@ part 'auth_result.freezed.dart';
 class AuthResult with _$AuthResult {
   const factory AuthResult({
     required String token,
+    required String refreshToken,
     required AppUser user,
   }) = _AuthResult;
 }

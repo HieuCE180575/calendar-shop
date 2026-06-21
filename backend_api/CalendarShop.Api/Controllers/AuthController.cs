@@ -43,4 +43,11 @@ public class AuthController : AppControllerBase
         await _authService.ChangePasswordAsync(CurrentUserId, request);
         return NoContent();
     }
+
+    [HttpPost("refresh")]
+    public async Task<ActionResult<AuthResponse>> Refresh(RefreshTokenRequest request)
+    {
+        var response = await _authService.RefreshAsync(request);
+        return Ok(response);
+    }
 }

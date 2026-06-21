@@ -70,6 +70,7 @@ Mở trình duyệt và truy cập:
 Mã nguồn được cấu trúc theo phân lớp rõ ràng:
 *   **Controllers:** Chỉ chứa các Endpoint giao tiếp HTTP, kiểm tra phân quyền và điều hướng dữ liệu. Mọi API truy vấn dạng danh sách đều dùng `[EnableQuery]` để bật OData.
 *   **Services:** Chứa 100% logic nghiệp vụ (business logic) của dự án. Không trực tiếp xử lý HTTP status code mà bắn Exception khi gặp lỗi.
+*   **Repositories:** Triển khai các lớp `IRepository<T>` phục vụ việc truy xuất dữ liệu độc lập từ Database (ngăn cấm tiêm `AppDbContext` trực tiếp vào lớp `Services`).
 *   **Data / DbContext:** Cấu hình EF Core Entities và quan hệ bảng.
 *   **Mappings (AutoMapper Profiles):** Chứa các cấu hình ánh xạ giữa thực thể Entity trong DB và các DTO chuyển tải dữ liệu.
 *   **Validators (FluentValidation):** Tự động bắt lỗi các Request Body gửi lên trước khi chuyển giao vào Controller.

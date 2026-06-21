@@ -1,10 +1,13 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../network/api_client.dart';
 import '../storage/token_storage.dart';
 
-final tokenStorageProvider = Provider<TokenStorage>((ref) => TokenStorage());
+part 'core_providers.g.dart';
 
-final apiClientProvider = Provider<ApiClient>((ref) {
+@Riverpod(keepAlive: true)
+TokenStorage tokenStorage(TokenStorageRef ref) => TokenStorage();
+
+@Riverpod(keepAlive: true)
+ApiClient apiClient(ApiClientRef ref) {
   return ApiClient(tokenStorage: ref.watch(tokenStorageProvider));
-});
+}

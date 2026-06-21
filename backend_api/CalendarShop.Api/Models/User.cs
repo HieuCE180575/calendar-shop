@@ -17,4 +17,5 @@ public class User
 
     public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     public ICollection<Order> Orders { get; set; } = new List<Order>();
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

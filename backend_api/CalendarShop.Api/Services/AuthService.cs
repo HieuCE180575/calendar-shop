@@ -5,19 +5,27 @@ using CalendarShop.Api.Models;
 using CalendarShop.Api.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace CalendarShop.Api.Services;
 
 public class AuthService : IAuthService
 {
     private readonly IRepository<User> _userRepository;
+    private readonly IRepository<RefreshToken> _refreshTokenRepository;
     private readonly PasswordService _passwordService;
     private readonly JwtService _jwtService;
     private readonly IMapper _mapper;
 
-    public AuthService(IRepository<User> userRepository, PasswordService passwordService, JwtService jwtService, IMapper mapper)
+    public AuthService(
+        IRepository<User> userRepository,
+        IRepository<RefreshToken> refreshTokenRepository,
+        PasswordService passwordService,
+        JwtService jwtService,
+        IMapper mapper)
     {
         _userRepository = userRepository;
+        _refreshTokenRepository = refreshTokenRepository;
         _passwordService = passwordService;
         _jwtService = jwtService;
         _mapper = mapper;
@@ -40,7 +48,19 @@ public class AuthService : IAuthService
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
 
-        return ToAuthResponse(user);
+        // Sinh Refresh Token mới
+        var refreshTokenValue = _jwtService.GenerateRefreshToken();
+        var refreshToken = new RefreshToken
+        {
+            UserId = user.UserId,
+            Token = refreshTokenValue,
+            ExpiredAt = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        };
+        await _refreshTokenRepository.AddAsync(refreshToken);
+        await _refreshTokenRepository.SaveChangesAsync();
+
+        return ToAuthResponse(user, refreshTokenValue);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
@@ -62,7 +82,19 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Sai tài khoản hoặc mật khẩu.");
         }
 
-        return ToAuthResponse(user);
+        // Sinh Refresh Token mới mỗi khi đăng nhập thành công
+        var refreshTokenValue = _jwtService.GenerateRefreshToken();
+        var refreshToken = new RefreshToken
+        {
+            UserId = user.UserId,
+            Token = refreshTokenValue,
+            ExpiredAt = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        };
+        await _refreshTokenRepository.AddAsync(refreshToken);
+        await _refreshTokenRepository.SaveChangesAsync();
+
+        return ToAuthResponse(user, refreshTokenValue);
     }
 
     public async Task<UserDto> GetMeAsync(int userId)
@@ -94,8 +126,63 @@ public class AuthService : IAuthService
         await _userRepository.SaveChangesAsync();
     }
 
-    private AuthResponse ToAuthResponse(User user)
+    public async Task<AuthResponse> RefreshAsync(RefreshTokenRequest request)
     {
-        return new AuthResponse(_jwtService.GenerateToken(user), _mapper.Map<UserDto>(user));
+        var principal = _jwtService.GetPrincipalFromExpiredToken(request.Token);
+        if (principal == null)
+        {
+            throw new BadHttpRequestException("Token truy cập không hợp lệ.");
+        }
+
+        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
+            throw new BadHttpRequestException("Token truy cập không hợp lệ.");
+        }
+
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new BadHttpRequestException("Người dùng không khả dụng.");
+        }
+
+        if (user.Status == "Locked")
+        {
+            throw new BadHttpRequestException("Tài khoản đã bị khóa.");
+        }
+
+        // Tìm token cũ đang hoạt động
+        var storedRefreshToken = await _refreshTokenRepository.Entities
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.Token == request.RefreshToken && !x.IsRevoked && x.ExpiredAt > DateTime.UtcNow);
+
+        if (storedRefreshToken == null)
+        {
+            throw new BadHttpRequestException("Token làm mới không hợp lệ hoặc đã hết hạn.");
+        }
+
+        // Thu hồi token cũ
+        storedRefreshToken.IsRevoked = true;
+        _refreshTokenRepository.Update(storedRefreshToken);
+
+        // Sinh cặp token mới
+        var newAccessToken = _jwtService.GenerateToken(user);
+        var newRefreshTokenValue = _jwtService.GenerateRefreshToken();
+
+        var newRefreshToken = new RefreshToken
+        {
+            UserId = user.UserId,
+            Token = newRefreshTokenValue,
+            ExpiredAt = DateTime.UtcNow.AddDays(7),
+            IsRevoked = false
+        };
+        await _refreshTokenRepository.AddAsync(newRefreshToken);
+        await _refreshTokenRepository.SaveChangesAsync();
+
+        return new AuthResponse(newAccessToken, newRefreshTokenValue, _mapper.Map<UserDto>(user));
+    }
+
+    private AuthResponse ToAuthResponse(User user, string refreshToken)
+    {
+        return new AuthResponse(_jwtService.GenerateToken(user), refreshToken, _mapper.Map<UserDto>(user));
     }
 }

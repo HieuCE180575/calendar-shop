@@ -26,9 +26,9 @@ Tải toàn bộ các package cần thiết đã khai báo trong `pubspec.yaml`:
 flutter pub get
 ```
 
-### 2. Sinh mã nguồn tự động (Freezed & JSON)
+### 2. Sinh mã nguồn tự động (Freezed, JSON & Riverpod Generator)
 
-Vì dự án sử dụng bộ sinh code Freezed cho các class Immutable Model/Entity, bạn bắt buộc phải chạy lệnh này trước để tạo ra các file `.freezed.dart` và `.g.dart`:
+Vì dự án sử dụng bộ sinh code Freezed cho các class Immutable Model/Entity và Riverpod Generator cho các Providers, bạn bắt buộc phải chạy lệnh này trước để tạo ra các file `.freezed.dart` và `.g.dart`:
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
@@ -77,4 +77,4 @@ Mỗi tính năng trong thư mục `lib/features/` (ví dụ `product`, `auth`, 
     - `repositories/`: Cụ thể hóa interface lớp Domain, ánh xạ DTO sang Entity qua hàm `.toEntity()`.
 3.  **Presentation Layer (Giao diện hiển thị):**
     - `pages/`: Chứa các màn hình hiển thị (UI Screen).
-    - `providers/`: Quản lý trạng thái và tiêm phụ thuộc (Dependency Injection) bằng Riverpod.
+    - `providers/`: Quản lý trạng thái và tiêm phụ thuộc (Dependency Injection) bằng Riverpod (sử dụng Riverpod Generator).

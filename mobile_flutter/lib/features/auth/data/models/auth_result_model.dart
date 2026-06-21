@@ -9,6 +9,7 @@ part 'auth_result_model.g.dart';
 class AuthResultModel with _$AuthResultModel {
   const factory AuthResultModel({
     required String token,
+    required String refreshToken,
     required UserModel user,
   }) = _AuthResultModel;
 
@@ -19,6 +20,7 @@ class AuthResultModel with _$AuthResultModel {
 extension AuthResultModelMapper on AuthResultModel {
   AuthResult toEntity() => AuthResult(
         token: token,
+        refreshToken: refreshToken,
         user: user.toEntity(),
       );
 }

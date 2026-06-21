@@ -21,14 +21,11 @@ AuthResultModel _$AuthResultModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$AuthResultModel {
   String get token => throw _privateConstructorUsedError;
+  String get refreshToken => throw _privateConstructorUsedError;
   UserModel get user => throw _privateConstructorUsedError;
 
-  /// Serializes this AuthResultModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AuthResultModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AuthResultModelCopyWith<AuthResultModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -39,7 +36,7 @@ abstract class $AuthResultModelCopyWith<$Res> {
           AuthResultModel value, $Res Function(AuthResultModel) then) =
       _$AuthResultModelCopyWithImpl<$Res, AuthResultModel>;
   @useResult
-  $Res call({String token, UserModel user});
+  $Res call({String token, String refreshToken, UserModel user});
 
   $UserModelCopyWith<$Res> get user;
 }
@@ -54,18 +51,21 @@ class _$AuthResultModelCopyWithImpl<$Res, $Val extends AuthResultModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AuthResultModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? token = null,
+    Object? refreshToken = null,
     Object? user = null,
   }) {
     return _then(_value.copyWith(
       token: null == token
           ? _value.token
           : token // ignore: cast_nullable_to_non_nullable
+              as String,
+      refreshToken: null == refreshToken
+          ? _value.refreshToken
+          : refreshToken // ignore: cast_nullable_to_non_nullable
               as String,
       user: null == user
           ? _value.user
@@ -74,8 +74,6 @@ class _$AuthResultModelCopyWithImpl<$Res, $Val extends AuthResultModel>
     ) as $Val);
   }
 
-  /// Create a copy of AuthResultModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $UserModelCopyWith<$Res> get user {
@@ -93,7 +91,7 @@ abstract class _$$AuthResultModelImplCopyWith<$Res>
       __$$AuthResultModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String token, UserModel user});
+  $Res call({String token, String refreshToken, UserModel user});
 
   @override
   $UserModelCopyWith<$Res> get user;
@@ -107,18 +105,21 @@ class __$$AuthResultModelImplCopyWithImpl<$Res>
       _$AuthResultModelImpl _value, $Res Function(_$AuthResultModelImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of AuthResultModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? token = null,
+    Object? refreshToken = null,
     Object? user = null,
   }) {
     return _then(_$AuthResultModelImpl(
       token: null == token
           ? _value.token
           : token // ignore: cast_nullable_to_non_nullable
+              as String,
+      refreshToken: null == refreshToken
+          ? _value.refreshToken
+          : refreshToken // ignore: cast_nullable_to_non_nullable
               as String,
       user: null == user
           ? _value.user
@@ -131,7 +132,8 @@ class __$$AuthResultModelImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$AuthResultModelImpl implements _AuthResultModel {
-  const _$AuthResultModelImpl({required this.token, required this.user});
+  const _$AuthResultModelImpl(
+      {required this.token, required this.refreshToken, required this.user});
 
   factory _$AuthResultModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$AuthResultModelImplFromJson(json);
@@ -139,11 +141,13 @@ class _$AuthResultModelImpl implements _AuthResultModel {
   @override
   final String token;
   @override
+  final String refreshToken;
+  @override
   final UserModel user;
 
   @override
   String toString() {
-    return 'AuthResultModel(token: $token, user: $user)';
+    return 'AuthResultModel(token: $token, refreshToken: $refreshToken, user: $user)';
   }
 
   @override
@@ -152,16 +156,16 @@ class _$AuthResultModelImpl implements _AuthResultModel {
         (other.runtimeType == runtimeType &&
             other is _$AuthResultModelImpl &&
             (identical(other.token, token) || other.token == token) &&
+            (identical(other.refreshToken, refreshToken) ||
+                other.refreshToken == refreshToken) &&
             (identical(other.user, user) || other.user == user));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, token, user);
+  int get hashCode => Object.hash(runtimeType, token, refreshToken, user);
 
-  /// Create a copy of AuthResultModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AuthResultModelImplCopyWith<_$AuthResultModelImpl> get copyWith =>
@@ -179,6 +183,7 @@ class _$AuthResultModelImpl implements _AuthResultModel {
 abstract class _AuthResultModel implements AuthResultModel {
   const factory _AuthResultModel(
       {required final String token,
+      required final String refreshToken,
       required final UserModel user}) = _$AuthResultModelImpl;
 
   factory _AuthResultModel.fromJson(Map<String, dynamic> json) =
@@ -187,12 +192,11 @@ abstract class _AuthResultModel implements AuthResultModel {
   @override
   String get token;
   @override
-  UserModel get user;
-
-  /// Create a copy of AuthResultModel
-  /// with the given fields replaced by the non-null parameter values.
+  String get refreshToken;
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  UserModel get user;
+  @override
+  @JsonKey(ignore: true)
   _$$AuthResultModelImplCopyWith<_$AuthResultModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
