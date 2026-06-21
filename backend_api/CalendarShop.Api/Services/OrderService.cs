@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using CalendarShop.Api.Data;
 using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Models;
+using CalendarShop.Api.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,18 +11,29 @@ namespace CalendarShop.Api.Services;
 
 public class OrderService : IOrderService
 {
-    private readonly AppDbContext _db;
+    private readonly IRepository<Order> _orderRepository;
+    private readonly IRepository<CartItem> _cartItemRepository;
+    private readonly IRepository<Product> _productRepository;
+    private readonly IRepository<Coupon> _couponRepository;
     private readonly IMapper _mapper;
 
-    public OrderService(AppDbContext db, IMapper mapper)
+    public OrderService(
+        IRepository<Order> orderRepository,
+        IRepository<CartItem> cartItemRepository,
+        IRepository<Product> productRepository,
+        IRepository<Coupon> couponRepository,
+        IMapper mapper)
     {
-        _db = db;
+        _orderRepository = orderRepository;
+        _cartItemRepository = cartItemRepository;
+        _productRepository = productRepository;
+        _couponRepository = couponRepository;
         _mapper = mapper;
     }
 
     public async Task<OrderDto> CreateOrderAsync(int userId, CreateOrderRequest request)
     {
-        var cartItems = await _db.CartItems
+        var cartItems = await _cartItemRepository.Entities
             .Include(x => x.Product)
             .Where(x => x.UserId == userId && x.IsSelected)
             .ToListAsync();
@@ -49,7 +61,7 @@ public class OrderService : IOrderService
 
         if (!string.IsNullOrWhiteSpace(request.CouponCode))
         {
-            coupon = await _db.Coupons.FirstOrDefaultAsync(x => x.Code == request.CouponCode && x.Status == "Active");
+            coupon = await _couponRepository.Entities.FirstOrDefaultAsync(x => x.Code == request.CouponCode && x.Status == "Active");
             if (coupon == null)
             {
                 throw new BadHttpRequestException("Mã giảm giá không hợp lệ.");
@@ -107,23 +119,25 @@ public class OrderService : IOrderService
             {
                 product.Status = "OutOfStock";
             }
+            _productRepository.Update(product);
         }
 
         if (coupon != null)
         {
             coupon.UsedCount++;
+            _couponRepository.Update(coupon);
         }
 
-        _db.Orders.Add(order);
-        _db.CartItems.RemoveRange(cartItems);
-        await _db.SaveChangesAsync();
+        await _orderRepository.AddAsync(order);
+        _cartItemRepository.RemoveRange(cartItems);
+        await _orderRepository.SaveChangesAsync();
 
         return await GetOrderByIdAsync(userId, order.OrderId);
     }
 
     public IQueryable<OrderDto> GetMyOrdersQuery(int userId)
     {
-        return _db.Orders
+        return _orderRepository.Entities
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
             .ProjectTo<OrderDto>(_mapper.ConfigurationProvider);
@@ -131,7 +145,7 @@ public class OrderService : IOrderService
 
     public async Task<OrderDto> GetOrderByIdAsync(int userId, int id)
     {
-        var order = await _db.Orders
+        var order = await _orderRepository.Entities
             .Where(x => x.OrderId == id && x.UserId == userId)
             .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
@@ -146,7 +160,7 @@ public class OrderService : IOrderService
 
     public async Task CancelOrderAsync(int userId, int id, CancelOrderRequest request)
     {
-        var order = await _db.Orders.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == id && x.UserId == userId);
+        var order = await _orderRepository.Entities.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == id && x.UserId == userId);
         if (order == null)
         {
             throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
@@ -159,10 +173,11 @@ public class OrderService : IOrderService
         order.Status = "Cancelled";
         order.CancelReason = request.Reason;
         order.UpdatedAt = DateTime.UtcNow;
+        _orderRepository.Update(order);
 
         foreach (var item in order.OrderItems)
         {
-            var product = await _db.Products.FindAsync(item.ProductId);
+            var product = await _productRepository.GetByIdAsync(item.ProductId);
             if (product != null)
             {
                 product.StockQuantity += item.Quantity;
@@ -170,22 +185,23 @@ public class OrderService : IOrderService
                 {
                     product.Status = "Active";
                 }
+                _productRepository.Update(product);
             }
         }
 
-        await _db.SaveChangesAsync();
+        await _orderRepository.SaveChangesAsync();
     }
 
     public IQueryable<OrderDto> AdminGetAllOrdersQuery()
     {
-        return _db.Orders
+        return _orderRepository.Entities
             .OrderByDescending(x => x.CreatedAt)
             .ProjectTo<OrderDto>(_mapper.ConfigurationProvider);
     }
 
     public async Task AdminUpdateOrderStatusAsync(int id, UpdateOrderStatusRequest request)
     {
-        var order = await _db.Orders.FindAsync(id);
+        var order = await _orderRepository.GetByIdAsync(id);
         if (order == null)
         {
             throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
@@ -207,6 +223,7 @@ public class OrderService : IOrderService
 
         order.Status = request.Status;
         order.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
     }
 }

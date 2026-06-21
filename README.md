@@ -1,185 +1,129 @@
-# Calendar Shop - PRM393 Mobile App
+# Calendar Shop - PRM393 Mobile Application Development Project
 
-Bộ source starter cho đề tài **Mobile App Bán Lịch Online**.
+Bộ mã nguồn mẫu (Starter) dành cho đề tài **Mobile App Bán Lịch Online** - Môn học PRM393 (FPT University). Dự án được thiết kế theo kiến trúc chuẩn Enterprise, chia làm hai tầng độc lập (Backend API & Flutter Frontend Client) đảm bảo hiệu năng và tính bảo mật.
 
-Project được chia thành 3 phần:
+---
 
+##  Kiến Trúc Tổng Quan Hệ Thống
+
+Hệ thống tuân thủ mô hình 3-tier tách biệt giữa Client, Server và Database:
+
+```mermaid
+graph LR
+    subgraph Client
+        Flutter[Flutter Mobile Client]
+    end
+    subgraph Application Server
+        Backend[ASP.NET Core Web API]
+    end
+    subgraph Data Layer
+        SQL[SQL Server Database]
+    end
+
+    Flutter -- HTTPS / OData --> Backend
+    Backend -- EF Core --> SQL
+```
+
+### Cấu Trúc Thư Mục Dự Án
 ```text
-calendar_shop_starter/
-├── mobile_flutter/       # Flutter app mở bằng Android Studio
-├── backend_api/          # ASP.NET Core Web API kết nối SQL Server
-└── sql/                  # Script tạo database SQL Server
+calendar-shop/
+├── mobile_flutter/       # Dự án Flutter Client (Android / iOS / Web)
+├── backend_api/          # Dự án ASP.NET Core Web API (C# .NET 8)
+└── sql/                  # Script khởi tạo cơ sở dữ liệu SQL Server
 ```
 
-## Kiến trúc tổng quát
+---
 
-Mobile app không kết nối trực tiếp SQL Server. Luồng đúng là:
+##  Công Nghệ Sử Dụng
 
-```text
-Flutter Mobile App  --->  ASP.NET Core Web API  --->  SQL Server
-```
+### 📱 Mobile Client (Flutter)
+*   **State Management:** Riverpod (`flutter_riverpod`) kết hợp với **Freezed** cho Immutable State.
+*   **API Client:** Dio (`dio`) tích hợp logger định dạng và xử lý Token tự động.
+*   **Mã hóa cục bộ:** `flutter_secure_storage` để lưu trữ Token JWT bảo mật.
+*   **Routing:** `go_router` hỗ trợ điều hướng dạng Declarative Routing.
+*   **Caching hình ảnh:** `cached_network_image` tối ưu hóa băng thông tải ảnh.
 
-Lý do: bảo mật tài khoản DB, dễ phân quyền, dễ validate dữ liệu, dễ deploy cho nhiều máy.
+### 💻 Backend Web API (ASP.NET Core)
+*   **Database ORM:** Entity Framework Core (SQL Server integration).
+*   **Query Engine:** Microsoft.AspNetCore.OData (hỗ trợ client lọc/phân trang/chọn cột động).
+*   **Mapping:** AutoMapper (`ProjectTo` & `Map` thông qua dependency injection).
+*   **Validation:** FluentValidation MVC Auto-Validation.
+*   **Logging:** Serilog structured console logging.
+*   **Security:** Authentication qua JWT Bearer Token.
 
-## Công nghệ
+---
 
-- Mobile: Flutter / Dart
-- State management: Riverpod
-- HTTP client: Dio
-- Backend: ASP.NET Core Web API
-- Database: SQL Server
-- Auth: JWT token
-- Architecture mobile: Clean Architecture theo từng feature
+##  Hướng Dẫn Cài Đặt Nhanh
 
-## Cách chạy database
+### Bước 1: Thiết lập Cơ sở dữ liệu SQL Server
+1.  Mở phần mềm **SQL Server Management Studio (SSMS)**.
+2.  Mở và thực thi (Execute) file script SQL:
+    [CalendarShopDB.sql](file:///e:/D/study/HK8/PRM393/.FinalProject/calendar-shop/sql/CalendarShopDB.sql)
+3.  Cơ sở dữ liệu mặc định sẽ được khởi tạo với tên: `CalendarShopDB` cùng các bảng và dữ liệu mẫu đầy đủ.
 
-1. Mở SQL Server Management Studio.
-2. Chạy file:
+### Bước 2: Chạy Backend API
+1.  Mở terminal tại thư mục dự án backend:
+    ```bash
+    cd backend_api/CalendarShop.Api
+    ```
+2.  Kiểm tra và sửa chuỗi kết nối (Connection String) trong file `appsettings.Development.json` cho khớp với SQL Server của bạn.
+3.  Chạy các lệnh để khởi động:
+    ```bash
+    dotnet restore
+    dotnet run
+    ```
+4.  Truy cập Swagger UI để kiểm thử API tại địa chỉ:
+    [http://localhost:52441/swagger](http://localhost:52441/swagger) (hoặc cổng ngẫu nhiên hiển thị trên console).
 
-```text
-sql/CalendarShopDB.sql
-```
+### Bước 3: Chạy ứng dụng Flutter
+1.  Mở terminal tại thư mục dự án mobile:
+    ```bash
+    cd mobile_flutter
+    ```
+2.  Chạy lệnh để cài đặt thư viện và sinh code tự động:
+    ```bash
+    flutter pub get
+    dart run build_runner build --delete-conflicting-outputs
+    ```
+3.  Kết nối thiết bị hoặc khởi động Emulator rồi chạy app:
+    ```bash
+    flutter run
+    ```
 
-Database mặc định: `CalendarShopDB`.
+> [!TIP]
+> - Nếu chạy bằng Android Emulator, base URL kết nối API mặc định đã được cấu hình trỏ về cổng ảo `10.0.2.2`.
+> - Nếu chạy trên thiết bị thật (Real Device), bạn cần đổi cổng IP về IP máy chủ phát WiFi của mình trong file [api_constants.dart](file:///e:/D/study/HK8/PRM393/.FinalProject/calendar-shop/mobile_flutter/lib/core/constants/api_constants.dart).
 
-## Cách chạy backend
+---
 
-Mở thư mục:
+##  Tài Khoản Thử Nghiệm Có Sẵn
 
-```text
-backend_api/CalendarShop.Api
-```
+Dữ liệu mẫu sau khi chạy file SQL đã cung cấp sẵn hai tài khoản sau để demo:
 
-Sửa connection string trong file:
+*   **Tài khoản Admin:**
+    *   **Email:** `admin@calendarshop.com`
+    *   **Mật khẩu:** `123456`
+*   **Tài khoản Customer:**
+    *   **Email:** `customer@gmail.com`
+    *   **Mật khẩu:** `123456`
 
-```text
-appsettings.Development.json
-```
+---
 
-Ví dụ:
+## 👥 Hướng Dẫn Git Nhóm & Phân Nhánh (Branch)
 
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=CalendarShopDB;Trusted_Connection=True;TrustServerCertificate=True"
-}
-```
-
-Chạy backend:
-
-```bash
-dotnet restore
-dotnet run
-```
-
-API mặc định có thể chạy ở:
-
-```text
-http://localhost:5000
-```
-
-Swagger:
-
-```text
-http://localhost:5000/swagger
-```
-
-## Cách chạy Flutter trong Android Studio
-
-Mở thư mục:
-
-```text
-mobile_flutter
-```
-
-Nếu thư mục chưa có platform Android, chạy:
-
-```bash
-flutter create .
-flutter pub get
-flutter run
-```
-
-Khi chạy Android Emulator, base URL đã để sẵn:
-
-```dart
-http://10.0.2.2:5000/api
-```
-
-Nếu chạy bằng điện thoại thật, đổi `baseUrl` trong:
-
-```text
-mobile_flutter/lib/core/constants/api_constants.dart
-```
-
-thành IP máy tính của bạn, ví dụ:
-
-```dart
-http://192.168.1.10:5000/api
-```
-
-## Tài khoản seed mẫu
-
-```text
-Admin:
-email: admin@calendarshop.com
-password: 123456
-
-Customer:
-email: customer@gmail.com
-password: 123456
-```
-
-Mật khẩu trong SQL đang hash theo SHA256 để tiện demo. Khi làm thật nên dùng BCrypt/ASP.NET Identity.
-
-## Git cho nhóm
-
-Sau khi giải nén source, bạn tạo repo và đẩy lên GitHub:
-
+### Tạo repository riêng cho nhóm:
 ```bash
 git init
 git add .
-git commit -m "Init Calendar Shop clean architecture starter"
+git commit -m "Init: Calendar Shop Clean Architecture Starter Project"
 git branch -M main
-git remote add origin https://github.com/<your-team>/calendar-shop-prm393.git
+git remote add origin <url_repo_nhom_cua_ban>
 git push -u origin main
 ```
 
-## Chia branch cho từng người
-
-```bash
-git checkout -b feature/auth-profile
-git checkout -b feature/product-category
-git checkout -b feature/cart-order
-git checkout -b feature/favorite-review
-git checkout -b feature/admin-management
-git checkout -b feature/coupon-dashboard
-```
-
-## Quy tắc làm việc nhóm
-
-1. Mỗi người làm trên branch riêng.
-2. Không commit trực tiếp vào `main`.
-3. Tạo Pull Request để merge.
-4. Khi lấy code mới:
-
-```bash
-git checkout main
-git pull origin main
-git checkout feature/ten-chuc-nang
-git merge main
-```
-
-## Phạm vi code có sẵn
-
-Starter này đã có:
-
-- SQL Server database schema
-- ASP.NET Core API structure
-- Model, DbContext, Controller cơ bản
-- JWT Auth flow
-- Flutter Clean Architecture folder
-- Login/Register screen
-- Product list screen
-- Cart/Order/Admin skeleton
-
-Nhóm bạn tiếp tục đầy đủ từng màn hình, validation, UI, API detail và business rule.
+### Phân công nhánh làm việc (Không commit trực tiếp lên `main`):
+*   Tính năng Auth & Profile: `feature/auth-profile`
+*   Tính năng Sản phẩm & Danh mục: `feature/product-category`
+*   Tính năng Giỏ hàng & Đặt hàng: `feature/cart-order`
+*   Tính năng Yêu thích & Đánh giá: `feature/favorite-review`
+*   Tính năng Quản trị & Dashboard: `feature/admin-management`

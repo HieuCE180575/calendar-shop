@@ -2,6 +2,7 @@ using AutoMapper;
 using CalendarShop.Api.Data;
 using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Models;
+using CalendarShop.Api.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,14 +10,14 @@ namespace CalendarShop.Api.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly AppDbContext _db;
+    private readonly IRepository<User> _userRepository;
     private readonly PasswordService _passwordService;
     private readonly JwtService _jwtService;
     private readonly IMapper _mapper;
 
-    public AuthService(AppDbContext db, PasswordService passwordService, JwtService jwtService, IMapper mapper)
+    public AuthService(IRepository<User> userRepository, PasswordService passwordService, JwtService jwtService, IMapper mapper)
     {
-        _db = db;
+        _userRepository = userRepository;
         _passwordService = passwordService;
         _jwtService = jwtService;
         _mapper = mapper;
@@ -24,7 +25,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
-        var exists = await _db.Users.AnyAsync(x =>
+        var exists = await _userRepository.Entities.AnyAsync(x =>
             (!string.IsNullOrEmpty(request.Email) && x.Email == request.Email) ||
             (!string.IsNullOrEmpty(request.Phone) && x.Phone == request.Phone));
 
@@ -36,15 +37,15 @@ public class AuthService : IAuthService
         var user = _mapper.Map<User>(request);
         user.PasswordHash = _passwordService.Hash(request.Password);
 
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+        await _userRepository.AddAsync(user);
+        await _userRepository.SaveChangesAsync();
 
         return ToAuthResponse(user);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(x => x.Email == request.Login || x.Phone == request.Login);
+        var user = await _userRepository.Entities.FirstOrDefaultAsync(x => x.Email == request.Login || x.Phone == request.Login);
         
         if (user == null)
         {
@@ -66,7 +67,7 @@ public class AuthService : IAuthService
 
     public async Task<UserDto> GetMeAsync(int userId)
     {
-        var user = await _db.Users.FindAsync(userId);
+        var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
         {
             throw new KeyNotFoundException("Không tìm thấy người dùng.");
@@ -76,7 +77,7 @@ public class AuthService : IAuthService
 
     public async Task ChangePasswordAsync(int userId, ChangePasswordRequest request)
     {
-        var user = await _db.Users.FindAsync(userId);
+        var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
         {
             throw new KeyNotFoundException("Không tìm thấy người dùng.");
@@ -89,7 +90,8 @@ public class AuthService : IAuthService
 
         user.PasswordHash = _passwordService.Hash(request.NewPassword);
         user.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        _userRepository.Update(user);
+        await _userRepository.SaveChangesAsync();
     }
 
     private AuthResponse ToAuthResponse(User user)

@@ -1,5 +1,6 @@
 using System.Text;
 using CalendarShop.Api.Data;
+using CalendarShop.Api.Repositories;
 using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +63,8 @@ try
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+    builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
     builder.Services.AddScoped<PasswordService>();
     builder.Services.AddScoped<JwtService>();
     builder.Services.AddScoped<IAuthService, AuthService>();
@@ -69,6 +72,7 @@ try
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

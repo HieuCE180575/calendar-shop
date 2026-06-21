@@ -3,24 +3,25 @@ using AutoMapper.QueryableExtensions;
 using CalendarShop.Api.Data;
 using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Models;
+using CalendarShop.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace CalendarShop.Api.Services;
 
 public class CategoryService : ICategoryService
 {
-    private readonly AppDbContext _db;
+    private readonly IRepository<Category> _categoryRepository;
     private readonly IMapper _mapper;
 
-    public CategoryService(AppDbContext db, IMapper mapper)
+    public CategoryService(IRepository<Category> categoryRepository, IMapper mapper)
     {
-        _db = db;
+        _categoryRepository = categoryRepository;
         _mapper = mapper;
     }
 
     public IQueryable<CategoryDto> GetAllCategoriesQuery()
     {
-        return _db.Categories
+        return _categoryRepository.Entities
             .OrderBy(x => x.CategoryName)
             .ProjectTo<CategoryDto>(_mapper.ConfigurationProvider);
     }
@@ -28,14 +29,14 @@ public class CategoryService : ICategoryService
     public async Task<CategoryDto> CreateCategoryAsync(CategoryCreateUpdateDto request)
     {
         var category = _mapper.Map<Category>(request);
-        _db.Categories.Add(category);
-        await _db.SaveChangesAsync();
+        await _categoryRepository.AddAsync(category);
+        await _categoryRepository.SaveChangesAsync();
         return _mapper.Map<CategoryDto>(category);
     }
 
     public async Task UpdateCategoryAsync(int id, CategoryCreateUpdateDto request)
     {
-        var category = await _db.Categories.FindAsync(id);
+        var category = await _categoryRepository.GetByIdAsync(id);
         if (category == null)
         {
             throw new KeyNotFoundException("Không tìm thấy danh mục.");
@@ -43,18 +44,20 @@ public class CategoryService : ICategoryService
 
         _mapper.Map(request, category);
         category.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        _categoryRepository.Update(category);
+        await _categoryRepository.SaveChangesAsync();
     }
 
     public async Task DeleteCategoryAsync(int id)
     {
-        var category = await _db.Categories.FindAsync(id);
+        var category = await _categoryRepository.GetByIdAsync(id);
         if (category == null)
         {
             throw new KeyNotFoundException("Không tìm thấy danh mục.");
         }
         category.Status = "Hidden";
         category.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        _categoryRepository.Update(category);
+        await _categoryRepository.SaveChangesAsync();
     }
 }
