@@ -7,6 +7,10 @@ GO
 USE CalendarShopDB;
 GO
 
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
 IF OBJECT_ID('dbo.Reviews', 'U') IS NOT NULL DROP TABLE dbo.Reviews;
 IF OBJECT_ID('dbo.CouponUsages', 'U') IS NOT NULL DROP TABLE dbo.CouponUsages;
 IF OBJECT_ID('dbo.OrderStatusHistories', 'U') IS NOT NULL DROP TABLE dbo.OrderStatusHistories;
