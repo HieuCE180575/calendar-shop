@@ -1,33 +1,41 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/product.dart';
 
-class ProductModel extends Product {
-  const ProductModel({
-    required super.productId,
-    required super.categoryId,
-    super.categoryName,
-    required super.productName,
-    super.description,
-    required super.price,
-    required super.stockQuantity,
-    super.imageUrl,
-    required super.calendarType,
-    required super.status,
-    required super.createdAt,
-  });
+part 'product_model.freezed.dart';
+part 'product_model.g.dart';
 
-  factory ProductModel.fromJson(Map<String, dynamic> json) {
-    return ProductModel(
-      productId: json['productId'],
-      categoryId: json['categoryId'],
-      categoryName: json['categoryName'],
-      productName: json['productName'] ?? '',
-      description: json['description'],
-      price: (json['price'] as num).toDouble(),
-      stockQuantity: json['stockQuantity'] ?? 0,
-      imageUrl: json['imageUrl'],
-      calendarType: json['calendarType'] ?? '',
-      status: json['status'] ?? 'Active',
-      createdAt: DateTime.parse(json['createdAt']),
-    );
-  }
+@freezed
+class ProductModel with _$ProductModel {
+  const factory ProductModel({
+    required int productId,
+    required int categoryId,
+    String? categoryName,
+    required String productName,
+    String? description,
+    required double price,
+    required int stockQuantity,
+    String? imageUrl,
+    required String calendarType,
+    required String status,
+    required DateTime createdAt,
+  }) = _ProductModel;
+
+  factory ProductModel.fromJson(Map<String, dynamic> json) =>
+      _$ProductModelFromJson(json);
+}
+
+extension ProductModelMapper on ProductModel {
+  Product toEntity() => Product(
+        productId: productId,
+        categoryId: categoryId,
+        categoryName: categoryName,
+        productName: productName,
+        description: description,
+        price: price,
+        stockQuantity: stockQuantity,
+        imageUrl: imageUrl,
+        calendarType: calendarType,
+        status: status,
+        createdAt: createdAt,
+      );
 }

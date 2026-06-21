@@ -1,23 +1,18 @@
-class CartItemEntity {
-  final int cartItemId;
-  final int productId;
-  final String productName;
-  final String? imageUrl;
-  final double price;
-  final int quantity;
-  final int stockQuantity;
-  final bool isSelected;
-  final double lineTotal;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const CartItemEntity({
-    required this.cartItemId,
-    required this.productId,
-    required this.productName,
-    this.imageUrl,
-    required this.price,
-    required this.quantity,
-    required this.stockQuantity,
-    required this.isSelected,
-    required this.lineTotal,
-  });
+part 'cart_item.freezed.dart';
+
+@freezed
+class CartItemEntity with _$CartItemEntity {
+  const factory CartItemEntity({
+    required int cartItemId,
+    required int productId,
+    required String productName,
+    String? imageUrl,
+    required double price,
+    required int quantity,
+    required int stockQuantity,
+    required bool isSelected,
+    required double lineTotal,
+  }) = _CartItemEntity;
 }

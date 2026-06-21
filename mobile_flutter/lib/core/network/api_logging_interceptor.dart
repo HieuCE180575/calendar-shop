@@ -1,64 +1,71 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:logger/logger.dart';
 
 class ApiLoggingInterceptor extends Interceptor {
+  final _logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 0,
+      errorMethodCount: 5,
+      lineLength: 80,
+      colors: true,
+      printEmojis: true,
+      dateTimeFormat: DateTimeFormat.none,
+    ),
+  );
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    debugPrint('\n=== [API REQUEST] ===');
-    debugPrint('--> ${options.method.toUpperCase()} ${options.uri}');
-
     // Log, hide the sensitive Headers
     final headers = Map<String, dynamic>.from(options.headers);
     if (headers.containsKey('Authorization')) {
       headers['Authorization'] = 'Bearer [MASKED_TOKEN]';
     }
-    debugPrint('Headers: $headers');
 
-      // Log, filter out the Body
+    String bodyStr = '';
     if (options.data != null) {
       if (options.data is Map<String, dynamic>) {
         final maskedData = _maskSensitiveData(options.data as Map<String, dynamic>);
-        debugPrint('Body: ${jsonEncode((maskedData))}');
+        bodyStr = '\nBody: ${jsonEncode(maskedData)}';
       } else {
-        debugPrint('Body: ${options.data}');
+        bodyStr = '\nBody: ${options.data}';
       }
     }
-    debugPrint('=====================\n');
+
+    _logger.i('--> ${options.method.toUpperCase()} ${options.uri}\nHeaders: $headers$bodyStr');
     super.onRequest(options, handler);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    debugPrint('\n=== [API RESPONSE] ===');
-    debugPrint('<-- ${response.statusCode} ${response.requestOptions.method.toUpperCase()} ${response.requestOptions.uri}');
-
-    // If big data then summary
+    String dataStr = '';
     if (response.data != null) {
       final responseString = jsonEncode(response.data);
       if (responseString.length > 500) {
-        debugPrint('Data (Trimmed): ${responseString.substring(0, 500)}...');
+        dataStr = '\nData (Trimmed): ${responseString.substring(0, 500)}...';
       } else {
-        debugPrint('Data: $responseString');
+        dataStr = '\nData: $responseString';
       }
     }
-    debugPrint('======================\n');
+
+    _logger.d('<-- ${response.statusCode} ${response.requestOptions.method.toUpperCase()} ${response.requestOptions.uri}$dataStr');
     super.onResponse(response, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    debugPrint('\n=== [API ERROR] ===');
-    debugPrint('<-- ERROR ${err.response?.statusCode ?? 'No Code'} ${err.requestOptions.method.toUpperCase()} ${err.requestOptions.uri}');
-    debugPrint('Message: ${err.message}');
+    String errDataStr = '';
     if (err.response?.data != null) {
-      debugPrint('Error Data: ${jsonEncode(err.response?.data)}');
+      errDataStr = '\nError Data: ${jsonEncode(err.response?.data)}';
     }
-    debugPrint('====================\n');
+
+    _logger.e(
+      '<-- ERROR ${err.response?.statusCode ?? 'No Code'} ${err.requestOptions.method.toUpperCase()} ${err.requestOptions.uri}\nMessage: ${err.message}$errDataStr',
+    );
     super.onError(err, handler);
   }
 
-    Map<String, dynamic> _maskSensitiveData(Map<String, dynamic> data) {
+  Map<String, dynamic> _maskSensitiveData(Map<String, dynamic> data) {
     final copy = Map<String, dynamic>.from(data);
     final sensitiveKeys = ['password', 'oldPassword', 'newPassword'];
     

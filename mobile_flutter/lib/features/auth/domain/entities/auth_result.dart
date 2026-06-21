@@ -1,8 +1,12 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'app_user.dart';
 
-class AuthResult {
-  final String token;
-  final AppUser user;
+part 'auth_result.freezed.dart';
 
-  const AuthResult({required this.token, required this.user});
+@freezed
+class AuthResult with _$AuthResult {
+  const factory AuthResult({
+    required String token,
+    required AppUser user,
+  }) = _AuthResult;
 }

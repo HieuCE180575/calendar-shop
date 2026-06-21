@@ -1,27 +1,20 @@
-class Product {
-  final int productId;
-  final int categoryId;
-  final String? categoryName;
-  final String productName;
-  final String? description;
-  final double price;
-  final int stockQuantity;
-  final String? imageUrl;
-  final String calendarType;
-  final String status;
-  final DateTime createdAt;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const Product({
-    required this.productId,
-    required this.categoryId,
-    this.categoryName,
-    required this.productName,
-    this.description,
-    required this.price,
-    required this.stockQuantity,
-    this.imageUrl,
-    required this.calendarType,
-    required this.status,
-    required this.createdAt,
-  });
+part 'product.freezed.dart';
+
+@freezed
+class Product with _$Product {
+  const factory Product({
+    required int productId,
+    required int categoryId,
+    String? categoryName,
+    required String productName,
+    String? description,
+    required double price,
+    required int stockQuantity,
+    String? imageUrl,
+    required String calendarType,
+    required String status,
+    required DateTime createdAt,
+  }) = _Product;
 }

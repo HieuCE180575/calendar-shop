@@ -1,6 +1,7 @@
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../datasources/product_remote_datasource.dart';
+import '../models/product_model.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
   final ProductRemoteDataSource remoteDataSource;
@@ -15,8 +16,8 @@ class ProductRepositoryImpl implements ProductRepository {
     double? maxPrice,
     String? calendarType,
     String sort = 'newest',
-  }) {
-    return remoteDataSource.getProducts(
+  }) async {
+    final models = await remoteDataSource.getProducts(
       categoryId: categoryId,
       search: search,
       minPrice: minPrice,
@@ -24,8 +25,12 @@ class ProductRepositoryImpl implements ProductRepository {
       calendarType: calendarType,
       sort: sort,
     );
+    return models.map((m) => m.toEntity()).toList();
   }
 
   @override
-  Future<Product> getProductById(int id) => remoteDataSource.getProductById(id);
+  Future<Product> getProductById(int id) async {
+    final model = await remoteDataSource.getProductById(id);
+    return model.toEntity();
+  }
 }

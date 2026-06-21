@@ -1,19 +1,16 @@
-class AppUser {
-  final int userId;
-  final String fullName;
-  final String? email;
-  final String? phone;
-  final String role;
-  final String status;
-  final String? avatarUrl;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const AppUser({
-    required this.userId,
-    required this.fullName,
-    this.email,
-    this.phone,
-    required this.role,
-    required this.status,
-    this.avatarUrl,
-  });
+part 'app_user.freezed.dart';
+
+@freezed
+class AppUser with _$AppUser {
+  const factory AppUser({
+    required int userId,
+    required String fullName,
+    String? email,
+    String? phone,
+    required String role,
+    required String status,
+    String? avatarUrl,
+  }) = _AppUser;
 }

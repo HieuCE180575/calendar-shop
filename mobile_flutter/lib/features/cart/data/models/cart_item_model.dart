@@ -1,29 +1,37 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/cart_item.dart';
 
-class CartItemModel extends CartItemEntity {
-  const CartItemModel({
-    required super.cartItemId,
-    required super.productId,
-    required super.productName,
-    super.imageUrl,
-    required super.price,
-    required super.quantity,
-    required super.stockQuantity,
-    required super.isSelected,
-    required super.lineTotal,
-  });
+part 'cart_item_model.freezed.dart';
+part 'cart_item_model.g.dart';
 
-  factory CartItemModel.fromJson(Map<String, dynamic> json) {
-    return CartItemModel(
-      cartItemId: json['cartItemId'],
-      productId: json['productId'],
-      productName: json['productName'] ?? '',
-      imageUrl: json['imageUrl'],
-      price: (json['price'] as num).toDouble(),
-      quantity: json['quantity'],
-      stockQuantity: json['stockQuantity'],
-      isSelected: json['isSelected'],
-      lineTotal: (json['lineTotal'] as num).toDouble(),
-    );
-  }
+@freezed
+class CartItemModel with _$CartItemModel {
+  const factory CartItemModel({
+    required int cartItemId,
+    required int productId,
+    required String productName,
+    String? imageUrl,
+    required double price,
+    required int quantity,
+    required int stockQuantity,
+    required bool isSelected,
+    required double lineTotal,
+  }) = _CartItemModel;
+
+  factory CartItemModel.fromJson(Map<String, dynamic> json) =>
+      _$CartItemModelFromJson(json);
+}
+
+extension CartItemModelMapper on CartItemModel {
+  CartItemEntity toEntity() => CartItemEntity(
+        cartItemId: cartItemId,
+        productId: productId,
+        productName: productName,
+        imageUrl: imageUrl,
+        price: price,
+        quantity: quantity,
+        stockQuantity: stockQuantity,
+        isSelected: isSelected,
+        lineTotal: lineTotal,
+      );
 }

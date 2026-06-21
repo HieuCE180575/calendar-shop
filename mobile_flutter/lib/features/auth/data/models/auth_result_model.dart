@@ -1,13 +1,24 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/auth_result.dart';
 import 'user_model.dart';
 
-class AuthResultModel extends AuthResult {
-  const AuthResultModel({required super.token, required super.user});
+part 'auth_result_model.freezed.dart';
+part 'auth_result_model.g.dart';
 
-  factory AuthResultModel.fromJson(Map<String, dynamic> json) {
-    return AuthResultModel(
-      token: json['token'],
-      user: UserModel.fromJson(json['user']),
-    );
-  }
+@freezed
+class AuthResultModel with _$AuthResultModel {
+  const factory AuthResultModel({
+    required String token,
+    required UserModel user,
+  }) = _AuthResultModel;
+
+  factory AuthResultModel.fromJson(Map<String, dynamic> json) =>
+      _$AuthResultModelFromJson(json);
+}
+
+extension AuthResultModelMapper on AuthResultModel {
+  AuthResult toEntity() => AuthResult(
+        token: token,
+        user: user.toEntity(),
+      );
 }

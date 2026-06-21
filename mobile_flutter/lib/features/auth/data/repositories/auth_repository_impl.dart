@@ -3,6 +3,8 @@ import '../../domain/entities/app_user.dart';
 import '../../domain/entities/auth_result.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
+import '../models/auth_result_model.dart';
+import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
@@ -14,18 +16,21 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthResult> login({required String login, required String password}) async {
     final result = await remoteDataSource.login(login: login, password: password);
     await tokenStorage.saveToken(result.token);
-    return result;
+    return result.toEntity();
   }
 
   @override
   Future<AuthResult> register({required String fullName, String? email, String? phone, required String password}) async {
     final result = await remoteDataSource.register(fullName: fullName, email: email, phone: phone, password: password);
     await tokenStorage.saveToken(result.token);
-    return result;
+    return result.toEntity();
   }
 
   @override
-  Future<AppUser> me() => remoteDataSource.me();
+  Future<AppUser> me() async {
+    final userModel = await remoteDataSource.me();
+    return userModel.toEntity();
+  }
 
   @override
   Future<void> logout() => tokenStorage.clearToken();
