@@ -2,6 +2,7 @@ using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace CalendarShop.Api.Controllers;
 
@@ -15,17 +16,10 @@ public class ProductsController : AppControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ProductDto>>> GetAll(
-        int? categoryId,
-        string? search,
-        decimal? minPrice,
-        decimal? maxPrice,
-        string? calendarType,
-        string? sort = "newest",
-        bool includeHidden = false)
+    [EnableQuery]
+    public ActionResult<IQueryable<ProductDto>> GetAll(bool includeHidden = false)
     {
-        var products = await _productService.GetAllProductsAsync(
-            categoryId, search, minPrice, maxPrice, calendarType, sort, includeHidden);
+        var products = _productService.GetAllProductsQuery(includeHidden);
         return Ok(products);
     }
 

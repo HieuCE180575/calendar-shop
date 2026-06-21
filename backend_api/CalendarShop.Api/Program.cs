@@ -11,6 +11,9 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.OData;
+using Microsoft.OData.ModelBuilder;
+using CalendarShop.Api.Dtos;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -24,7 +27,10 @@ try
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration));
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddOData(options => options
+            .Select().Filter().OrderBy().Expand().Count().SetMaxTop(null)
+            .AddRouteComponents("api", GetEdmModel()));
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
@@ -129,3 +135,13 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+static Microsoft.OData.Edm.IEdmModel GetEdmModel()
+{
+    var builder = new ODataConventionModelBuilder();
+    builder.EntitySet<ProductDto>("Products").EntityType.HasKey(x => x.ProductId);
+    builder.EntitySet<CategoryDto>("Categories").EntityType.HasKey(x => x.CategoryId);
+    builder.EntitySet<OrderDto>("Orders").EntityType.HasKey(x => x.OrderId);
+    return builder.GetEdmModel();
+}
+

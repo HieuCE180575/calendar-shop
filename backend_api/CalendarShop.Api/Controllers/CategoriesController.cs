@@ -2,6 +2,7 @@ using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace CalendarShop.Api.Controllers;
 
@@ -15,9 +16,10 @@ public class CategoriesController : AppControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<CategoryDto>>> GetAll()
+    [EnableQuery]
+    public ActionResult<IQueryable<CategoryDto>> GetAll()
     {
-        var categories = await _categoryService.GetAllCategoriesAsync();
+        var categories = _categoryService.GetAllCategoriesQuery();
         return Ok(categories);
     }
 

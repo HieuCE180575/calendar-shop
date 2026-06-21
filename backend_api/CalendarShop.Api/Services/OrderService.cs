@@ -121,13 +121,12 @@ public class OrderService : IOrderService
         return await GetOrderByIdAsync(userId, order.OrderId);
     }
 
-    public async Task<List<OrderDto>> GetMyOrdersAsync(int userId)
+    public IQueryable<OrderDto> GetMyOrdersQuery(int userId)
     {
-        return await _db.Orders
+        return _db.Orders
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
-            .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+            .ProjectTo<OrderDto>(_mapper.ConfigurationProvider);
     }
 
     public async Task<OrderDto> GetOrderByIdAsync(int userId, int id)
@@ -177,22 +176,11 @@ public class OrderService : IOrderService
         await _db.SaveChangesAsync();
     }
 
-    public async Task<List<OrderDto>> AdminGetAllOrdersAsync(string? status, string? search)
+    public IQueryable<OrderDto> AdminGetAllOrdersQuery()
     {
-        var query = _db.Orders.AsQueryable();
-        if (!string.IsNullOrWhiteSpace(status))
-        {
-            query = query.Where(x => x.Status == status);
-        }
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            query = query.Where(x => x.CustomerName.Contains(search) || x.CustomerPhone.Contains(search));
-        }
-
-        return await query
+        return _db.Orders
             .OrderByDescending(x => x.CreatedAt)
-            .ProjectTo<OrderDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+            .ProjectTo<OrderDto>(_mapper.ConfigurationProvider);
     }
 
     public async Task AdminUpdateOrderStatusAsync(int id, UpdateOrderStatusRequest request)

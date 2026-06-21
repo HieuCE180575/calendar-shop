@@ -4,7 +4,7 @@ namespace CalendarShop.Api.Services;
 
 public interface ICategoryService
 {
-    Task<List<CategoryDto>> GetAllCategoriesAsync();
+    IQueryable<CategoryDto> GetAllCategoriesQuery();
     Task<CategoryDto> CreateCategoryAsync(CategoryCreateUpdateDto request);
     Task UpdateCategoryAsync(int id, CategoryCreateUpdateDto request);
     Task DeleteCategoryAsync(int id);

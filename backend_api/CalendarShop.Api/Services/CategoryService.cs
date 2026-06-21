@@ -18,12 +18,11 @@ public class CategoryService : ICategoryService
         _mapper = mapper;
     }
 
-    public async Task<List<CategoryDto>> GetAllCategoriesAsync()
+    public IQueryable<CategoryDto> GetAllCategoriesQuery()
     {
-        return await _db.Categories
+        return _db.Categories
             .OrderBy(x => x.CategoryName)
-            .ProjectTo<CategoryDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+            .ProjectTo<CategoryDto>(_mapper.ConfigurationProvider);
     }
 
     public async Task<CategoryDto> CreateCategoryAsync(CategoryCreateUpdateDto request)

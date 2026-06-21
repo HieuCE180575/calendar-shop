@@ -2,6 +2,7 @@ using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace CalendarShop.Api.Controllers;
 
@@ -23,9 +24,10 @@ public class OrdersController : AppControllerBase
     }
 
     [HttpGet("mine")]
-    public async Task<ActionResult<List<OrderDto>>> Mine()
+    [EnableQuery]
+    public ActionResult<IQueryable<OrderDto>> Mine()
     {
-        var orders = await _orderService.GetMyOrdersAsync(CurrentUserId);
+        var orders = _orderService.GetMyOrdersQuery(CurrentUserId);
         return Ok(orders);
     }
 
@@ -45,9 +47,10 @@ public class OrdersController : AppControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpGet("admin")]
-    public async Task<ActionResult<List<OrderDto>>> AdminGetAll(string? status, string? search)
+    [EnableQuery]
+    public ActionResult<IQueryable<OrderDto>> AdminGetAll()
     {
-        var orders = await _orderService.AdminGetAllOrdersAsync(status, search);
+        var orders = _orderService.AdminGetAllOrdersQuery();
         return Ok(orders);
     }
 

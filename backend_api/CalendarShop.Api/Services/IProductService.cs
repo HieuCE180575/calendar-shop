@@ -4,14 +4,7 @@ namespace CalendarShop.Api.Services;
 
 public interface IProductService
 {
-    Task<List<ProductDto>> GetAllProductsAsync(
-        int? categoryId,
-        string? search,
-        decimal? minPrice,
-        decimal? maxPrice,
-        string? calendarType,
-        string? sort,
-        bool includeHidden);
+    IQueryable<ProductDto> GetAllProductsQuery(bool includeHidden);
     Task<ProductDto> GetProductByIdAsync(int id);
     Task<ProductDto> CreateProductAsync(ProductCreateUpdateDto request);
     Task UpdateProductAsync(int id, ProductCreateUpdateDto request);
