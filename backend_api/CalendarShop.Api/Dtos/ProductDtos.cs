@@ -10,19 +10,19 @@ public class CategoryDto
 
 public record CategoryCreateUpdateDto(string CategoryName, string? Description, string Status);
 
-public class ProductDto
+public record ProductDto
 {
-    public int ProductId { get; set; }
-    public int CategoryId { get; set; }
-    public string? CategoryName { get; set; }
-    public string ProductName { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
-    public string? ImageUrl { get; set; }
-    public string CalendarType { get; set; } = string.Empty;
-    public string Status { get; set; } = "Active";
-    public DateTime CreatedAt { get; set; }
+    public int ProductId { get; init; }
+    public int CategoryId { get; init; }
+    public string? CategoryName { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public decimal Price { get; init; }
+    public int StockQuantity { get; init; }
+    public string? ImageUrl { get; init; }
+    public string CalendarType { get; init; } = string.Empty;
+    public string Status { get; init; } = "Active";
+    public DateTime CreatedAt { get; init; }
 }
 
 public record ProductCreateUpdateDto(

@@ -19,14 +19,51 @@ public class ProductService : IProductService
         _mapper = mapper;
     }
 
-    public IQueryable<ProductDto> GetAllProductsQuery(bool includeHidden)
+    public async Task<List<ProductDto>> GetAllProductsAsync(
+        int? categoryId,
+        string? search,
+        decimal? minPrice,
+        decimal? maxPrice,
+        string? calendarType,
+        string? sort,
+        bool includeHidden,
+        int? top = null,
+        int? skip = null)
     {
         var query = _productRepository.Entities.Where(x => !x.IsDeleted);
 
         if (!includeHidden)
             query = query.Where(x => x.Status == "Active");
 
-        return query.ProjectTo<ProductDto>(_mapper.ConfigurationProvider);
+        if (categoryId.HasValue)
+            query = query.Where(x => x.CategoryId == categoryId);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(x => x.ProductName.Contains(search));
+
+        if (minPrice.HasValue)
+            query = query.Where(x => x.Price >= minPrice.Value);
+
+        if (maxPrice.HasValue)
+            query = query.Where(x => x.Price <= maxPrice.Value);
+
+        if (!string.IsNullOrWhiteSpace(calendarType))
+            query = query.Where(x => x.CalendarType == calendarType);
+
+        query = sort switch
+        {
+            "price_asc" => query.OrderBy(x => x.Price),
+            "price_desc" => query.OrderByDescending(x => x.Price),
+            _ => query.OrderByDescending(x => x.CreatedAt)
+        };
+
+        if (skip.HasValue)
+            query = query.Skip(skip.Value);
+
+        if (top.HasValue)
+            query = query.Take(top.Value);
+
+        return await query.ProjectTo<ProductDto>(_mapper.ConfigurationProvider).ToListAsync();
     }
 
     public async Task<ProductDto> GetProductByIdAsync(int id)

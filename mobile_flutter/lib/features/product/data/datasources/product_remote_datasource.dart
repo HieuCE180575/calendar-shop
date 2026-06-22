@@ -38,7 +38,8 @@ class ProductRemoteDataSource {
         filters.add("CalendarType eq '$escapedCalendarType'");
       }
 
-      final String? filterQuery = filters.isNotEmpty ? filters.join(' and ') : null;
+      final String? filterQuery =
+          filters.isNotEmpty ? filters.join(' and ') : null;
 
       String? orderbyQuery;
       if (sort == 'price_asc') {
@@ -49,10 +50,16 @@ class ProductRemoteDataSource {
         orderbyQuery = 'CreatedAt desc';
       }
 
-      final response = await apiClient.dio.get(ApiConstants.products, queryParameters: {
+      final response =
+          await apiClient.dio.get(ApiConstants.products, queryParameters: {
+        if (categoryId != null) 'categoryId': categoryId,
+        if (search != null && search.isNotEmpty) 'search': search,
+        if (minPrice != null) 'minPrice': minPrice,
+        if (maxPrice != null) 'maxPrice': maxPrice,
+        if (calendarType != null && calendarType.isNotEmpty)
+          'calendarType': calendarType,
+        'sort': sort,
         'includeHidden': includeHidden,
-        if (filterQuery != null) '\$filter': filterQuery,
-        if (orderbyQuery != null) '\$orderby': orderbyQuery,
         if (top != null) '\$top': top,
         if (skip != null) '\$skip': skip,
       });

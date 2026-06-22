@@ -16,11 +16,4 @@ class CategoryModel extends Category {
       status: json['status'] ?? 'Active',
     );
   }
-
-  Category toEntity() => Category(
-        categoryId: categoryId,
-        categoryName: categoryName,
-        description: description,
-        status: status,
-      );
 }

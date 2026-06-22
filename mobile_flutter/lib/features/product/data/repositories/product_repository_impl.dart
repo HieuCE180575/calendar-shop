@@ -19,8 +19,8 @@ class ProductRepositoryImpl implements ProductRepository {
     bool includeHidden = false,
     int? top,
     int? skip,
-  }) async {
-    final models = await remoteDataSource.getProducts(
+  }) {
+    return remoteDataSource.getProducts(
       categoryId: categoryId,
       search: search,
       minPrice: minPrice,
@@ -35,9 +35,59 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<Product> getProductById(int id) async {
-    final model = await remoteDataSource.getProductById(id);
-    return model.toEntity();
+  Future<Product> getProductById(int id) => remoteDataSource.getProductById(id);
+
+  @override
+  Future<Product> createProduct({
+    required int categoryId,
+    required String productName,
+    String? description,
+    required double price,
+    required int stockQuantity,
+    String? imageUrl,
+    required String calendarType,
+    required String status,
+  }) {
+    return remoteDataSource.createProduct(
+      categoryId: categoryId,
+      productName: productName,
+      description: description,
+      price: price,
+      stockQuantity: stockQuantity,
+      imageUrl: imageUrl,
+      calendarType: calendarType,
+      status: status,
+    );
+  }
+
+  @override
+  Future<void> updateProduct(
+    int id, {
+    required int categoryId,
+    required String productName,
+    String? description,
+    required double price,
+    required int stockQuantity,
+    String? imageUrl,
+    required String calendarType,
+    required String status,
+  }) {
+    return remoteDataSource.updateProduct(
+      id,
+      categoryId: categoryId,
+      productName: productName,
+      description: description,
+      price: price,
+      stockQuantity: stockQuantity,
+      imageUrl: imageUrl,
+      calendarType: calendarType,
+      status: status,
+    );
+  }
+
+  @override
+  Future<void> deleteProduct(int id) {
+    return remoteDataSource.deleteProduct(id);
   }
 
   @override
