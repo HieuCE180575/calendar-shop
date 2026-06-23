@@ -13,6 +13,9 @@ class GetProductsUseCase {
     double? maxPrice,
     String? calendarType,
     String sort = 'newest',
+    bool includeHidden = false,
+    int? top,
+    int? skip,
   }) {
     return repository.getProducts(
       categoryId: categoryId,
@@ -21,6 +24,9 @@ class GetProductsUseCase {
       maxPrice: maxPrice,
       calendarType: calendarType,
       sort: sort,
+      includeHidden: includeHidden,
+      top: top,
+      skip: skip,
     );
   }
 }

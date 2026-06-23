@@ -14,7 +14,7 @@ class AdminHomePage extends StatelessWidget {
             leading: const Icon(Icons.inventory_2_outlined),
             title: const Text('Quản lý sản phẩm'),
             subtitle: const Text('Thêm, sửa, xóa, tồn kho, trạng thái'),
-            onTap: () {},
+            onTap: () => context.push('/admin/products'),
           ),
           ListTile(
             leading: const Icon(Icons.category_outlined),
