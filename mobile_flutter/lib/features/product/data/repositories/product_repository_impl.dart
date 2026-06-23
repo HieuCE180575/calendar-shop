@@ -16,6 +16,9 @@ class ProductRepositoryImpl implements ProductRepository {
     double? maxPrice,
     String? calendarType,
     String sort = 'newest',
+    bool includeHidden = false,
+    int? top,
+    int? skip,
   }) async {
     final models = await remoteDataSource.getProducts(
       categoryId: categoryId,
@@ -24,6 +27,9 @@ class ProductRepositoryImpl implements ProductRepository {
       maxPrice: maxPrice,
       calendarType: calendarType,
       sort: sort,
+      includeHidden: includeHidden,
+      top: top,
+      skip: skip,
     );
     return models.map((m) => m.toEntity()).toList();
   }
@@ -32,5 +38,59 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Product> getProductById(int id) async {
     final model = await remoteDataSource.getProductById(id);
     return model.toEntity();
+  }
+
+  @override
+  Future<Product> createProduct({
+    required int categoryId,
+    required String productName,
+    String? description,
+    required double price,
+    required int stockQuantity,
+    String? imageUrl,
+    required String calendarType,
+    required String status,
+  }) async {
+    final model = await remoteDataSource.createProduct(
+      categoryId: categoryId,
+      productName: productName,
+      description: description,
+      price: price,
+      stockQuantity: stockQuantity,
+      imageUrl: imageUrl,
+      calendarType: calendarType,
+      status: status,
+    );
+    return model.toEntity();
+  }
+
+  @override
+  Future<void> updateProduct(
+    int id, {
+    required int categoryId,
+    required String productName,
+    String? description,
+    required double price,
+    required int stockQuantity,
+    String? imageUrl,
+    required String calendarType,
+    required String status,
+  }) {
+    return remoteDataSource.updateProduct(
+      id,
+      categoryId: categoryId,
+      productName: productName,
+      description: description,
+      price: price,
+      stockQuantity: stockQuantity,
+      imageUrl: imageUrl,
+      calendarType: calendarType,
+      status: status,
+    );
+  }
+
+  @override
+  Future<void> deleteProduct(int id) {
+    return remoteDataSource.deleteProduct(id);
   }
 }

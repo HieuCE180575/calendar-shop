@@ -31,7 +31,13 @@ try
     builder.Services.AddControllers()
         .AddOData(options => options
             .Select().Filter().OrderBy().Expand().Count().SetMaxTop(null)
-            .AddRouteComponents("api", GetEdmModel()));
+            .AddRouteComponents("api", GetEdmModel(), services =>
+            {
+                services.AddSingleton<Microsoft.OData.UriParser.ODataUriResolver>(sp => new Microsoft.OData.UriParser.ODataUriResolver
+                {
+                    EnableCaseInsensitive = true
+                });
+            }));
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
@@ -143,6 +149,7 @@ finally
 static Microsoft.OData.Edm.IEdmModel GetEdmModel()
 {
     var builder = new ODataConventionModelBuilder();
+    builder.EnableLowerCamelCase();
     builder.EntitySet<ProductDto>("Products").EntityType.HasKey(x => x.ProductId);
     builder.EntitySet<CategoryDto>("Categories").EntityType.HasKey(x => x.CategoryId);
     builder.EntitySet<OrderDto>("Orders").EntityType.HasKey(x => x.OrderId);
