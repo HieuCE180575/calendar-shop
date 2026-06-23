@@ -16,20 +16,11 @@ public class ProductsController : AppControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll(
-        int? categoryId,
-        string? search,
-        decimal? minPrice,
-        decimal? maxPrice,
-        string? calendarType,
-        string? sort = "newest",
-        bool includeHidden = false,
-        [FromQuery(Name = "$top")] int? top = null,
-        [FromQuery(Name = "$skip")] int? skip = null)
+    [EnableQuery]
+    public ActionResult<IQueryable<ProductDto>> GetAll(bool includeHidden = false)
     {
-        var products = await _productService.GetAllProductsAsync(
-            categoryId, search, minPrice, maxPrice, calendarType, sort, includeHidden, top, skip);
-        return Ok(new { value = products });
+        var products = _productService.GetAllProductsQuery(includeHidden);
+        return Ok(products);
     }
 
     [HttpGet("{id:int}")]

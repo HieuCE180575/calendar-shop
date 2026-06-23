@@ -19,8 +19,8 @@ class ProductRepositoryImpl implements ProductRepository {
     bool includeHidden = false,
     int? top,
     int? skip,
-  }) {
-    return remoteDataSource.getProducts(
+  }) async {
+    final models = await remoteDataSource.getProducts(
       categoryId: categoryId,
       search: search,
       minPrice: minPrice,
@@ -35,7 +35,10 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<Product> getProductById(int id) => remoteDataSource.getProductById(id);
+  Future<Product> getProductById(int id) async {
+    final model = await remoteDataSource.getProductById(id);
+    return model.toEntity();
+  }
 
   @override
   Future<Product> createProduct({
@@ -47,8 +50,8 @@ class ProductRepositoryImpl implements ProductRepository {
     String? imageUrl,
     required String calendarType,
     required String status,
-  }) {
-    return remoteDataSource.createProduct(
+  }) async {
+    final model = await remoteDataSource.createProduct(
       categoryId: categoryId,
       productName: productName,
       description: description,
@@ -58,6 +61,7 @@ class ProductRepositoryImpl implements ProductRepository {
       calendarType: calendarType,
       status: status,
     );
+    return model.toEntity();
   }
 
   @override

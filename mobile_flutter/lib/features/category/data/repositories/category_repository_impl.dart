@@ -8,7 +8,8 @@ class CategoryRepositoryImpl implements CategoryRepository {
   CategoryRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<List<Category>> getCategories() {
-    return remoteDataSource.getCategories();
+  Future<List<Category>> getCategories() async {
+    final models = await remoteDataSource.getCategories();
+    return models.map((m) => m.toEntity()).toList();
   }
 }
