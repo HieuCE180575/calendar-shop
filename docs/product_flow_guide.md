@@ -20,7 +20,7 @@ graph TD
     end
 
     %% Network Boundary
-    Ctrl -- JSON HTTP Response --网络--> Client[8. Network Client / Dio & ApiClient]
+    Ctrl -->|JSON HTTP Response| Client[8. Network Client / Dio & ApiClient]
 
     %% Frontend Nodes
     subgraph Frontend [Flutter Client App]
@@ -41,9 +41,9 @@ graph TD
     OData -. "Phân tích query URL: $filter, $orderby" .-> Ctrl
     
     %% Styles
-    classDef backend fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    classDef frontend fill:#efebe9,stroke:#3e2723,stroke-width:2px;
-    classDef database fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px;
+    classDef backend fill:#0d47a1,stroke:#01579b,stroke-width:2px,color:#fff;
+    classDef frontend fill:#3e2723,stroke:#5d4037,stroke-width:2px,color:#fff;
+    classDef database fill:#1b5e20,stroke:#2e7d32,stroke-width:2px,color:#fff;
     
     class DB database;
     class EF,Repo,Service,Mapper,Ctrl,OData backend;
