@@ -22,15 +22,12 @@ public class CartService : ICartService
         _mapper = mapper;
     }
 
-    public async Task<CartSummaryDto> GetCartAsync(int userId)
+    public IQueryable<CartItemDto> GetCartQuery(int userId)
     {
-        var items = await _cartItemRepository.Entities
+        return _cartItemRepository.Entities
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
-            .ProjectTo<CartItemDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
-
-        return new CartSummaryDto(items, items.Where(x => x.IsSelected).Sum(x => x.LineTotal));
+            .ProjectTo<CartItemDto>(_mapper.ConfigurationProvider);
     }
 
     public async Task AddToCartAsync(int userId, AddToCartRequest request)
