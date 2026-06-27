@@ -1,7 +1,9 @@
+using System.Linq;
 using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace CalendarShop.Api.Controllers;
 
@@ -16,10 +18,11 @@ public class CartController : AppControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<CartSummaryDto>> GetCart()
+    [EnableQuery]
+    public ActionResult<IQueryable<CartItemDto>> GetCartItems()
     {
-        var summary = await _cartService.GetCartAsync(CurrentUserId);
-        return Ok(summary);
+        var query = _cartService.GetCartQuery(CurrentUserId);
+        return Ok(query);
     }
 
     [HttpPost]

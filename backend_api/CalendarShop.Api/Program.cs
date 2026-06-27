@@ -153,6 +153,7 @@ static Microsoft.OData.Edm.IEdmModel GetEdmModel()
     builder.EntitySet<ProductDto>("Products").EntityType.HasKey(x => x.ProductId);
     builder.EntitySet<CategoryDto>("Categories").EntityType.HasKey(x => x.CategoryId);
     builder.EntitySet<OrderDto>("Orders").EntityType.HasKey(x => x.OrderId);
+    builder.EntitySet<CartItemDto>("Cart").EntityType.HasKey(x => x.CartItemId);
     return builder.GetEdmModel();
 }
 

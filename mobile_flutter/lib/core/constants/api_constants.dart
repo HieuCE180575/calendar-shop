@@ -8,12 +8,12 @@ class ApiConstants {
   // - Real Device (LAN): Replace with host computer's local Wi-Fi IP (e.g., 'http://192.168.1.100:52441/api')
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:52441/api';
+      return 'http://localhost:51441/api';
     }
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:52441/api';
+      return 'http://10.0.2.2:51441/api';
     }
-    return 'http://localhost:52441/api';
+    return 'http://localhost:51441/api';
   }
 
   static const String login = '/auth/login';
