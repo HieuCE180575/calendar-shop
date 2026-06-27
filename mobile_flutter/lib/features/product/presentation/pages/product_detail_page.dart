@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
 import '../providers/product_provider.dart';
 
 class ProductDetailPage extends ConsumerWidget {
@@ -245,12 +246,27 @@ class ProductDetailPage extends ConsumerWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: isAvailable
-                        ? () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Thêm vào giỏ hàng thành công! (Chức năng thuộc nhiệm vụ Người 3)'),
-                              ),
-                            );
+                        ? () async {
+                            try {
+                              await ref.read(cartProvider.notifier).addItem(product.productId, 1);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Thêm vào giỏ hàng thành công!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Thêm vào giỏ hàng thất bại: $e'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              }
+                            }
                           }
                         : null,
                     style: ElevatedButton.styleFrom(

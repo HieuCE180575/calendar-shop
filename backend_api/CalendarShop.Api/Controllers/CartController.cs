@@ -19,7 +19,7 @@ public class CartController : AppControllerBase
 
     [HttpGet]
     [EnableQuery]
-    public ActionResult<IQueryable<CartItemDto>> GetCart()
+    public ActionResult<IQueryable<CartItemDto>> GetCartItems()
     {
         var query = _cartService.GetCartQuery(CurrentUserId);
         return Ok(query);
