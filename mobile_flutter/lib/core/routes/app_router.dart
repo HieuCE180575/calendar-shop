@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../../features/admin/presentation/pages/admin_home_page.dart';
+import '../../features/admin/presentation/pages/admin_statistics_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
@@ -28,6 +29,10 @@ final appRouter = GoRouter(
     GoRoute(path: '/cart', builder: (context, state) => const CartPage()),
     GoRoute(path: '/orders', builder: (context, state) => const MyOrdersPage()),
     GoRoute(path: '/admin', builder: (context, state) => const AdminHomePage()),
+    GoRoute(
+      path: '/admin/statistics',
+      builder: (context, state) => const AdminStatisticsPage(),
+    ),
     GoRoute(
       path: '/admin/products',
       builder: (context, state) => const AdminProductListPage(),

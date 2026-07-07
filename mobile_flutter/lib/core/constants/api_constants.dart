@@ -23,4 +23,5 @@ class ApiConstants {
   static const String categories = '/categories';
   static const String cart = '/cart';
   static const String orders = '/orders';
+  static const String adminDashboard = '/AdminDashboard';
 }
