@@ -24,7 +24,7 @@ namespace CalendarShop.Api.Middlewares
             var stopwatch = Stopwatch.StartNew();
             var request = context.Request;
             var requestId = context.TraceIdentifier;
-            var pathWithQuery = $"{request.Path}{request.QueryString}";
+            var pathWithQuery = MaskSensitiveQuery($"{request.Path}{request.QueryString}");
 
             string requestBodyText = string.Empty;
             if (request.ContentLength > 0 &&
@@ -94,8 +94,19 @@ namespace CalendarShop.Api.Middlewares
                 return json;
             }
 
-            var pattern = @"(""(?:password|oldpassword|newpassword)"".*?:\s*"")(.*?)("")";
+            var pattern = @"(""(?:password|oldpassword|newpassword|token|accesstoken|refreshtoken|resettoken|emailconfirmationtoken)"".*?:\s*"")(.*?)("")";
             return Regex.Replace(json, pattern, "$1***$3", RegexOptions.IgnoreCase);
+        }
+
+        private static string MaskSensitiveQuery(string pathWithQuery)
+        {
+            if (string.IsNullOrEmpty(pathWithQuery))
+            {
+                return pathWithQuery;
+            }
+
+            var pattern = @"([?&](?:token|accessToken|refreshToken|resetToken|emailConfirmationToken)=)[^&]*";
+            return Regex.Replace(pathWithQuery, pattern, "$1***", RegexOptions.IgnoreCase);
         }
 
         private static string TrimBody(string body)

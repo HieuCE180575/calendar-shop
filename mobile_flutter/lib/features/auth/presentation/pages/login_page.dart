@@ -49,13 +49,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 24),
-                  
-                  // Header
                   const Center(
                     child: Column(
                       children: [
                         Text(
-                          'Chào mừng bạn đến với',
+                          'Chao mung ban den voi',
                           style: TextStyle(
                             fontSize: 15,
                             color: Color(0xFF6B7280),
@@ -74,7 +72,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Đăng nhập để khám phá các mẫu\nlịch đẹp và ưu đãi hấp dẫn!',
+                          'Dang nhap de kham pha cac mau\nlich dep va uu dai hap dan!',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
@@ -85,10 +83,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ],
                     ),
                   ),
-                  
                   const SizedBox(height: 20),
-                  
-                  // Illustration Image
                   Center(
                     child: Image.asset(
                       'assets/images/login_calendar.png',
@@ -111,12 +106,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       },
                     ),
                   ),
-                  
                   const SizedBox(height: 20),
-                  
-                  // Username Field
                   const Text(
-                    'Email hoặc số điện thoại',
+                    'Email hoac so dien thoai',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -135,30 +127,36 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         color: Color(0xFF9CA3AF),
                         size: 22,
                       ),
-                      hintText: 'Nhập email hoặc số điện thoại',
+                      hintText: 'Nhap email hoac so dien thoai',
                       hintStyle: const TextStyle(
                         color: Color(0xFF9CA3AF),
                         fontSize: 14,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE5E7EB),
+                          width: 1.5,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF0A4FE6), width: 2),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF0A4FE6),
+                          width: 2,
+                        ),
                       ),
                     ),
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Password Field
                   const Text(
-                    'Mật khẩu',
+                    'Mat khau',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -179,7 +177,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                           color: const Color(0xFF9CA3AF),
                           size: 22,
                         ),
@@ -189,28 +189,34 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           });
                         },
                       ),
-                      hintText: 'Nhập mật khẩu',
+                      hintText: 'Nhap mat khau',
                       hintStyle: const TextStyle(
                         color: Color(0xFF9CA3AF),
                         fontSize: 14,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE5E7EB),
+                          width: 1.5,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF0A4FE6), width: 2),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF0A4FE6),
+                          width: 2,
+                        ),
                       ),
                     ),
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Remember me & Forgot password
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -222,8 +228,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             child: Checkbox(
                               value: _rememberMe,
                               activeColor: const Color(0xFF0A4FE6),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                              side: const BorderSide(color: Color(0xFFD1D5DB), width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              side: const BorderSide(
+                                color: Color(0xFFD1D5DB),
+                                width: 1.5,
+                              ),
                               onChanged: (value) {
                                 setState(() {
                                   _rememberMe = value ?? false;
@@ -239,7 +250,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               });
                             },
                             child: const Text(
-                              'Ghi nhớ đăng nhập',
+                              'Ghi nho dang nhap',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF4B5563),
@@ -249,16 +260,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ],
                       ),
                       GestureDetector(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Tính năng quên mật khẩu đang được phát triển.'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        },
+                        onTap: () => context.push('/forgot-password'),
                         child: const Text(
-                          'Quên mật khẩu?',
+                          'Quen mat khau?',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -268,12 +272,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                     ],
                   ),
-                  
-                  // Error message container if present
                   if (state.error != null) ...[
                     const SizedBox(height: 16),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(8),
@@ -281,22 +286,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline, color: Color(0xFFDC2626), size: 20),
+                          const Icon(
+                            Icons.error_outline,
+                            color: Color(0xFFDC2626),
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               state.error!,
-                              style: const TextStyle(color: Color(0xFF991B1B), fontSize: 13),
+                              style: const TextStyle(
+                                color: Color(0xFF991B1B),
+                                fontSize: 13,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ],
-                  
                   const SizedBox(height: 24),
-                  
-                  // Login Button
                   SizedBox(
                     width: double.infinity,
                     height: 52,
@@ -310,13 +319,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               if (loginVal.isEmpty || passVal.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Vui lòng nhập email/số điện thoại và mật khẩu.'),
+                                    content: Text(
+                                      'Vui long nhap email/so dien thoai va mat khau.',
+                                    ),
                                     backgroundColor: Color(0xFFDC2626),
                                   ),
                                 );
                                 return;
                               }
-                              ref.read(authNotifierProvider.notifier).login(loginVal, passVal);
+                              ref
+                                  .read(authNotifierProvider.notifier)
+                                  .login(loginVal, passVal);
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0A4FE6),
@@ -338,7 +351,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                             )
                           : const Text(
-                              'Đăng nhập',
+                              'Dang nhap',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -346,15 +359,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                     ),
                   ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Register Line
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => context.push('/confirm-email'),
+                    child: const Text(
+                      'Xac nhan email / gui lai mail kich hoat',
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'Chưa có tài khoản? ',
+                        'Chua co tai khoan? ',
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xFF6B7280),
@@ -363,7 +380,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       GestureDetector(
                         onTap: () => context.push('/register'),
                         child: const Text(
-                          'Đăng ký',
+                          'Dang ky',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,

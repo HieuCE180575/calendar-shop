@@ -21,11 +21,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthResult> register({required String fullName, String? email, String? phone, required String password}) async {
+  Future<String> register({required String fullName, String? email, String? phone, required String password}) async {
     final result = await remoteDataSource.register(fullName: fullName, email: email, phone: phone, password: password);
-    await tokenStorage.saveToken(result.token);
-    await tokenStorage.saveRefreshToken(result.refreshToken);
-    return result.toEntity();
+    return result.message;
   }
 
   @override
@@ -35,5 +33,63 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> logout() => tokenStorage.clearTokens();
+  Future<AppUser> updateProfile({
+    required String fullName,
+    String? email,
+    String? phone,
+    String? avatarUrl,
+    String? gender,
+    DateTime? dateOfBirth,
+  }) async {
+    final userModel = await remoteDataSource.updateProfile(
+      fullName: fullName,
+      email: email,
+      phone: phone,
+      avatarUrl: avatarUrl,
+      gender: gender,
+      dateOfBirth: dateOfBirth,
+    );
+    return userModel.toEntity();
+  }
+
+  @override
+  Future<void> changePassword({required String oldPassword, required String newPassword}) {
+    return remoteDataSource.changePassword(oldPassword: oldPassword, newPassword: newPassword);
+  }
+
+  @override
+  Future<ForgotPasswordResult> forgotPassword({required String login}) async {
+    final result = await remoteDataSource.forgotPassword(login: login);
+    return ForgotPasswordResult(
+      message: result.message,
+      expiredAt: result.expiredAt,
+    );
+  }
+
+  @override
+  Future<void> resetPassword({required String resetToken, required String newPassword}) {
+    return remoteDataSource.resetPassword(resetToken: resetToken, newPassword: newPassword);
+  }
+
+  @override
+  Future<String> confirmEmail({required String token}) async {
+    final result = await remoteDataSource.confirmEmail(token: token);
+    return result.message;
+  }
+
+  @override
+  Future<String> resendEmailConfirmation({required String email}) async {
+    final result = await remoteDataSource.resendEmailConfirmation(email: email);
+    return result.message;
+  }
+
+  @override
+  Future<void> logout() async {
+    final refreshToken = await tokenStorage.getRefreshToken();
+    try {
+      await remoteDataSource.logout(refreshToken: refreshToken);
+    } finally {
+      await tokenStorage.clearTokens();
+    }
+  }
 }

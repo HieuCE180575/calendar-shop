@@ -65,7 +65,7 @@ class ApiClient {
                 );
                 
                 final response = await refreshDio.post(
-                  '/api/Auth/refresh',
+                  ApiConstants.refresh,
                   data: {
                     'token': oldToken,
                     'refreshToken': refreshToken,
@@ -101,6 +101,14 @@ class ApiClient {
               await tokenStorage.clearTokens();
               return handler.next(error);
             }
+
+            for (var c in _refreshCompleters) {
+              c.complete(null);
+            }
+            _refreshCompleters.clear();
+            _isRefreshing = false;
+            await tokenStorage.clearTokens();
+            return handler.next(error);
           }
           handler.next(error);
         },

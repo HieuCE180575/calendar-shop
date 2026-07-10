@@ -12,6 +12,7 @@ public class AuthMappingProfile : Profile
         CreateMap<RegisterRequest, User>()
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "Customer"))
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Active"));
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Pending"))
+            .ForMember(dest => dest.IsEmailConfirmed, opt => opt.MapFrom(src => false));
     }
 }
