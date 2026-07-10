@@ -43,7 +43,7 @@ final adminDashboardRepositoryProvider =
 typedef AdminDashboardRepositoryRef
     = AutoDisposeProviderRef<AdminDashboardRepository>;
 String _$adminDashboardStatsHash() =>
-    r'38fe007ccb1abfb1bce45531fa3d5e0f3e29bd48';
+    r'df9a8e316f40fe489a1aeed67cf8f5d3dccc236c';
 
 /// See also [adminDashboardStats].
 @ProviderFor(adminDashboardStats)

@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 
 import '../../features/admin/presentation/pages/admin_home_page.dart';
+import '../../features/admin/presentation/pages/admin_coupon_form_page.dart';
+import '../../features/admin/presentation/pages/admin_coupon_list_page.dart';
 import '../../features/admin/presentation/pages/admin_statistics_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
@@ -12,6 +14,7 @@ import '../../features/product/domain/entities/product.dart';
 import '../../features/product/presentation/pages/product_detail_page.dart';
 import '../../features/product/presentation/pages/admin_product_list_page.dart';
 import '../../features/product/presentation/pages/admin_product_form_page.dart';
+import '../../features/admin/domain/entities/admin_coupon.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -32,6 +35,21 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin/statistics',
       builder: (context, state) => const AdminStatisticsPage(),
+    ),
+    GoRoute(
+      path: '/admin/coupons',
+      builder: (context, state) => const AdminCouponListPage(),
+    ),
+    GoRoute(
+      path: '/admin/coupons/new',
+      builder: (context, state) => const AdminCouponFormPage(),
+    ),
+    GoRoute(
+      path: '/admin/coupons/edit',
+      builder: (context, state) {
+        final coupon = state.extra as AdminCoupon?;
+        return AdminCouponFormPage(coupon: coupon);
+      },
     ),
     GoRoute(
       path: '/admin/products',
