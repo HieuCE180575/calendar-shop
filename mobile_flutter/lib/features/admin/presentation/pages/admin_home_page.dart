@@ -39,7 +39,7 @@ class AdminHomePage extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.bar_chart_outlined),
             title: const Text('Thống kê'),
-            onTap: () {},
+            onTap: () => context.push('/admin/statistics'),
           ),
           const Divider(),
           ListTile(

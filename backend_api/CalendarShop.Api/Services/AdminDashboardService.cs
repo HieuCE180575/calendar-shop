@@ -43,13 +43,40 @@ public class AdminDashboardService : IAdminDashboardService
             .Take(5)
             .ToListAsync();
 
+        var revenueByDay = await _orderRepository.Entities
+            .Where(x => x.Status == "Delivered")
+            .GroupBy(x => x.CreatedAt.Date)
+            .Select(g => new RevenueByDayDto
+            {
+                Date = g.Key,
+                Revenue = g.Sum(x => x.TotalAmount),
+                OrderCount = g.Count()
+            })
+            .OrderBy(x => x.Date)
+            .ToListAsync();
+
+        var revenueByMonth = await _orderRepository.Entities
+            .Where(x => x.Status == "Delivered")
+            .GroupBy(x => new { Year = x.CreatedAt.Year, Month = x.CreatedAt.Month })
+            .Select(g => new RevenueByMonthDto
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                Revenue = g.Sum(x => x.TotalAmount),
+                OrderCount = g.Count()
+            })
+            .OrderBy(x => x.Year).ThenBy(x => x.Month)
+            .ToListAsync();
+
         return new AdminDashboardStatsDto
         {
             TotalRevenue = totalRevenue,
             TotalOrders = totalOrders,
             TotalProductsSold = totalProductsSold,
             OrdersByStatus = ordersByStatus,
-            BestSelling = bestSelling
+            BestSelling = bestSelling,
+            RevenueByDay = revenueByDay,
+            RevenueByMonth = revenueByMonth
         };
     }
 }
