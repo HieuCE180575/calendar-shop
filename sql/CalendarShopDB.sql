@@ -368,8 +368,10 @@ INSERT INTO dbo.Coupons (
     Status
 )
 VALUES
-    (1, N'WELCOME10', N'Giam 10 phan tram cho khach hang moi', N'Percent', 10, 100000, '2026-01-01', '2026-12-31', 1000, 0, N'Active'),
-    (2, N'GIAM50K', N'Giam 50,000 VND cho don tu 500,000 VND', N'Amount', 50000, 500000, '2026-01-01', '2026-12-31', 500, 0, N'Active');
+    (1, N'WELCOME10', N'Giam 10 phan tram cho khach hang moi', N'Percent', 10, 100000, '2026-01-01', '2026-12-31', 1000, 12, N'Active'),
+    (2, N'GIAM50K', N'Giam 50,000 VND cho don tu 500,000 VND', N'Amount', 50000, 500000, '2026-01-01', '2026-12-31', 500, 8, N'Active'),
+    (3, N'SUMMER15', N'Giam 15 phan tram cho don mua mua he', N'Percent', 15, 300000, '2026-06-01', '2026-08-31', 300, 25, N'Inactive'),
+    (4, N'VIP100K', N'Giam 100,000 VND cho don tu 1,000,000 VND', N'Amount', 100000, 1000000, '2026-01-01', '2026-12-31', NULL, 3, N'Active');
 SET IDENTITY_INSERT dbo.Coupons OFF;
 GO
 

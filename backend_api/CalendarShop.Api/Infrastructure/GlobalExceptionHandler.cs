@@ -47,6 +47,13 @@ namespace CalendarShop.Api.Infrastructure
                     problemDetails.Detail = exception.Message;
                     break;
 
+                case InvalidOperationException:
+                    problemDetails.Status = StatusCodes.Status400BadRequest;
+                    problemDetails.Title = "Bad Request";
+                    problemDetails.Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1";
+                    problemDetails.Detail = exception.Message;
+                    break;
+
                 default:
                     problemDetails.Status = StatusCodes.Status500InternalServerError;
                     problemDetails.Title = "Internal Server Error";
