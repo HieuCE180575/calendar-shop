@@ -6,6 +6,7 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../favorite/presentation/providers/favorite_provider.dart';
 import '../../../review/presentation/widgets/review_list_widget.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
 import '../providers/product_provider.dart';
 
 class ProductDetailPage extends ConsumerWidget {
@@ -56,26 +57,7 @@ class ProductDetailPage extends ConsumerWidget {
     final isAdmin = authState.user?.role == 'Admin';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chi tiết sản phẩm'),
-        actions: [
-          if (isAdmin) ...[
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blueAccent),
-              onPressed: () {
-                // Điều hướng sang trang sửa
-                productAsync.whenData((product) {
-                  context.push('/admin/products/edit', extra: product);
-                });
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.redAccent),
-              onPressed: () => _handleDelete(context, ref),
-            ),
-          ],
-        ],
-      ),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           productAsync.when(
@@ -94,97 +76,119 @@ class ProductDetailPage extends ConsumerWidget {
               ),
             ),
             data: (product) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 80), // Chừa khoảng trống cho Bottom Bar
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Ảnh sản phẩm
-                    Stack(
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: 300,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Colors.blue.shade100, Colors.blue.shade50],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+              return CustomScrollView(
+                slivers: [
+                  // Hình ảnh sản phẩm (SliverAppBar)
+                  SliverAppBar(
+                    expandedHeight: 350.0,
+                    pinned: true,
+                    backgroundColor: Colors.white,
+                    leading: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white.withOpacity(0.8),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.black),
+                          onPressed: () => context.pop(),
+                        ),
+                      ),
+                    ),
+                    actions: [
+                      if (isAdmin) ...[
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white.withOpacity(0.8),
+                            child: IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blueAccent),
+                              onPressed: () => context.push('/admin/products/edit', extra: product),
                             ),
                           ),
-                          child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                              ? Image.network(
-                                  product.imageUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(
-                                    Icons.calendar_month,
-                                    size: 100,
-                                    color: Colors.blueAccent,
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.calendar_today,
-                                  size: 100,
-                                  color: Colors.blueAccent,
-                                ),
                         ),
-                        if (!isAdmin && authState.user != null)
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Consumer(
-                              builder: (context, ref, child) {
-                                final isFavoriteAsync = ref.watch(checkFavoriteProvider(product.productId));
-                                return isFavoriteAsync.when(
-                                  data: (isFavorite) => IconButton(
-                                    icon: Icon(
-                                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                                      color: isFavorite ? Colors.red : Colors.grey,
-                                      size: 30,
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white.withOpacity(0.8),
+                            child: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.redAccent),
+                              onPressed: () => _handleDelete(context, ref),
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white.withOpacity(0.8),
+                            child: IconButton(
+                              icon: const Icon(Icons.share_outlined, color: Colors.black),
+                              onPressed: () {},
+                            ),
+                          ),
+                        ),
+                        if (authState.user != null)
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: CircleAvatar(
+                              backgroundColor: Colors.white.withOpacity(0.8),
+                              child: Consumer(
+                                builder: (context, ref, child) {
+                                  final isFavoriteAsync = ref.watch(checkFavoriteProvider(product.productId));
+                                  return isFavoriteAsync.when(
+                                    data: (isFavorite) => IconButton(
+                                      icon: Icon(
+                                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                                        color: isFavorite ? Colors.redAccent : Colors.black,
+                                      ),
+                                      onPressed: () {
+                                        ref.read(favoriteActionNotifierProvider.notifier).toggleFavorite(product.productId, isFavorite);
+                                      },
                                     ),
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Colors.white70,
-                                    ),
-                                    onPressed: () {
-                                      ref.read(favoriteActionNotifierProvider.notifier)
-                                          .toggleFavorite(product.productId, isFavorite);
-                                    },
-                                  ),
-                                  loading: () => const CircularProgressIndicator(),
-                                  error: (_, __) => const SizedBox(),
-                                );
-                              },
+                                    loading: () => const CircularProgressIndicator(),
+                                    error: (_, __) => const SizedBox(),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                       ],
+                    ],
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Container(
+                        color: Colors.blue.shade50,
+                        child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                            ? Image.network(
+                                product.imageUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, size: 100, color: Colors.grey),
+                              )
+                            : const Icon(Icons.calendar_today, size: 100, color: Colors.grey),
+                      ),
                     ),
+                  ),
 
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
+                  // Nội dung chi tiết
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Loại lịch & Trạng thái
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  product.calendarType,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.blue.shade900,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                          // Loại lịch
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              product.calendarType,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.blueAccent,
+                                fontWeight: FontWeight.bold,
                               ),
-                              _buildStatusBadge(product.status),
-                            ],
+                            ),
                           ),
                           const SizedBox(height: 12),
 
@@ -194,65 +198,57 @@ class ProductDetailPage extends ConsumerWidget {
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
+                              height: 1.3,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
 
                           // Giá
                           Text(
                             CurrencyFormatter.vnd(product.price),
                             style: const TextStyle(
-                              fontSize: 20,
-                              color: Colors.redAccent,
+                              fontSize: 24,
+                              color: Colors.blueAccent,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 8),
-
-                          // Danh mục & Tồn kho
-                          Row(
-                            children: [
-                              const Icon(Icons.category_outlined, size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Danh mục: ${product.categoryName ?? 'Chưa xác định'}',
-                                style: const TextStyle(fontSize: 14, color: Colors.black87),
-                              ),
-                              const Spacer(),
-                              const Icon(Icons.inventory_2_outlined, size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Còn lại: ${product.stockQuantity}',
-                                style: const TextStyle(fontSize: 14, color: Colors.black87),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 24),
+                          const SizedBox(height: 24),
 
                           // Mô tả
-                          const Text(
-                            'Mô tả sản phẩm',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
                           Text(
                             product.description != null && product.description!.isNotEmpty
                                 ? product.description!
-                                : 'Chưa có mô tả cho sản phẩm này.',
-                            style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
+                                : 'Bộ lịch cao cấp với hình ảnh sắc nét, giấy cao cấp. Phù hợp trang trí không gian sống và làm việc.',
+                            style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.5),
                           ),
-                          const Divider(height: 24),
-                          
+                          const SizedBox(height: 24),
+
+                          // Kích thước (Dummy UI)
+                          const Text(
+                            'Kích thước',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              _buildSizeOption('30x40 cm', true),
+                              const SizedBox(width: 12),
+                              _buildSizeOption('40x60 cm', false),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
                           // Đánh giá sản phẩm
+                          const Divider(height: 32),
                           ReviewListWidget(productId: product.productId),
+                          
+                          // Padding cho bottom bar
+                          const SizedBox(height: 100),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               );
             },
           ),
@@ -262,35 +258,75 @@ class ProductDetailPage extends ConsumerWidget {
       ),
       bottomNavigationBar: productAsync.maybeWhen(
         data: (product) {
-          if (isAdmin) {
-            return const SizedBox.shrink(); // Admin dùng appbar actions để Sửa / Xóa
-          }
+          if (isAdmin) return const SizedBox.shrink();
+
           final isAvailable = product.status == 'Active' && product.stockQuantity > 0;
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.shade300,
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
                 ),
               ],
             ),
             child: Row(
               children: [
+                // Nút chọn số lượng (Dummy UI)
+                Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove, size: 20),
+                        onPressed: () {},
+                      ),
+                      const Text('1', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      IconButton(
+                        icon: const Icon(Icons.add, size: 20),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Nút Mua ngay
                 Expanded(
-                  child: ElevatedButton(
+                  child: ElevatedButton.icon(
                     onPressed: isAvailable
-                        ? () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Thêm vào giỏ hàng thành công! (Chức năng thuộc nhiệm vụ Người 3)'),
-                              ),
-                            );
+                        ? () async {
+                            try {
+                              await ref.read(cartProvider.notifier).addItem(product.productId, 1);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Đã thêm vào giỏ hàng!'),
+                                    backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.redAccent),
+                                );
+                              }
+                            }
                           }
                         : null,
+                    icon: const Icon(Icons.shopping_cart_outlined),
+                    label: Text(
+                      isAvailable ? 'Thêm vào giỏ' : 'Hết hàng',
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       foregroundColor: Colors.white,
@@ -298,10 +334,6 @@ class ProductDetailPage extends ConsumerWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                    child: Text(
-                      isAvailable ? 'Thêm vào giỏ hàng' : 'Hết hàng',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -314,37 +346,22 @@ class ProductDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color color;
-    String text;
-    switch (status) {
-      case 'Active':
-        color = Colors.green;
-        text = 'Đang bán';
-        break;
-      case 'OutOfStock':
-        color = Colors.orange;
-        text = 'Hết hàng';
-        break;
-      case 'Hidden':
-        color = Colors.grey;
-        text = 'Ẩn';
-        break;
-      default:
-        color = Colors.black;
-        text = status;
-    }
-
+  Widget _buildSizeOption(String label, bool isSelected) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.5)),
+        color: isSelected ? Colors.blue.shade50 : Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSelected ? Colors.blueAccent : Colors.grey.shade300,
+        ),
       ),
       child: Text(
-        text,
-        style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold),
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.blueAccent : Colors.black87,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
       ),
     );
   }

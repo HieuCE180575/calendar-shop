@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace CalendarShop.Api.Dtos;
@@ -9,6 +10,23 @@ public class AdminDashboardStatsDto
     public int TotalProductsSold { get; set; }
     public List<StatusCountDto> OrdersByStatus { get; set; } = new();
     public List<BestSellingProductDto> BestSelling { get; set; } = new();
+    public List<RevenueByDayDto> RevenueByDay { get; set; } = new();
+    public List<RevenueByMonthDto> RevenueByMonth { get; set; } = new();
+}
+
+public class RevenueByDayDto
+{
+    public DateTime Date { get; set; }
+    public decimal Revenue { get; set; }
+    public int OrderCount { get; set; }
+}
+
+public class RevenueByMonthDto
+{
+    public int Year { get; set; }
+    public int Month { get; set; }
+    public decimal Revenue { get; set; }
+    public int OrderCount { get; set; }
 }
 
 public class StatusCountDto

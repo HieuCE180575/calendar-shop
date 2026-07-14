@@ -34,12 +34,13 @@ class AdminHomePage extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.discount_outlined),
             title: const Text('Quản lý mã giảm giá'),
-            onTap: () {},
+            subtitle: const Text('Bật/tắt, giá trị giảm, ngày áp dụng, đơn tối thiểu'),
+            onTap: () => context.push('/admin/coupons'),
           ),
           ListTile(
             leading: const Icon(Icons.bar_chart_outlined),
             title: const Text('Thống kê'),
-            onTap: () {},
+            onTap: () => context.push('/admin/statistics'),
           ),
           const Divider(),
           ListTile(
