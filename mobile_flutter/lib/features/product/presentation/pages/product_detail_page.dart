@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../../favorite/presentation/providers/favorite_provider.dart';
+import '../../../review/presentation/widgets/review_list_widget.dart';
 import '../providers/product_provider.dart';
 
 class ProductDetailPage extends ConsumerWidget {
@@ -86,7 +88,8 @@ class ProductDetailPage extends ConsumerWidget {
                   Text('Lỗi: $err', style: const TextStyle(color: Colors.red)),
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: () => ref.invalidate(productDetailProvider(productId)),
+                    onPressed: () =>
+                        ref.invalidate(productDetailProvider(productId)),
                     child: const Text('Thử lại'),
                   ),
                 ],
@@ -94,36 +97,81 @@ class ProductDetailPage extends ConsumerWidget {
             ),
             data: (product) {
               return SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 80), // Chừa khoảng trống cho Bottom Bar
+                padding: const EdgeInsets.only(
+                    bottom: 80), // Chừa khoảng trống cho Bottom Bar
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Ảnh sản phẩm
-                    Container(
-                      width: double.infinity,
-                      height: 300,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.blue.shade100, Colors.blue.shade50],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                          ? Image.network(
-                              product.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
-                                Icons.calendar_month,
-                                size: 100,
-                                color: Colors.blueAccent,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.calendar_today,
-                              size: 100,
-                              color: Colors.blueAccent,
+                    Stack(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.blue.shade100,
+                                Colors.blue.shade50
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
+                          ),
+                          child: product.imageUrl != null &&
+                                  product.imageUrl!.isNotEmpty
+                              ? Image.network(
+                                  product.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.calendar_month,
+                                    size: 100,
+                                    color: Colors.blueAccent,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.calendar_today,
+                                  size: 100,
+                                  color: Colors.blueAccent,
+                                ),
+                        ),
+                        if (!isAdmin && authState.user != null)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                final isFavoriteAsync = ref.watch(
+                                    checkFavoriteProvider(product.productId));
+                                return isFavoriteAsync.when(
+                                  data: (isFavorite) => IconButton(
+                                    icon: Icon(
+                                      isFavorite
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color:
+                                          isFavorite ? Colors.red : Colors.grey,
+                                      size: 30,
+                                    ),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.white70,
+                                    ),
+                                    onPressed: () {
+                                      ref
+                                          .read(favoriteActionNotifierProvider
+                                              .notifier)
+                                          .toggleFavorite(
+                                              product.productId, isFavorite);
+                                    },
+                                  ),
+                                  loading: () =>
+                                      const CircularProgressIndicator(),
+                                  error: (_, __) => const SizedBox(),
+                                );
+                              },
+                            ),
+                          ),
+                      ],
                     ),
 
                     Padding(
@@ -136,7 +184,8 @@ class ProductDetailPage extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade100,
                                   borderRadius: BorderRadius.circular(6),
@@ -179,18 +228,22 @@ class ProductDetailPage extends ConsumerWidget {
                           // Danh mục & Tồn kho
                           Row(
                             children: [
-                              const Icon(Icons.category_outlined, size: 16, color: Colors.grey),
+                              const Icon(Icons.category_outlined,
+                                  size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
                                 'Danh mục: ${product.categoryName ?? 'Chưa xác định'}',
-                                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                style: const TextStyle(
+                                    fontSize: 14, color: Colors.black87),
                               ),
                               const Spacer(),
-                              const Icon(Icons.inventory_2_outlined, size: 16, color: Colors.grey),
+                              const Icon(Icons.inventory_2_outlined,
+                                  size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
                                 'Còn lại: ${product.stockQuantity}',
-                                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                style: const TextStyle(
+                                    fontSize: 14, color: Colors.black87),
                               ),
                             ],
                           ),
@@ -206,11 +259,19 @@ class ProductDetailPage extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            product.description != null && product.description!.isNotEmpty
+                            product.description != null &&
+                                    product.description!.isNotEmpty
                                 ? product.description!
                                 : 'Chưa có mô tả cho sản phẩm này.',
-                            style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
+                            style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                                height: 1.5),
                           ),
+                          const Divider(height: 24),
+
+                          // Đánh giá sản phẩm
+                          ReviewListWidget(productId: product.productId),
                         ],
                       ),
                     ),
@@ -226,9 +287,11 @@ class ProductDetailPage extends ConsumerWidget {
       bottomNavigationBar: productAsync.maybeWhen(
         data: (product) {
           if (isAdmin) {
-            return const SizedBox.shrink(); // Admin dùng appbar actions để Sửa / Xóa
+            return const SizedBox
+                .shrink(); // Admin dùng appbar actions để Sửa / Xóa
           }
-          final isAvailable = product.status == 'Active' && product.stockQuantity > 0;
+          final isAvailable =
+              product.status == 'Active' && product.stockQuantity > 0;
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -248,11 +311,14 @@ class ProductDetailPage extends ConsumerWidget {
                     onPressed: isAvailable
                         ? () async {
                             try {
-                              await ref.read(cartProvider.notifier).addItem(product.productId, 1);
+                              await ref
+                                  .read(cartProvider.notifier)
+                                  .addItem(product.productId, 1);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Thêm vào giỏ hàng thành công!'),
+                                    content:
+                                        Text('Thêm vào giỏ hàng thành công!'),
                                     backgroundColor: Colors.green,
                                   ),
                                 );
@@ -261,7 +327,8 @@ class ProductDetailPage extends ConsumerWidget {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Thêm vào giỏ hàng thất bại: $e'),
+                                    content:
+                                        Text('Thêm vào giỏ hàng thất bại: $e'),
                                     backgroundColor: Colors.redAccent,
                                   ),
                                 );
@@ -279,7 +346,8 @@ class ProductDetailPage extends ConsumerWidget {
                     ),
                     child: Text(
                       isAvailable ? 'Thêm vào giỏ hàng' : 'Hết hàng',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -322,7 +390,8 @@ class ProductDetailPage extends ConsumerWidget {
       ),
       child: Text(
         text,
-        style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold),
+        style:
+            TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold),
       ),
     );
   }

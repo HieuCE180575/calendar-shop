@@ -78,6 +78,8 @@ try
     builder.Services.AddScoped<ICategoryService, CategoryService>();
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<IReviewService, ReviewService>();
+    builder.Services.AddScoped<IFavoriteService, FavoriteService>();
     builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
     builder.Services.AddScoped<ICouponService, CouponService>();
 

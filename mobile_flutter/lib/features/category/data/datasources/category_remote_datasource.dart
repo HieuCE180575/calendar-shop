@@ -15,4 +15,37 @@ class CategoryRemoteDataSource {
       throw apiClient.handleError(e);
     }
   }
+
+  Future<CategoryModel> createCategory(String name, String? description, String status) async {
+    try {
+      final response = await apiClient.dio.post(ApiConstants.categories, data: {
+        'categoryName': name,
+        'description': description,
+        'status': status,
+      });
+      return CategoryModel.fromJson(response.data);
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
+
+  Future<void> updateCategory(int id, String name, String? description, String status) async {
+    try {
+      await apiClient.dio.put('${ApiConstants.categories}/$id', data: {
+        'categoryName': name,
+        'description': description,
+        'status': status,
+      });
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
+
+  Future<void> deleteCategory(int id) async {
+    try {
+      await apiClient.dio.delete('${ApiConstants.categories}/$id');
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
 }
