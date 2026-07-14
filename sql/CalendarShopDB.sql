@@ -1,4 +1,4 @@
-IF DB_ID(N'CalendarShopDB') IS NULL
+﻿IF DB_ID(N'CalendarShopDB') IS NULL
 BEGIN
     CREATE DATABASE CalendarShopDB;
 END

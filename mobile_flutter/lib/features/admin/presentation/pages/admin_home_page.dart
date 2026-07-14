@@ -19,7 +19,7 @@ class AdminHomePage extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.category_outlined),
             title: const Text('Quản lý danh mục'),
-            onTap: () {},
+            onTap: () => context.push('/admin/categories'),
           ),
           ListTile(
             leading: const Icon(Icons.receipt_long_outlined),

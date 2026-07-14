@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../favorite/presentation/providers/favorite_provider.dart';
+import '../../../review/presentation/widgets/review_list_widget.dart';
 import '../providers/product_provider.dart';
 
 class ProductDetailPage extends ConsumerWidget {
@@ -98,31 +100,63 @@ class ProductDetailPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Ảnh sản phẩm
-                    Container(
-                      width: double.infinity,
-                      height: 300,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.blue.shade100, Colors.blue.shade50],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                          ? Image.network(
-                              product.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
-                                Icons.calendar_month,
-                                size: 100,
-                                color: Colors.blueAccent,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.calendar_today,
-                              size: 100,
-                              color: Colors.blueAccent,
+                    Stack(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.blue.shade100, Colors.blue.shade50],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
+                          ),
+                          child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                              ? Image.network(
+                                  product.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.calendar_month,
+                                    size: 100,
+                                    color: Colors.blueAccent,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.calendar_today,
+                                  size: 100,
+                                  color: Colors.blueAccent,
+                                ),
+                        ),
+                        if (!isAdmin && authState.user != null)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                final isFavoriteAsync = ref.watch(checkFavoriteProvider(product.productId));
+                                return isFavoriteAsync.when(
+                                  data: (isFavorite) => IconButton(
+                                    icon: Icon(
+                                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                                      color: isFavorite ? Colors.red : Colors.grey,
+                                      size: 30,
+                                    ),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.white70,
+                                    ),
+                                    onPressed: () {
+                                      ref.read(favoriteActionNotifierProvider.notifier)
+                                          .toggleFavorite(product.productId, isFavorite);
+                                    },
+                                  ),
+                                  loading: () => const CircularProgressIndicator(),
+                                  error: (_, __) => const SizedBox(),
+                                );
+                              },
+                            ),
+                          ),
+                      ],
                     ),
 
                     Padding(
@@ -210,6 +244,10 @@ class ProductDetailPage extends ConsumerWidget {
                                 : 'Chưa có mô tả cho sản phẩm này.',
                             style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
                           ),
+                          const Divider(height: 24),
+                          
+                          // Đánh giá sản phẩm
+                          ReviewListWidget(productId: product.productId),
                         ],
                       ),
                     ),
