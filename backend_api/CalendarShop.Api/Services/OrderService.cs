@@ -226,4 +226,54 @@ public class OrderService : IOrderService
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
     }
+
+    public async Task HandlePaymentCallbackAsync(int orderId, bool isSuccess)
+    {
+        var order = await _orderRepository.Entities.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == orderId);
+        if (order == null) return;
+        
+        if (order.Status != "Pending") return;
+
+        if (isSuccess)
+        {
+            order.Status = "Paid";
+        }
+        else
+        {
+            order.Status = "Failed";
+            
+            foreach (var item in order.OrderItems)
+            {
+                var product = await _productRepository.GetByIdAsync(item.ProductId);
+                if (product != null)
+                {
+                    product.StockQuantity += item.Quantity;
+                    if (product.Status == "OutOfStock")
+                    {
+                        product.Status = "Active";
+                    }
+                    _productRepository.Update(product);
+                }
+            }
+        }
+        order.UpdatedAt = DateTime.UtcNow;
+        _orderRepository.Update(order);
+        try
+        {
+            await _orderRepository.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("========== SAVE CHANGES ERROR ==========");
+            Console.WriteLine(ex.ToString());
+
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine("========== INNER EXCEPTION ==========");
+                Console.WriteLine(ex.InnerException.ToString());
+            }
+
+            throw;
+        }
+    }
 }

@@ -3,18 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/providers/core_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../review/presentation/widgets/write_review_dialog.dart';
-
-final myOrdersProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.dio.get('/orders/mine');
-  return response.data as List<dynamic>;
-});
+import '../../domain/entities/order.dart';
+import '../providers/order_provider.dart';
 
 class MyOrdersPage extends ConsumerStatefulWidget {
   const MyOrdersPage({super.key});
@@ -23,20 +18,38 @@ class MyOrdersPage extends ConsumerStatefulWidget {
   ConsumerState<MyOrdersPage> createState() => _MyOrdersPageState();
 }
 
-class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerProviderStateMixin {
+class _MyOrdersPageState extends ConsumerState<MyOrdersPage>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
-  final List<String> _tabs = ['Tất cả', 'Chờ xác nhận', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Đã hủy'];
+
+  final List<String> _tabs = const [
+    'Tất cả',
+    'Chờ xác nhận',
+    'Đã xác nhận',
+    'Đang giao',
+    'Đã giao',
+    'Đã hủy',
+  ];
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: _tabs.length, vsync: this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(myOrdersProvider);
+    }
   }
 
   String _mapTabToStatus(String tab) {
@@ -63,7 +76,10 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Đơn hàng của tôi', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Đơn hàng của tôi',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -75,20 +91,62 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
         ),
       ),
       body: ordersAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+        error: (err, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 60),
+                const SizedBox(height: 10),
+                Text(
+                  'Không thể tải đơn hàng: $err',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 15),
+                ElevatedButton.icon(
+                  onPressed: () => ref.invalidate(myOrdersProvider),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Thử lại'),
+                ),
+              ],
+            ),
+          ),
+        ),
         data: (allOrders) {
           final currentTabStatus = _mapTabToStatus(_tabs[_tabController.index]);
           final filteredOrders = currentTabStatus == 'ALL'
               ? allOrders
-              : allOrders.where((o) => o['status']?.toString().toLowerCase() == currentTabStatus.toLowerCase()).toList();
+              : allOrders
+                  .where(
+                    (order) =>
+                        order.status.toLowerCase() ==
+                        currentTabStatus.toLowerCase(),
+                  )
+                  .toList();
 
           if (filteredOrders.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.receipt_long_outlined, size: 64, color: AppColors.textMuted),
+                  const Icon(
+                    Icons.receipt_long_outlined,
+                    size: 64,
+                    color: AppColors.textMuted,
+                  ),
                   const SizedBox(height: 12),
-                  const Text('Chưa có đơn hàng nào', style: TextStyle(fontSize: 15, color: AppColors.textSecondary)),
+                  const Text(
+                    'Chưa có đơn hàng nào',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => context.go('/products'),
@@ -107,136 +165,174 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final order = filteredOrders[index];
-                final items = order['items'] as List<dynamic>;
-                final status = order['status'] ?? 'Pending';
-
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
-                    boxShadow: const [
-                      BoxShadow(color: AppColors.cardShadow, blurRadius: 8, offset: Offset(0, 2)),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Mã đơn: #${order['orderId']}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
-                          ),
-                          StatusChip(status: status),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(order['createdAt'])),
-                        style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                      ),
-                      const Divider(height: 20),
-
-                      ...items.map((item) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryLight,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(Icons.calendar_today, color: AppColors.primary, size: 20),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item['productName'] ?? '',
-                                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
-                                    ),
-                                    Text(
-                                      '${item['quantity']} x ${CurrencyFormatter.vnd(item['unitPrice'])}',
-                                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (status == 'Delivered')
-                                TextButton(
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (ctx) => WriteReviewDialog(
-                                        orderItemId: item['orderItemId'],
-                                        productId: item['productId'],
-                                      ),
-                                    );
-                                  },
-                                  child: const Text('Đánh giá'),
-                                ),
-                            ],
-                          ),
-                        );
-                      }),
-                      const Divider(height: 20),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Tổng thanh toán:', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                              Text(
-                                CurrencyFormatter.vnd(order['totalAmount']),
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primary),
-                              ),
-                            ],
-                          ),
-                          // Re-order Button ("Mua lại")
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(110, 38),
-                              backgroundColor: AppColors.primaryLight,
-                              foregroundColor: AppColors.primary,
-                              elevation: 0,
-                            ),
-                            onPressed: () async {
-                              for (var item in items) {
-                                try {
-                                  await ref.read(cartProvider.notifier).addItem(
-                                        item['productId'],
-                                        item['quantity'] ?? 1,
-                                      );
-                                } catch (_) {}
-                              }
-                              if (context.mounted) {
-                                context.push('/cart');
-                              }
-                            },
-                            icon: const Icon(Icons.replay, size: 16),
-                            label: const Text('Mua lại'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
+                return _buildOrderCard(context, order);
               },
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (err, _) => Center(child: Text('Lỗi tải đơn hàng: $err', style: const TextStyle(color: AppColors.danger))),
+      ),
+    );
+  }
+
+  Widget _buildOrderCard(BuildContext context, OrderEntity order) {
+    final dateText = DateFormat('dd/MM/yyyy HH:mm').format(order.createdAt);
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => context.push('/orders/${order.orderId}'),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.cardShadow,
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Mã đơn: #${order.orderId}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  StatusChip(status: order.status),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                dateText,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const Divider(height: 20),
+              ...order.items.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryLight,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.calendar_today,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.productName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              '${item.quantity} x ${CurrencyFormatter.vnd(item.unitPrice)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (order.status == 'Delivered')
+                        TextButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => WriteReviewDialog(
+                                orderItemId: item.orderItemId,
+                                productId: item.productId,
+                              ),
+                            );
+                          },
+                          child: const Text('Đánh giá'),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const Divider(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Tổng thanh toán:',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                      Text(
+                        CurrencyFormatter.vnd(order.totalAmount),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(110, 38),
+                      backgroundColor: AppColors.primaryLight,
+                      foregroundColor: AppColors.primary,
+                      elevation: 0,
+                    ),
+                    onPressed: () async {
+                      for (final item in order.items) {
+                        try {
+                          await ref.read(cartProvider.notifier).addItem(
+                                item.productId,
+                                item.quantity,
+                              );
+                        } catch (_) {}
+                      }
+
+                      if (context.mounted) {
+                        context.push('/cart');
+                      }
+                    },
+                    icon: const Icon(Icons.replay, size: 16),
+                    label: const Text('Mua lại'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

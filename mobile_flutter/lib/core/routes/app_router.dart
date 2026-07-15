@@ -18,7 +18,9 @@ import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/category/presentation/pages/admin_category_page.dart';
 import '../../features/favorite/presentation/pages/favorites_page.dart';
+import '../../features/order/presentation/pages/checkout_page.dart';
 import '../../features/order/presentation/pages/my_orders_page.dart';
+import '../../features/order/presentation/pages/order_detail_page.dart';
 import '../../features/product/domain/entities/product.dart';
 import '../../features/product/presentation/pages/admin_product_form_page.dart';
 import '../../features/product/presentation/pages/admin_product_list_page.dart';
@@ -72,10 +74,24 @@ final appRouter = GoRouter(
       builder: (context, state) => const FavoritesPage(),
     ),
     GoRoute(
+      path: '/checkout',
+      builder: (context, state) => const CheckoutPage(),
+    ),
+    GoRoute(
       path: '/orders',
       builder: (context, state) => const MyOrdersPage(),
     ),
-    GoRoute(path: '/admin', builder: (context, state) => const AdminHomePage()),
+    GoRoute(
+      path: '/orders/:id',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return OrderDetailPage(orderId: id);
+      },
+    ),
+    GoRoute(
+      path: '/admin',
+      builder: (context, state) => const AdminHomePage(),
+    ),
     GoRoute(
       path: '/admin/orders',
       builder: (context, state) => const AdminOrderListPage(),

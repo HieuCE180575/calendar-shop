@@ -97,6 +97,7 @@ try
     builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
     builder.Services.AddScoped<ICouponService, CouponService>();
     builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IVNPayService, VNPayService>();
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
