@@ -440,6 +440,7 @@ class _CartPageState extends ConsumerState<CartPage> {
                 ),
               ],
             ),
+<<<<<<< HEAD
           );
         },
       ),
@@ -515,6 +516,16 @@ class _CartPageState extends ConsumerState<CartPage> {
                         color: AppColors.primary,
                       ),
                     ),
+=======
+            onPressed: cartTotal > 0
+                ? () {
+                    context.push('/checkout');
+                  }
+                : null, // Vô hiệu hóa nút nếu không chọn sản phẩm nào để mua
+            child: const Text(
+              'Thanh toán',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+>>>>>>> 7ece4cf (feat: implement VNPay payment integration)
             ),
           ),
           const SizedBox(width: 12),

@@ -1,5 +1,8 @@
 import '../../domain/entities/order.dart';
+<<<<<<< HEAD
 import '../../domain/entities/create_order_input.dart';
+=======
+>>>>>>> 7ece4cf (feat: implement VNPay payment integration)
 import '../../domain/repositories/order_repository.dart';
 import '../datasources/order_remote_datasource.dart';
 import '../models/order_model.dart';
@@ -33,6 +36,7 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
+<<<<<<< HEAD
   Future<OrderEntity> createOrder(CreateOrderInput input) async {
     final request = CreateOrderRequest(
       customerName: input.customerName,
@@ -42,6 +46,9 @@ class OrderRepositoryImpl implements OrderRepository {
       couponCode: input.couponCode,
       note: input.note,
     );
+=======
+  Future<OrderEntity> createOrder(CreateOrderRequest request) async {
+>>>>>>> 7ece4cf (feat: implement VNPay payment integration)
     final model = await remoteDataSource.createOrder(request);
     return model.toEntity();
   }

@@ -96,7 +96,10 @@ try
     builder.Services.AddScoped<IFavoriteService, FavoriteService>();
     builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
     builder.Services.AddScoped<ICouponService, CouponService>();
+<<<<<<< HEAD
     builder.Services.AddScoped<IUserService, UserService>();
+=======
+>>>>>>> 7ece4cf (feat: implement VNPay payment integration)
     builder.Services.AddScoped<IVNPayService, VNPayService>();
 
     builder.Services.AddProblemDetails();

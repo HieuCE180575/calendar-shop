@@ -239,6 +239,7 @@ public class OrderService : IOrderService
         await _orderRepository.SaveChangesAsync();
     }
 
+<<<<<<< HEAD
     public async Task<(bool IsSignatureValid, bool IsSuccess)> HandlePaymentCallbackAsync(Dictionary<string, string> vnpayData)
     {
         _logger.LogInformation("VNPay callback received.");
@@ -326,19 +327,41 @@ public class OrderService : IOrderService
         {
             order.Status = "Cancelled";
 
+=======
+    public async Task HandlePaymentCallbackAsync(int orderId, bool isSuccess)
+    {
+        var order = await _orderRepository.Entities.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == orderId);
+        if (order == null) return;
+        
+        if (order.Status != "Pending") return;
+
+        if (isSuccess)
+        {
+            order.Status = "Paid";
+        }
+        else
+        {
+            order.Status = "Failed";
+            
+>>>>>>> 7ece4cf (feat: implement VNPay payment integration)
             foreach (var item in order.OrderItems)
             {
                 var product = await _productRepository.GetByIdAsync(item.ProductId);
                 if (product != null)
                 {
                     product.StockQuantity += item.Quantity;
+<<<<<<< HEAD
                     if (product.Status == "OutOfStock" && product.StockQuantity > 0)
+=======
+                    if (product.Status == "OutOfStock")
+>>>>>>> 7ece4cf (feat: implement VNPay payment integration)
                     {
                         product.Status = "Active";
                     }
                     _productRepository.Update(product);
                 }
             }
+<<<<<<< HEAD
             await RestoreCouponUsageIfNeededAsync(order);
             _logger.LogInformation("Stock restored for OrderId {OrderId}.", orderId);
         }
@@ -387,5 +410,27 @@ public class OrderService : IOrderService
 
         var expectedAmount = decimal.ToInt64(orderTotal * 100);
         return callbackAmount == expectedAmount;
+=======
+        }
+        order.UpdatedAt = DateTime.UtcNow;
+        _orderRepository.Update(order);
+        try
+        {
+            await _orderRepository.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("========== SAVE CHANGES ERROR ==========");
+            Console.WriteLine(ex.ToString());
+
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine("========== INNER EXCEPTION ==========");
+                Console.WriteLine(ex.InnerException.ToString());
+            }
+
+            throw;
+        }
+>>>>>>> 7ece4cf (feat: implement VNPay payment integration)
     }
 }

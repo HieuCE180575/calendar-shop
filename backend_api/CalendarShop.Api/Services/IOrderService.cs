@@ -10,5 +10,9 @@ public interface IOrderService
     Task CancelOrderAsync(int userId, int id, CancelOrderRequest request);
     IQueryable<OrderDto> AdminGetAllOrdersQuery();
     Task AdminUpdateOrderStatusAsync(int id, UpdateOrderStatusRequest request);
+<<<<<<< HEAD
     Task<(bool IsSignatureValid, bool IsSuccess)> HandlePaymentCallbackAsync(Dictionary<string, string> vnpayData);
+=======
+    Task HandlePaymentCallbackAsync(int orderId, bool isSuccess);
+>>>>>>> 7ece4cf (feat: implement VNPay payment integration)
 }

@@ -120,7 +120,11 @@ public class VNPayLibrary
                 return ipAddress;
             }
         }
+<<<<<<< HEAD
         catch
+=======
+        catch (Exception ex)
+>>>>>>> 7ece4cf (feat: implement VNPay payment integration)
         {
             return "127.0.0.1";
         }
