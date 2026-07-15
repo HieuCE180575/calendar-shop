@@ -4,18 +4,43 @@ import 'package:intl/intl.dart';
 import '../providers/order_provider.dart';
 
 /// Màn hình chi tiết đơn hàng.
-class OrderDetailPage extends ConsumerWidget {
+class OrderDetailPage extends ConsumerStatefulWidget {
   final int orderId;
 
   const OrderDetailPage({super.key, required this.orderId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final orderState = ref.watch(orderDetailProvider(orderId));
+  ConsumerState<OrderDetailPage> createState() => _OrderDetailPageState();
+}
+
+class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsBindingObserver {
+  
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(orderDetailProvider(widget.orderId));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final orderState = ref.watch(orderDetailProvider(widget.orderId));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Đơn hàng #$orderId'),
+        title: Text('Đơn hàng #${widget.orderId}'),
         centerTitle: true,
       ),
       body: orderState.when(
@@ -37,7 +62,7 @@ class OrderDetailPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 15),
                 ElevatedButton.icon(
-                  onPressed: () => ref.invalidate(orderDetailProvider(orderId)),
+                  onPressed: () => ref.invalidate(orderDetailProvider(widget.orderId)),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Thử lại'),
                 ),

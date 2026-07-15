@@ -101,6 +101,44 @@ final cancelOrderUseCaseProvider =
 );
 
 typedef CancelOrderUseCaseRef = AutoDisposeProviderRef<CancelOrderUseCase>;
+String _$createOrderUseCaseHash() =>
+    r'a1c7acef69597a6882cd522de1f6837807b710c8';
+
+/// Provider cung cấp CreateOrderUseCase
+///
+/// Copied from [createOrderUseCase].
+@ProviderFor(createOrderUseCase)
+final createOrderUseCaseProvider =
+    AutoDisposeProvider<CreateOrderUseCase>.internal(
+  createOrderUseCase,
+  name: r'createOrderUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$createOrderUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef CreateOrderUseCaseRef = AutoDisposeProviderRef<CreateOrderUseCase>;
+String _$getVNPayUrlUseCaseHash() =>
+    r'09abf79dd62fb503f5c39f953ac0ce7508be9a9c';
+
+/// Provider cung cấp GetVNPayUrlUseCase
+///
+/// Copied from [getVNPayUrlUseCase].
+@ProviderFor(getVNPayUrlUseCase)
+final getVNPayUrlUseCaseProvider =
+    AutoDisposeProvider<GetVNPayUrlUseCase>.internal(
+  getVNPayUrlUseCase,
+  name: r'getVNPayUrlUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$getVNPayUrlUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef GetVNPayUrlUseCaseRef = AutoDisposeProviderRef<GetVNPayUrlUseCase>;
 String _$myOrdersHash() => r'd627e2bfb5b07a475893e1f1c7e824724f3bf272';
 
 /// Notifier quản lý danh sách đơn hàng bất đồng bộ

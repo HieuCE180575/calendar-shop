@@ -324,10 +324,7 @@ class CartPage extends ConsumerWidget {
             ),
             onPressed: cartTotal > 0
                 ? () {
-                    // TODO: Chuyển sang màn hình checkout đặt hàng
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Tính năng Thanh toán đang được phát triển.')),
-                    );
+                    context.push('/checkout');
                   }
                 : null, // Vô hiệu hóa nút nếu không chọn sản phẩm nào để mua
             child: const Text(

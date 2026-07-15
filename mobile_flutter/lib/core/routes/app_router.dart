@@ -7,6 +7,7 @@ import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/order/presentation/pages/my_orders_page.dart';
 import '../../features/order/presentation/pages/order_detail_page.dart';
+import '../../features/order/presentation/pages/checkout_page.dart';
 import '../../features/product/presentation/pages/product_list_page.dart';
 
 import '../../features/product/domain/entities/product.dart';
@@ -39,6 +40,7 @@ final appRouter = GoRouter(
         return OrderDetailPage(orderId: id);
       },
     ),
+    GoRoute(path: '/checkout', builder: (context, state) => const CheckoutPage()),
     GoRoute(path: '/admin', builder: (context, state) => const AdminHomePage()),
     GoRoute(
       path: '/admin/statistics',

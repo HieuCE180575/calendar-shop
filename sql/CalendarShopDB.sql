@@ -184,7 +184,7 @@ CREATE TABLE dbo.Orders (
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT FK_Orders_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId),
     CONSTRAINT FK_Orders_Coupons FOREIGN KEY (CouponId) REFERENCES dbo.Coupons(CouponId),
-    CONSTRAINT CK_Orders_Status CHECK (Status IN ('Pending', 'Confirmed', 'Shipping', 'Delivered', 'Cancelled')),
+    CONSTRAINT CK_Orders_Status CHECK (Status IN ('Pending', 'Confirmed', 'Shipping', 'Delivered', 'Cancelled', 'Paid', 'Failed')),
     CONSTRAINT CK_Orders_PaymentMethod CHECK (PaymentMethod IN ('COD', 'Banking', 'Momo', 'VNPay')),
     CONSTRAINT UQ_Orders_Order_User UNIQUE (OrderId, UserId)
 );

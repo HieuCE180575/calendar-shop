@@ -1,6 +1,7 @@
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/order_model.dart';
+import '../models/create_order_request.dart';
 
 /// Lớp chịu trách nhiệm gọi các API thô liên quan đến đơn hàng từ Server.
 class OrderRemoteDataSource {
@@ -45,6 +46,26 @@ class OrderRemoteDataSource {
       await apiClient.dio.put('${ApiConstants.orders}/$id/cancel', data: {
         'reason': reason,
       });
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
+
+  /// Tạo một đơn hàng mới
+  Future<OrderModel> createOrder(CreateOrderRequest request) async {
+    try {
+      final response = await apiClient.dio.post(ApiConstants.orders, data: request.toJson());
+      return OrderModel.fromJson(response.data);
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
+
+  /// Lấy VNPay Payment URL
+  Future<String> getVNPayUrl(int orderId) async {
+    try {
+      final response = await apiClient.dio.get('/payment/vnpay/$orderId');
+      return response.data['url'] as String;
     } catch (e) {
       throw apiClient.handleError(e);
     }

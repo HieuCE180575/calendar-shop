@@ -79,6 +79,7 @@ try
     builder.Services.AddScoped<IProductService, ProductService>();
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+    builder.Services.AddScoped<IVNPayService, VNPayService>();
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

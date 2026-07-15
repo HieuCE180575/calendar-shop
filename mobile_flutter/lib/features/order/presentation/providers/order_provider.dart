@@ -6,6 +6,8 @@ import '../../domain/repositories/order_repository.dart';
 import '../../domain/usecases/get_my_orders_usecase.dart';
 import '../../domain/usecases/get_order_detail_usecase.dart';
 import '../../domain/usecases/cancel_order_usecase.dart';
+import '../../domain/usecases/create_order_usecase.dart';
+import '../../domain/usecases/get_vnpay_url_usecase.dart';
 import '../../domain/entities/order.dart';
 
 part 'order_provider.g.dart';
@@ -38,6 +40,18 @@ GetOrderDetailUseCase getOrderDetailUseCase(GetOrderDetailUseCaseRef ref) {
 @riverpod
 CancelOrderUseCase cancelOrderUseCase(CancelOrderUseCaseRef ref) {
   return CancelOrderUseCase(ref.watch(orderRepositoryProvider));
+}
+
+/// Provider cung cấp CreateOrderUseCase
+@riverpod
+CreateOrderUseCase createOrderUseCase(CreateOrderUseCaseRef ref) {
+  return CreateOrderUseCase(ref.watch(orderRepositoryProvider));
+}
+
+/// Provider cung cấp GetVNPayUrlUseCase
+@riverpod
+GetVNPayUrlUseCase getVNPayUrlUseCase(GetVNPayUrlUseCaseRef ref) {
+  return GetVNPayUrlUseCase(ref.watch(orderRepositoryProvider));
 }
 
 /// Notifier quản lý danh sách đơn hàng bất đồng bộ

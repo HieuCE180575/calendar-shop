@@ -2,6 +2,7 @@ import '../../domain/entities/order.dart';
 import '../../domain/repositories/order_repository.dart';
 import '../datasources/order_remote_datasource.dart';
 import '../models/order_model.dart';
+import '../models/create_order_request.dart';
 
 /// Lớp triển khai (implementation) của OrderRepository ở tầng Domain.
 /// Chịu trách nhiệm gọi nguồn dữ liệu (Data Source) và chuyển đổi Model DTO thành Entity sạch.
@@ -28,5 +29,16 @@ class OrderRepositoryImpl implements OrderRepository {
   @override
   Future<void> cancelOrder(int id, String? reason) {
     return remoteDataSource.cancelOrder(id, reason);
+  }
+
+  @override
+  Future<OrderEntity> createOrder(CreateOrderRequest request) async {
+    final model = await remoteDataSource.createOrder(request);
+    return model.toEntity();
+  }
+
+  @override
+  Future<String> getVNPayUrl(int orderId) {
+    return remoteDataSource.getVNPayUrl(orderId);
   }
 }

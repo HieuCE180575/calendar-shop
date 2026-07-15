@@ -5,11 +5,36 @@ import '../providers/order_provider.dart';
 import '../widgets/order_card_widget.dart';
 
 /// Màn hình danh sách đơn hàng của người dùng hiện tại.
-class MyOrdersPage extends ConsumerWidget {
+class MyOrdersPage extends ConsumerStatefulWidget {
   const MyOrdersPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyOrdersPage> createState() => _MyOrdersPageState();
+}
+
+class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBindingObserver {
+  
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(myOrdersProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ordersState = ref.watch(myOrdersProvider);
 
     return Scaffold(

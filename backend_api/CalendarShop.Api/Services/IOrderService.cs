@@ -10,4 +10,5 @@ public interface IOrderService
     Task CancelOrderAsync(int userId, int id, CancelOrderRequest request);
     IQueryable<OrderDto> AdminGetAllOrdersQuery();
     Task AdminUpdateOrderStatusAsync(int id, UpdateOrderStatusRequest request);
+    Task HandlePaymentCallbackAsync(int orderId, bool isSuccess);
 }
