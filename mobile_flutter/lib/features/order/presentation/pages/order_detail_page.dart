@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+
 import '../providers/order_provider.dart';
 
-/// Màn hình chi tiết đơn hàng.
 class OrderDetailPage extends ConsumerStatefulWidget {
   final int orderId;
 
@@ -13,8 +14,8 @@ class OrderDetailPage extends ConsumerStatefulWidget {
   ConsumerState<OrderDetailPage> createState() => _OrderDetailPageState();
 }
 
-class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsBindingObserver {
-  
+class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -37,10 +38,21 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsB
   @override
   Widget build(BuildContext context) {
     final orderState = ref.watch(orderDetailProvider(widget.orderId));
+    final canPop = Navigator.of(context).canPop();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Đơn hàng #${widget.orderId}'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (canPop) {
+              Navigator.of(context).pop();
+            } else {
+              context.go('/orders');
+            }
+          },
+        ),
+        title: Text('Don hang #${widget.orderId}'),
         centerTitle: true,
       ),
       body: orderState.when(
@@ -49,22 +61,23 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsB
         ),
         error: (error, stackTrace) => Center(
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.error_outline, color: Colors.red, size: 60),
                 const SizedBox(height: 10),
                 Text(
-                  'Không thể tải chi tiết đơn hàng: $error',
+                  'Khong the tai chi tiet don hang: $error',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.red),
                 ),
                 const SizedBox(height: 15),
                 ElevatedButton.icon(
-                  onPressed: () => ref.invalidate(orderDetailProvider(widget.orderId)),
+                  onPressed: () =>
+                      ref.invalidate(orderDetailProvider(widget.orderId)),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Thử lại'),
+                  label: const Text('Thu lai'),
                 ),
               ],
             ),
@@ -74,122 +87,119 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsB
           final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Trạng thái đơn hàng
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.local_shipping_outlined),
-                    title: const Text('Trạng thái'),
+                    title: const Text('Trang thai'),
                     trailing: Chip(label: Text(order.status)),
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // Thông tin giao hàng
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Thông tin giao hàng',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text(
+                          'Thong tin giao hang',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                         const Divider(),
-                        Text('Người nhận: ${order.customerName}'),
+                        Text('Nguoi nhan: ${order.customerName}'),
                         const SizedBox(height: 4),
-                        Text('Số điện thoại: ${order.customerPhone}'),
+                        Text('So dien thoai: ${order.customerPhone}'),
                         const SizedBox(height: 4),
-                        Text('Địa chỉ: ${order.shippingAddress}'),
+                        Text('Dia chi: ${order.shippingAddress}'),
                         const SizedBox(height: 4),
-                        Text('Ngày đặt: ${dateFormat.format(order.createdAt)}'),
+                        Text('Ngay dat: ${dateFormat.format(order.createdAt)}'),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // Danh sách sản phẩm
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Sản phẩm',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text(
+                          'San pham',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                         const Divider(),
-                        ...order.items.map((item) => Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 4.0),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(item.productName),
+                        ...order.items.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Expanded(child: Text(item.productName)),
+                                Text('x${item.quantity}'),
+                                const SizedBox(width: 12),
+                                Text(
+                                  '${item.totalPrice.toStringAsFixed(0)} d',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  Text('x${item.quantity}'),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    '${item.totalPrice.toStringAsFixed(0)} đ',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            )),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // Tổng tiền
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
-                        _buildPriceRow('Tạm tính', order.subTotal),
+                        _buildPriceRow('Tam tinh', order.subTotal),
                         if (order.discountAmount > 0)
-                          _buildPriceRow('Giảm giá', -order.discountAmount),
-                        _buildPriceRow('Phí vận chuyển', order.shippingFee),
+                          _buildPriceRow('Giam gia', -order.discountAmount),
+                        _buildPriceRow('Phi van chuyen', order.shippingFee),
                         const Divider(),
-                        _buildPriceRow('Tổng cộng', order.totalAmount,
-                            isBold: true),
+                        _buildPriceRow(
+                          'Tong cong',
+                          order.totalAmount,
+                          isBold: true,
+                        ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // Phương thức thanh toán
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.payment_outlined),
-                    title: const Text('Phương thức thanh toán'),
+                    title: const Text('Phuong thuc thanh toan'),
                     trailing: Text(order.paymentMethod),
                   ),
                 ),
-
-                // Ghi chú
                 if (order.note != null && order.note!.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.note_outlined),
-                      title: const Text('Ghi chú'),
+                      title: const Text('Ghi chu'),
                       subtitle: Text(order.note!),
                     ),
                   ),
                 ],
-
                 const SizedBox(height: 20),
-
-                // Nút hủy đơn hàng (chỉ hiển thị khi status là Pending)
                 if (order.status == 'Pending')
                   SizedBox(
                     width: double.infinity,
@@ -201,11 +211,12 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsB
                       onPressed: () =>
                           _showCancelDialog(context, ref, order.orderId),
                       child: const Text(
-                        'Hủy đơn hàng',
+                        'Huy don hang',
                         style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -219,21 +230,24 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsB
 
   Widget _buildPriceRow(String label, double amount, {bool isBold = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: isBold
-                  ? const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
-                  : null),
           Text(
-            '${amount.toStringAsFixed(0)} đ',
+            label,
+            style: isBold
+                ? const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                : null,
+          ),
+          Text(
+            '${amount.toStringAsFixed(0)} d',
             style: isBold
                 ? const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: Colors.deepOrange)
+                    color: Colors.deepOrange,
+                  )
                 : null,
           ),
         ],
@@ -247,11 +261,11 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsB
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Hủy đơn hàng'),
+        title: const Text('Huy don hang'),
         content: TextField(
           controller: reasonController,
           decoration: const InputDecoration(
-            labelText: 'Lý do hủy (không bắt buộc)',
+            labelText: 'Ly do huy (khong bat buoc)',
             border: OutlineInputBorder(),
           ),
           maxLines: 3,
@@ -259,7 +273,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsB
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Đóng'),
+            child: const Text('Dong'),
           ),
           TextButton(
             onPressed: () async {
@@ -272,19 +286,22 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage> with WidgetsB
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Đã hủy đơn hàng thành công.')),
+                      content: Text('Da huy don hang thanh cong.'),
+                    ),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Không thể hủy đơn hàng: $e')),
+                    SnackBar(content: Text('Khong the huy don hang: $e')),
                   );
                 }
               }
             },
-            child:
-                const Text('Xác nhận hủy', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Xac nhan huy',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
