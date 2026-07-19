@@ -17,5 +17,5 @@ abstract class OrderRepository {
   Future<OrderEntity> createOrder(CreateOrderRequest request);
 
   /// Lấy VNPay Payment URL
-  Future<String> getVNPayUrl(int orderId);
+  Future<String> getVNPaygit cherry-pick --abortUrl(int orderId);
 }

@@ -4,8 +4,11 @@ using CalendarShop.Api.Data;
 using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Models;
 using CalendarShop.Api.Repositories;
+using CalendarShop.Api.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace CalendarShop.Api.Services;
 
@@ -16,19 +19,25 @@ public class OrderService : IOrderService
     private readonly IRepository<Product> _productRepository;
     private readonly IRepository<Coupon> _couponRepository;
     private readonly IMapper _mapper;
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<OrderService> _logger;
 
     public OrderService(
         IRepository<Order> orderRepository,
         IRepository<CartItem> cartItemRepository,
         IRepository<Product> productRepository,
         IRepository<Coupon> couponRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IConfiguration configuration,
+        ILogger<OrderService> logger)
     {
         _orderRepository = orderRepository;
         _cartItemRepository = cartItemRepository;
         _productRepository = productRepository;
         _couponRepository = couponRepository;
         _mapper = mapper;
+        _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<OrderDto> CreateOrderAsync(int userId, CreateOrderRequest request)
@@ -227,20 +236,68 @@ public class OrderService : IOrderService
         await _orderRepository.SaveChangesAsync();
     }
 
-    public async Task HandlePaymentCallbackAsync(int orderId, bool isSuccess)
+    public async Task<(bool IsSignatureValid, bool IsSuccess)> HandlePaymentCallbackAsync(Dictionary<string, string> vnpayData)
     {
-        var order = await _orderRepository.Entities.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == orderId);
-        if (order == null) return;
-        
-        if (order.Status != "Pending") return;
+        _logger.LogInformation("VNPay callback received.");
 
+        var pay = new VNPayLibrary();
+        foreach (var (key, value) in vnpayData)
+        {
+            if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
+            {
+                pay.AddResponseData(key, value);
+            }
+        }
+
+        var vnp_TxnRef = pay.GetResponseData("vnp_TxnRef");
+        var vnp_SecureHash = vnpayData.TryGetValue("vnp_SecureHash", out var hash) ? hash : string.Empty;
+        var vnp_ResponseCode = pay.GetResponseData("vnp_ResponseCode");
+
+        bool isSignatureValid = pay.ValidateSignature(vnp_SecureHash, _configuration["VNPay:HashSecret"] ?? string.Empty);
+        
+        _logger.LogInformation("VNPay signature validation result: {IsValid}", isSignatureValid);
+
+        if (!isSignatureValid)
+        {
+            return (false, false);
+        }
+
+        if (string.IsNullOrEmpty(vnp_TxnRef) || !int.TryParse(vnp_TxnRef, out int orderId))
+        {
+            _logger.LogWarning("Invalid orderId from VNPay callback.");
+            return (true, false);
+        }
+
+        bool isSuccess = vnp_ResponseCode == "00";
         if (isSuccess)
         {
-            order.Status = "Paid";
+            _logger.LogInformation("Payment success for OrderId {OrderId}.", orderId);
         }
         else
         {
-            order.Status = "Failed";
+            _logger.LogInformation("Payment failed/cancelled for OrderId {OrderId}.", orderId);
+        }
+
+        var order = await _orderRepository.Entities.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == orderId);
+        if (order == null)
+        {
+            _logger.LogWarning("Order {OrderId} not found.", orderId);
+            return (true, isSuccess);
+        }
+        
+        if (order.Status != "Pending")
+        {
+            _logger.LogInformation("Order {OrderId} status is {Status}, no update needed.", orderId, order.Status);
+            return (true, isSuccess);
+        }
+
+        if (isSuccess)
+        {
+            order.Status = "Confirmed";
+        }
+        else
+        {
+            order.Status = "Cancelled";
             
             foreach (var item in order.OrderItems)
             {
@@ -248,32 +305,30 @@ public class OrderService : IOrderService
                 if (product != null)
                 {
                     product.StockQuantity += item.Quantity;
-                    if (product.Status == "OutOfStock")
+                    if (product.Status == "OutOfStock" && product.StockQuantity > 0)
                     {
                         product.Status = "Active";
                     }
                     _productRepository.Update(product);
                 }
             }
+            _logger.LogInformation("Stock restored for OrderId {OrderId}.", orderId);
         }
+        
         order.UpdatedAt = DateTime.UtcNow;
         _orderRepository.Update(order);
+        
         try
         {
             await _orderRepository.SaveChangesAsync();
+            _logger.LogInformation("Order {OrderId} updated to {Status}.", orderId, order.Status);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("========== SAVE CHANGES ERROR ==========");
-            Console.WriteLine(ex.ToString());
-
-            if (ex.InnerException != null)
-            {
-                Console.WriteLine("========== INNER EXCEPTION ==========");
-                Console.WriteLine(ex.InnerException.ToString());
-            }
-
+            _logger.LogError(ex, "SaveChanges exception for OrderId {OrderId}", orderId);
             throw;
         }
+
+        return (true, isSuccess);
     }
 }

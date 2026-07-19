@@ -32,42 +32,27 @@ public class PaymentController : AppControllerBase
     [HttpGet("vnpay-return")]
     public async Task<IActionResult> VNPayReturn()
     {
-        var vnpayData = Request.Query;
-        var pay = new VNPayLibrary();
+        var vnpayData = Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString());
         
-        foreach (var (key, value) in vnpayData)
-        {
-            if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
-            {
-                pay.AddResponseData(key, value.ToString());
-            }
-        }
-        
-        var vnp_TxnRef = pay.GetResponseData("vnp_TxnRef");
-        if (string.IsNullOrEmpty(vnp_TxnRef) || !int.TryParse(vnp_TxnRef, out int orderId))
-        {
-            return Content("<html><body><h3>Dữ liệu thanh toán không hợp lệ</h3></body></html>", "text/html");
-        }
-
-        var vnp_SecureHash = Request.Query["vnp_SecureHash"].ToString();
-        var vnp_ResponseCode = pay.GetResponseData("vnp_ResponseCode");
-
-        bool checkSignature = pay.ValidateSignature(vnp_SecureHash, _configuration["VNPay:HashSecret"] ?? string.Empty);
-
-        if (!checkSignature)
-        {
-            return Content("<html><body><h3>Chữ ký không hợp lệ</h3></body></html>", "text/html");
-        }
+        bool isSignatureValid = false;
+        bool isSuccess = false;
 
         try
         {
-            await _orderService.HandlePaymentCallbackAsync(orderId, vnp_ResponseCode == "00");
+            var result = await _orderService.HandlePaymentCallbackAsync(vnpayData);
+            isSignatureValid = result.IsSignatureValid;
+            isSuccess = result.IsSuccess;
         }
         catch (Exception ex)
         {
             return Content(
                 $"<pre>{ex}\n\nINNER:\n{ex.InnerException}</pre>",
                 "text/html");
+        }
+
+        if (!isSignatureValid)
+        {
+            return Content("<html><body><h3>Chữ ký không hợp lệ</h3></body></html>", "text/html");
         }
 
         string htmlContent = $@"
@@ -89,7 +74,7 @@ public class PaymentController : AppControllerBase
 </head>
 <body>
     <div class=""card"">
-        {(vnp_ResponseCode == "00" 
+        {(isSuccess 
             ? "<h2 class='success'>✅ Thanh toán thành công!</h2><p>Đơn hàng của bạn đã được xác nhận. Cảm ơn bạn đã mua sắm.</p>" 
             : "<h2 class='error'>❌ Thanh toán thất bại!</h2><p>Giao dịch chưa hoàn tất hoặc đã bị hủy. Vui lòng thử lại sau.</p>")}
         <button class=""btn"" onclick=""window.close()"">Quay lại ứng dụng</button>
