@@ -69,7 +69,7 @@ class BestSellingProductsCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.indigo.withOpacity(0.05),
+                          color: Colors.indigo.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
