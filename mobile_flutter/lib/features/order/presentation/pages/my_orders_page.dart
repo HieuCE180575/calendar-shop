@@ -238,7 +238,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBinding
                 final order = orders[index];
                 return OrderCardWidget(
                   order: order,
-                  onTap: () => context.go('/orders/${order.orderId}'),
+                  onTap: () => context.push('/orders/${order.orderId}'),
                 );
 >>>>>>> 7ece4cf (feat: implement VNPay payment integration)
               },
