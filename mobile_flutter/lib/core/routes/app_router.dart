@@ -1,39 +1,25 @@
 import 'package:go_router/go_router.dart';
 
-import '../../features/admin/domain/entities/admin_coupon.dart';
+import '../../features/admin/presentation/pages/admin_home_page.dart';
 import '../../features/admin/presentation/pages/admin_coupon_form_page.dart';
 import '../../features/admin/presentation/pages/admin_coupon_list_page.dart';
-import '../../features/admin/presentation/pages/admin_home_page.dart';
-import '../../features/admin/presentation/pages/admin_order_list_page.dart';
 import '../../features/admin/presentation/pages/admin_statistics_page.dart';
-import '../../features/admin/presentation/pages/admin_user_detail_page.dart';
-import '../../features/admin/presentation/pages/admin_user_list_page.dart';
-import '../../features/auth/presentation/pages/change_password_page.dart';
-import '../../features/auth/presentation/pages/confirm_email_page.dart';
-import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/auth/presentation/pages/verify_reset_code_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
-<<<<<<< HEAD
-import '../../features/category/presentation/pages/admin_category_page.dart';
-import '../../features/favorite/presentation/pages/favorites_page.dart';
 import '../../features/order/presentation/pages/checkout_page.dart';
 import '../../features/order/presentation/pages/my_orders_page.dart';
 import '../../features/order/presentation/pages/order_detail_page.dart';
 import '../../features/order/presentation/pages/vnpay_waiting_page.dart';
-=======
-import '../../features/order/presentation/pages/checkout_page.dart';
-import '../../features/order/presentation/pages/my_orders_page.dart';
-import '../../features/order/presentation/pages/order_detail_page.dart';
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
 import '../../features/product/presentation/pages/product_list_page.dart';
+
 import '../../features/product/domain/entities/product.dart';
-import '../../features/product/presentation/pages/admin_product_form_page.dart';
-import '../../features/product/presentation/pages/admin_product_list_page.dart';
 import '../../features/product/presentation/pages/product_detail_page.dart';
+import '../../features/product/presentation/pages/admin_product_list_page.dart';
+import '../../features/product/presentation/pages/admin_product_form_page.dart';
+import '../../features/admin/domain/entities/admin_coupon.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -83,19 +69,8 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(path: '/cart', builder: (context, state) => const CartPage()),
-<<<<<<< HEAD
-    GoRoute(
-      path: '/favorites',
-      builder: (context, state) => const FavoritesPage(),
-    ),
-    GoRoute(
-      path: '/checkout',
-      builder: (context, state) => const CheckoutPage(),
-    ),
-    GoRoute(
-      path: '/orders',
-      builder: (context, state) => const MyOrdersPage(),
-    ),
+    GoRoute(path: '/checkout', builder: (context, state) => const CheckoutPage()),
+    GoRoute(path: '/orders', builder: (context, state) => const MyOrdersPage()),
     GoRoute(
       path: '/vnpay-waiting/:id',
       builder: (context, state) {
@@ -103,10 +78,6 @@ final appRouter = GoRouter(
         return VNPayWaitingPage(orderId: id);
       },
     ),
-=======
-    GoRoute(path: '/checkout', builder: (context, state) => const CheckoutPage()),
-    GoRoute(path: '/orders', builder: (context, state) => const MyOrdersPage()),
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
     GoRoute(
       path: '/orders/:id',
       builder: (context, state) {
@@ -114,29 +85,7 @@ final appRouter = GoRouter(
         return OrderDetailPage(orderId: id);
       },
     ),
-<<<<<<< HEAD
-    GoRoute(
-      path: '/admin',
-      builder: (context, state) => const AdminHomePage(),
-    ),
-    GoRoute(
-      path: '/admin/orders',
-      builder: (context, state) => const AdminOrderListPage(),
-    ),
-    GoRoute(
-      path: '/admin/users',
-      builder: (context, state) => const AdminUserListPage(),
-    ),
-    GoRoute(
-      path: '/admin/users/:id',
-      builder: (context, state) {
-        final id = int.parse(state.pathParameters['id']!);
-        return AdminUserDetailPage(userId: id);
-      },
-    ),
-=======
     GoRoute(path: '/admin', builder: (context, state) => const AdminHomePage()),
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
     GoRoute(
       path: '/admin/statistics',
       builder: (context, state) => const AdminStatisticsPage(),
@@ -159,10 +108,6 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin/products',
       builder: (context, state) => const AdminProductListPage(),
-    ),
-    GoRoute(
-      path: '/admin/categories',
-      builder: (context, state) => const AdminCategoryPage(),
     ),
     GoRoute(
       path: '/admin/products/new',
