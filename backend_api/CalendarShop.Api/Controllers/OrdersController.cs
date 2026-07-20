@@ -45,6 +45,13 @@ public class OrdersController : AppControllerBase
         return NoContent();
     }
 
+    [HttpPost("{id:int}/reorder")]
+    public async Task<IActionResult> Reorder(int id)
+    {
+        await _orderService.ReorderAsync(CurrentUserId, id);
+        return NoContent();
+    }
+
     [Authorize(Roles = "Admin")]
     [HttpGet("admin")]
     [EnableQuery]

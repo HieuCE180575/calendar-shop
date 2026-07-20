@@ -93,6 +93,15 @@ class AdminHomePage extends ConsumerWidget {
           const SizedBox(height: 12),
           _buildAdminTile(
             context,
+            icon: Icons.flash_on_outlined,
+            title: 'Quan ly Flash Sale',
+            subtitle: 'Giam gia truc tiep len san pham',
+            route: '/admin/discounts',
+            color: const Color(0xFFEF4444),
+          ),
+          const SizedBox(height: 12),
+          _buildAdminTile(
+            context,
             icon: Icons.bar_chart_outlined,
             title: 'Bao cao & Thong ke',
             subtitle: 'Tong doanh thu, so luong ban, bieu do',

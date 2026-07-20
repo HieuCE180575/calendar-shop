@@ -11,6 +11,7 @@ class Product with _$Product {
     required String productName,
     String? description,
     required double price,
+    double? originalPrice,
     required int stockQuantity,
     String? imageUrl,
     required String calendarType,

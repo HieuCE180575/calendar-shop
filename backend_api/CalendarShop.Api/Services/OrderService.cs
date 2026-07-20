@@ -18,6 +18,8 @@ public class OrderService : IOrderService
     private readonly IRepository<CartItem> _cartItemRepository;
     private readonly IRepository<Product> _productRepository;
     private readonly IRepository<Coupon> _couponRepository;
+    private readonly IDiscountService _discountService;
+    private readonly IRepository<Discount> _discountRepository;
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
     private readonly ILogger<OrderService> _logger;
@@ -29,12 +31,16 @@ public class OrderService : IOrderService
         IRepository<Coupon> couponRepository,
         IMapper mapper,
         IConfiguration configuration,
-        ILogger<OrderService> logger)
+        ILogger<OrderService> logger,
+        IDiscountService discountService,
+        IRepository<Discount> discountRepository)
     {
         _orderRepository = orderRepository;
         _cartItemRepository = cartItemRepository;
         _productRepository = productRepository;
         _couponRepository = couponRepository;
+        _discountService = discountService;
+        _discountRepository = discountRepository;
         _mapper = mapper;
         _configuration = configuration;
         _logger = logger;
@@ -44,6 +50,7 @@ public class OrderService : IOrderService
     {
         var cartItems = await _cartItemRepository.Entities
             .Include(x => x.Product)
+                .ThenInclude(p => p.Discount)
             .Where(x => x.UserId == userId && x.IsSelected)
             .ToListAsync();
 
@@ -52,6 +59,7 @@ public class OrderService : IOrderService
             throw new BadHttpRequestException("Giỏ hàng chưa chọn sản phẩm.");
         }
 
+        decimal subTotal = 0;
         foreach (var item in cartItems)
         {
             if (item.Product == null || item.Product.Status != "Active" || item.Product.IsDeleted)
@@ -62,9 +70,9 @@ public class OrderService : IOrderService
             {
                 throw new BadHttpRequestException($"Sản phẩm {item.Product.ProductName} không đủ tồn kho.");
             }
+            var discountedPrice = _discountService.GetDiscountedPrice(item.Product);
+            subTotal += discountedPrice * item.Quantity;
         }
-
-        var subTotal = cartItems.Sum(x => x.Product!.Price * x.Quantity);
         decimal discountAmount = 0;
         Coupon? coupon = null;
 
@@ -113,14 +121,15 @@ public class OrderService : IOrderService
         foreach (var item in cartItems)
         {
             var product = item.Product!;
+            var discountedPrice = _discountService.GetDiscountedPrice(product);
             order.OrderItems.Add(new OrderItem
             {
                 ProductId = product.ProductId,
                 ProductName = product.ProductName,
                 ProductImageUrl = product.ImageUrl,
-                UnitPrice = product.Price,
+                UnitPrice = discountedPrice,
                 Quantity = item.Quantity,
-                TotalPrice = product.Price * item.Quantity
+                TotalPrice = discountedPrice * item.Quantity
             });
 
             product.StockQuantity -= item.Quantity;
@@ -238,7 +247,6 @@ public class OrderService : IOrderService
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
     }
-
     public async Task<(bool IsSignatureValid, bool IsSuccess)> HandlePaymentCallbackAsync(Dictionary<string, string> vnpayData)
     {
         _logger.LogInformation("VNPay callback received.");
@@ -387,5 +395,53 @@ public class OrderService : IOrderService
 
         var expectedAmount = decimal.ToInt64(orderTotal * 100);
         return callbackAmount == expectedAmount;
+    }
+
+    public async Task ReorderAsync(int userId, int orderId)
+    {
+        var order = await _orderRepository.Entities
+            .Include(x => x.OrderItems)
+            .FirstOrDefaultAsync(x => x.OrderId == orderId && x.UserId == userId);
+
+        if (order == null)
+            throw new KeyNotFoundException($"Không tìm thấy đơn hàng. UserId={userId}, OrderId={orderId}");
+
+        // Fetch existing cart
+        var existingCart = await _cartItemRepository.Entities.Where(x => x.UserId == userId).ToListAsync();
+
+        // Add order items back to cart or update existing
+        foreach (var item in order.OrderItems)
+        {
+            var product = await _productRepository.GetByIdAsync(item.ProductId);
+            if (product == null || product.IsDeleted || product.Status != "Active")
+                continue;
+
+            var existingItem = existingCart.FirstOrDefault(x => x.ProductId == item.ProductId);
+            
+            if (existingItem != null)
+            {
+                // Update existing item quantity (capping at stock) and select it
+                var newQty = existingItem.Quantity + item.Quantity;
+                existingItem.Quantity = Math.Min(newQty, product.StockQuantity);
+                existingItem.IsSelected = true;
+                _cartItemRepository.Update(existingItem);
+            }
+            else
+            {
+                // Add new item to cart
+                var qty = Math.Min(item.Quantity, product.StockQuantity);
+                if (qty <= 0) continue;
+
+                await _cartItemRepository.AddAsync(new CartItem
+                {
+                    UserId = userId,
+                    ProductId = item.ProductId,
+                    Quantity = qty,
+                    IsSelected = true
+                });
+            }
+        }
+
+        await _cartItemRepository.SaveChangesAsync();
     }
 }

@@ -11,4 +11,5 @@ public interface IOrderService
     IQueryable<OrderDto> AdminGetAllOrdersQuery();
     Task AdminUpdateOrderStatusAsync(int id, UpdateOrderStatusRequest request);
     Task<(bool IsSignatureValid, bool IsSuccess)> HandlePaymentCallbackAsync(Dictionary<string, string> vnpayData);
+    Task ReorderAsync(int userId, int orderId);
 }

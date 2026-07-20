@@ -12,8 +12,14 @@ import '../../../review/presentation/widgets/write_review_dialog.dart';
 
 final myOrdersProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.dio.get('/orders/mine');
-  return response.data as List<dynamic>;
+  final response = await apiClient.dio.get('/orders/mine', queryParameters: {'\$orderby': 'CreatedAt desc'});
+  
+  if (response.data is Map && (response.data as Map).containsKey('value')) {
+    return response.data['value'] as List<dynamic>;
+  } else if (response.data is List) {
+    return response.data as List<dynamic>;
+  }
+  return [];
 });
 
 class MyOrdersPage extends ConsumerStatefulWidget {
@@ -261,24 +267,19 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
                               elevation: 0,
                             ),
                             onPressed: () async {
-                              final cartState = ref.read(cartProvider);
-                              if (cartState.hasValue) {
-                                for (var existing in cartState.value!) {
-                                  try {
-                                    await ref.read(cartProvider.notifier).removeItem(existing.cartItemId);
-                                  } catch (_) {}
+                              final apiClient = ref.read(apiClientProvider);
+                              try {
+                                await apiClient.dio.post('/orders/${order['orderId']}/reorder');
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Đã thêm sản phẩm vào giỏ hàng!')),
+                                  );
+                                  context.push('/cart');
                                 }
-                              }
-                              for (var item in items) {
-                                try {
-                                  await ref.read(cartProvider.notifier).addItem(
-                                        item['productId'],
-                                        item['quantity'] ?? 1,
-                                      );
-                                } catch (_) {}
-                              }
-                              if (context.mounted) {
-                                context.go('/cart');
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+                                }
                               }
                             },
                             icon: const Icon(Icons.replay, size: 16),
