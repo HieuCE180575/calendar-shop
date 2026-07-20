@@ -158,6 +158,8 @@ static Microsoft.OData.Edm.IEdmModel GetEdmModel()
     builder.EntitySet<OrderDto>("Orders").EntityType.HasKey(x => x.OrderId);
     builder.EntitySet<CartItemDto>("Cart").EntityType.HasKey(x => x.CartItemId);
     builder.EntitySet<CouponDto>("Coupons").EntityType.HasKey(x => x.CouponId);
+    builder.EntitySet<ReviewDto>("Reviews").EntityType.HasKey(x => x.ReviewId);
+    builder.EntitySet<FavoriteDto>("Favorites").EntityType.HasKey(x => x.FavoriteId);
     return builder.GetEdmModel();
 }
 

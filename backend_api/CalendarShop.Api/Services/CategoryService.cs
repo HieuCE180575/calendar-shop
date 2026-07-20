@@ -5,6 +5,7 @@ using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Models;
 using CalendarShop.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace CalendarShop.Api.Services;
 
@@ -28,6 +29,12 @@ public class CategoryService : ICategoryService
 
     public async Task<CategoryDto> CreateCategoryAsync(CategoryCreateUpdateDto request)
     {
+        var exists = await _categoryRepository.Entities.AnyAsync(x => x.CategoryName.ToLower() == request.CategoryName.ToLower());
+        if (exists)
+        {
+            throw new BadHttpRequestException("Tên danh mục đã tồn tại.");
+        }
+
         var category = _mapper.Map<Category>(request);
         await _categoryRepository.AddAsync(category);
         await _categoryRepository.SaveChangesAsync();
@@ -40,6 +47,12 @@ public class CategoryService : ICategoryService
         if (category == null)
         {
             throw new KeyNotFoundException("Không tìm thấy danh mục.");
+        }
+
+        var exists = await _categoryRepository.Entities.AnyAsync(x => x.CategoryName.ToLower() == request.CategoryName.ToLower() && x.CategoryId != id);
+        if (exists)
+        {
+            throw new BadHttpRequestException("Tên danh mục đã tồn tại.");
         }
 
         _mapper.Map(request, category);
