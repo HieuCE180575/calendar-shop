@@ -21,6 +21,8 @@ import '../../features/favorite/presentation/pages/favorites_page.dart';
 import '../../features/order/presentation/pages/checkout_page.dart';
 import '../../features/order/presentation/pages/my_orders_page.dart';
 import '../../features/order/presentation/pages/order_detail_page.dart';
+import '../../features/order/presentation/pages/vnpay_waiting_page.dart';
+import '../../features/product/presentation/pages/product_list_page.dart';
 import '../../features/product/domain/entities/product.dart';
 import '../../features/product/presentation/pages/admin_product_form_page.dart';
 import '../../features/product/presentation/pages/admin_product_list_page.dart';
@@ -80,6 +82,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/orders',
       builder: (context, state) => const MyOrdersPage(),
+    ),
+    GoRoute(
+      path: '/vnpay-waiting/:id',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return VNPayWaitingPage(orderId: id);
+      },
     ),
     GoRoute(
       path: '/orders/:id',

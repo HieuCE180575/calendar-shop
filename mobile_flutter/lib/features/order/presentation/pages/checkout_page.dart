@@ -60,7 +60,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
         if (await canLaunchUrl(url)) {
           await launchUrl(url, mode: LaunchMode.externalApplication);
           if (mounted) {
-            context.go('/orders');
+            context.go('/vnpay-waiting/${order.orderId}');
           }
         } else {
           if (mounted) {
