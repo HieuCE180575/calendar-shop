@@ -12,28 +12,50 @@ public class ProductService : IProductService
 {
     private readonly IRepository<Product> _productRepository;
     private readonly IMapper _mapper;
+    private readonly IDiscountService _discountService;
+    private readonly IRepository<Discount> _discountRepository;
 
-    public ProductService(IRepository<Product> productRepository, IMapper mapper)
+    public ProductService(IRepository<Product> productRepository, IMapper mapper, IDiscountService discountService, IRepository<Discount> discountRepository)
     {
         _productRepository = productRepository;
         _mapper = mapper;
+        _discountService = discountService;
+        _discountRepository = discountRepository;
     }
 
     public IQueryable<ProductDto> GetAllProductsQuery(bool includeHidden)
     {
-        var query = _productRepository.Entities.Where(x => !x.IsDeleted);
+        var query = _productRepository.Entities
+            .Include(x => x.Category)
+            .Include(x => x.Discount)
+            .Where(x => !x.IsDeleted);
 
         if (!includeHidden)
             query = query.Where(x => x.Status == "Active");
 
-        return query.ProjectTo<ProductDto>(_mapper.ConfigurationProvider);
+        var products = query.ToList();
+        var dtos = _mapper.Map<List<ProductDto>>(products);
+        
+        foreach (var dto in dtos)
+        {
+            var product = products.First(x => x.ProductId == dto.ProductId);
+            var discountedPrice = _discountService.GetDiscountedPrice(product);
+            if (discountedPrice < product.Price)
+            {
+                dto.OriginalPrice = product.Price;
+                dto.Price = discountedPrice;
+            }
+        }
+
+        return dtos.AsQueryable();
     }
 
     public async Task<ProductDto> GetProductByIdAsync(int id)
     {
         var product = await _productRepository.Entities
+            .Include(x => x.Category)
+            .Include(x => x.Discount)
             .Where(x => x.ProductId == id && !x.IsDeleted)
-            .ProjectTo<ProductDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
 
         if (product == null)
@@ -41,7 +63,15 @@ public class ProductService : IProductService
             throw new KeyNotFoundException("Không tìm thấy sản phẩm.");
         }
 
-        return product;
+        var dto = _mapper.Map<ProductDto>(product);
+        var discountedPrice = _discountService.GetDiscountedPrice(product);
+        if (discountedPrice < product.Price)
+        {
+            dto.OriginalPrice = product.Price;
+            dto.Price = discountedPrice;
+        }
+
+        return dto;
     }
 
     public async Task<ProductDto> CreateProductAsync(ProductCreateUpdateDto request)

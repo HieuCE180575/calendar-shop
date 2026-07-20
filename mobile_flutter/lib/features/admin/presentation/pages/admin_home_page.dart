@@ -24,7 +24,7 @@ class AdminHomePage extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.receipt_long_outlined),
             title: const Text('Quản lý đơn hàng'),
-            onTap: () {},
+            onTap: () => context.push('/admin/orders'),
           ),
           ListTile(
             leading: const Icon(Icons.people_alt_outlined),
@@ -33,9 +33,15 @@ class AdminHomePage extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.discount_outlined),
-            title: const Text('Quản lý mã giảm giá'),
+            title: const Text('Quản lý mã giảm giá (Coupon)'),
             subtitle: const Text('Bật/tắt, giá trị giảm, ngày áp dụng, đơn tối thiểu'),
             onTap: () => context.push('/admin/coupons'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.flash_on_outlined),
+            title: const Text('Quản lý Flash Sale (Discount)'),
+            subtitle: const Text('Giảm giá trực tiếp lên sản phẩm'),
+            onTap: () => context.push('/admin/discounts'),
           ),
           ListTile(
             leading: const Icon(Icons.bar_chart_outlined),

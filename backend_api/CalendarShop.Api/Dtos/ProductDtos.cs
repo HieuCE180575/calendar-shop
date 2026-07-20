@@ -18,6 +18,7 @@ public class ProductDto
     public string ProductName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public decimal Price { get; set; }
+    public decimal? OriginalPrice { get; set; }
     public int StockQuantity { get; set; }
     public string? ImageUrl { get; set; }
     public string CalendarType { get; set; } = string.Empty;

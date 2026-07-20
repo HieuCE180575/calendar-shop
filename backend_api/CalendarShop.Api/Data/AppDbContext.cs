@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Discount> Discounts => Set<Discount>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -58,6 +59,10 @@ public class AppDbContext : DbContext
             .Property(x => x.MinOrderValue)
             .HasPrecision(18, 2);
 
+        modelBuilder.Entity<Discount>()
+            .Property(x => x.DiscountValue)
+            .HasPrecision(18, 2);
+
         modelBuilder.Entity<Order>()
             .Property(x => x.SubTotal)
             .HasPrecision(18, 2);
@@ -87,5 +92,11 @@ public class AppDbContext : DbContext
             .HasOne(x => x.User)
             .WithMany(x => x.RefreshTokens)
             .HasForeignKey(x => x.UserId);
+
+        modelBuilder.Entity<Product>()
+            .HasOne(p => p.Discount)
+            .WithMany(d => d.Products)
+            .HasForeignKey(p => p.DiscountId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

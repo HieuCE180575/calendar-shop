@@ -90,9 +90,25 @@ CREATE TABLE dbo.Categories (
 );
 GO
 
+CREATE TABLE dbo.Discounts (
+    DiscountId INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(200) NOT NULL,
+    DiscountType NVARCHAR(20) NOT NULL DEFAULT 'Percent',
+    DiscountValue DECIMAL(18,2) NOT NULL,
+    StartDate DATETIME2 NOT NULL,
+    EndDate DATETIME2 NOT NULL,
+    Status NVARCHAR(20) NOT NULL DEFAULT 'Active',
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT CK_Discounts_DiscountType CHECK (DiscountType IN ('Percent', 'FixedAmount')),
+    CONSTRAINT CK_Discounts_Status CHECK (Status IN ('Active', 'Inactive')),
+    CONSTRAINT CK_Discounts_Date CHECK (StartDate <= EndDate)
+);
+GO
+
 CREATE TABLE dbo.Products (
     ProductId INT IDENTITY(1,1) PRIMARY KEY,
     CategoryId INT NOT NULL,
+    DiscountId INT NULL,
     ProductName NVARCHAR(200) NOT NULL,
     Description NVARCHAR(MAX) NULL,
     Price DECIMAL(18,2) NOT NULL,
@@ -104,6 +120,7 @@ CREATE TABLE dbo.Products (
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT FK_Products_Categories FOREIGN KEY (CategoryId) REFERENCES dbo.Categories(CategoryId),
+    CONSTRAINT FK_Products_Discounts FOREIGN KEY (DiscountId) REFERENCES dbo.Discounts(DiscountId) ON DELETE SET NULL,
     CONSTRAINT CK_Products_Price CHECK (Price >= 0),
     CONSTRAINT CK_Products_Stock CHECK (StockQuantity >= 0),
     CONSTRAINT CK_Products_Status CHECK (Status IN ('Active', 'OutOfStock', 'Hidden'))
@@ -332,10 +349,21 @@ VALUES
 SET IDENTITY_INSERT dbo.Categories OFF;
 GO
 
+SET IDENTITY_INSERT dbo.Discounts ON;
+INSERT INTO dbo.Discounts (
+    DiscountId, Name, DiscountType, DiscountValue, StartDate, EndDate, Status, CreatedAt
+)
+VALUES
+    (1, N'Black Friday Giam 20% Lich de ban', 'Percent', 20, '2026-01-01', '2026-12-31', 'Active', '2026-01-01T00:00:00Z'),
+    (2, N'Giam thang 50k Lich bloc', 'FixedAmount', 50000, '2026-01-01', '2026-12-31', 'Active', '2026-01-02T00:00:00Z');
+SET IDENTITY_INSERT dbo.Discounts OFF;
+GO
+
 SET IDENTITY_INSERT dbo.Products ON;
 INSERT INTO dbo.Products (
     ProductId,
     CategoryId,
+    DiscountId,
     ProductName,
     Description,
     Price,
@@ -345,11 +373,11 @@ INSERT INTO dbo.Products (
     Status
 )
 VALUES
-    (1, 1, N'Lich treo tuong 2026 phong canh Viet Nam', N'Lich treo tuong 12 thang.', 120000, 50, NULL, N'Wall Calendar', N'Active'),
-    (2, 2, N'Lich de ban mini 2026', N'Lich de ban nho gon.', 65000, 100, NULL, N'Desk Calendar', N'Active'),
-    (3, 3, N'Lich bloc dai 2026', N'Lich bloc truyen thong kho lon.', 180000, 30, NULL, N'Bloc Calendar', N'Active'),
-    (4, 4, N'Planner hoc tap 2026', N'Planner ghi chu ke hoach hoc tap.', 95000, 80, NULL, N'Planner', N'Active'),
-    (5, 5, N'Lich custom anh gia dinh', N'Lich thiet ke theo anh ca nhan.', 250000, 20, NULL, N'Custom Calendar', N'Active');
+    (1, 1, NULL, N'Lich treo tuong 2026 phong canh Viet Nam', N'Lich treo tuong 12 thang.', 120000, 50, NULL, N'Wall Calendar', N'Active'),
+    (2, 2, 1, N'Lich de ban mini 2026', N'Lich de ban nho gon.', 65000, 100, NULL, N'Desk Calendar', N'Active'),
+    (3, 3, 2, N'Lich bloc dai 2026', N'Lich bloc truyen thong kho lon.', 180000, 30, NULL, N'Bloc Calendar', N'Active'),
+    (4, 4, NULL, N'Planner hoc tap 2026', N'Planner ghi chu ke hoach hoc tap.', 95000, 80, NULL, N'Planner', N'Active'),
+    (5, 5, NULL, N'Lich custom anh gia dinh', N'Lich thiet ke theo anh ca nhan.', 250000, 20, NULL, N'Custom Calendar', N'Active');
 SET IDENTITY_INSERT dbo.Products OFF;
 GO
 

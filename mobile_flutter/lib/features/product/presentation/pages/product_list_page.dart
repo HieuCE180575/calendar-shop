@@ -265,30 +265,50 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
                             children: [
                               // Hình ảnh sản phẩm
                               Expanded(
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [Colors.blue.shade100, Colors.blue.shade50],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                  ),
-                                  child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                                      ? Image.network(
-                                          product.imageUrl!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Icon(
-                                            Icons.calendar_month,
-                                            size: 50,
-                                            color: Colors.blueAccent,
-                                          ),
-                                        )
-                                      : const Icon(
-                                          Icons.calendar_today,
-                                          size: 50,
-                                          color: Colors.blueAccent,
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [Colors.blue.shade100, Colors.blue.shade50],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
                                         ),
+                                      ),
+                                      child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                                          ? Image.network(
+                                              product.imageUrl!,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) => const Icon(
+                                                Icons.calendar_month,
+                                                size: 50,
+                                                color: Colors.blueAccent,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.calendar_today,
+                                              size: 50,
+                                              color: Colors.blueAccent,
+                                            ),
+                                    ),
+                                    if (product.originalPrice != null && product.originalPrice! > product.price)
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text(
+                                            'Sale',
+                                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                               Padding(
@@ -322,20 +342,34 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
                                     ),
                                     const SizedBox(height: 4),
                                     // Giá và tồn kho
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          CurrencyFormatter.vnd(product.price),
-                                          style: const TextStyle(
-                                            color: Colors.redAccent,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
+                                        if (product.originalPrice != null && product.originalPrice! > product.price)
+                                          Text(
+                                            CurrencyFormatter.vnd(product.originalPrice!),
+                                            style: const TextStyle(
+                                              decoration: TextDecoration.lineThrough,
+                                              color: Colors.grey,
+                                              fontSize: 11,
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          'Tồn: ${product.stockQuantity}',
-                                          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              CurrencyFormatter.vnd(product.price),
+                                              style: const TextStyle(
+                                                color: Colors.redAccent,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Tồn: ${product.stockQuantity}',
+                                              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),

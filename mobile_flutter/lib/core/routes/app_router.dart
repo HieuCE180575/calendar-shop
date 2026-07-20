@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/admin/presentation/pages/admin_home_page.dart';
 import '../../features/admin/presentation/pages/admin_coupon_form_page.dart';
 import '../../features/admin/presentation/pages/admin_coupon_list_page.dart';
+import '../../features/admin/presentation/pages/admin_discount_form_page.dart';
+import '../../features/admin/presentation/pages/admin_discount_list_page.dart';
 import '../../features/admin/presentation/pages/admin_statistics_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
@@ -15,7 +17,10 @@ import '../../features/product/presentation/pages/product_detail_page.dart';
 import '../../features/product/presentation/pages/admin_product_list_page.dart';
 import '../../features/product/presentation/pages/admin_product_form_page.dart';
 import '../../features/admin/domain/entities/admin_coupon.dart';
-
+import '../../features/admin/domain/entities/admin_discount.dart';
+import '../../features/admin/presentation/pages/orders/admin_order_list_page.dart';
+import '../../features/admin/presentation/pages/orders/admin_order_detail_page.dart';
+import '../../features/admin/domain/entities/admin_order.dart';
 final appRouter = GoRouter(
   initialLocation: '/login',
   routes: [
@@ -52,6 +57,21 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: '/admin/discounts',
+      builder: (context, state) => const AdminDiscountListPage(),
+    ),
+    GoRoute(
+      path: '/admin/discounts/add',
+      builder: (context, state) => const AdminDiscountFormPage(),
+    ),
+    GoRoute(
+      path: '/admin/discounts/edit',
+      builder: (context, state) {
+        final discount = state.extra as AdminDiscount?;
+        return AdminDiscountFormPage(discount: discount);
+      },
+    ),
+    GoRoute(
       path: '/admin/products',
       builder: (context, state) => const AdminProductListPage(),
     ),
@@ -64,6 +84,17 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final product = state.extra as Product?;
         return AdminProductFormPage(product: product);
+      },
+    ),
+    GoRoute(
+      path: '/admin/orders',
+      builder: (context, state) => const AdminOrderListPage(),
+    ),
+    GoRoute(
+      path: '/admin/orders/:id',
+      builder: (context, state) {
+        final order = state.extra as AdminOrder;
+        return AdminOrderDetailPage(order: order);
       },
     ),
   ],

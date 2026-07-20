@@ -166,13 +166,40 @@ class ProductDetailPage extends ConsumerWidget {
                           const SizedBox(height: 8),
 
                           // Giá
-                          Text(
-                            CurrencyFormatter.vnd(product.price),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              color: Colors.redAccent,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                CurrencyFormatter.vnd(product.price),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (product.originalPrice != null && product.originalPrice! > product.price) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  CurrencyFormatter.vnd(product.originalPrice!),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'Sale',
+                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                           const SizedBox(height: 8),
 
