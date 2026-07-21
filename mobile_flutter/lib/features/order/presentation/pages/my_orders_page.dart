@@ -3,40 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/api_constants.dart';
-import '../../../../core/network/api_client.dart';
-import '../../../../core/providers/core_providers.dart';
-import '../../domain/entities/order.dart';
+import '../providers/order_provider.dart';
 
-// ── Provider lấy danh sách đơn hàng của user ──────────────────────────────
-final myOrdersProvider = FutureProvider.autoDispose<List<OrderEntity>>((ref) async {
-  final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.dio.get('${ApiConstants.orders}/mine',
-      queryParameters: {'\$orderby': 'CreatedAt desc'});
-
-  final List dataList;
-  if (response.data is Map && (response.data as Map).containsKey('value')) {
-    dataList = response.data['value'] as List;
-  } else if (response.data is List) {
-    dataList = response.data as List;
-  } else {
-    dataList = [];
-  }
-
-  return dataList.map((e) => _fromJson(e)).toList();
-});
-
-OrderEntity _fromJson(Map<String, dynamic> json) => OrderEntity(
-      orderId: json['orderId'] as int,
-      customerName: json['customerName'] as String,
-      customerPhone: json['customerPhone'] as String,
-      shippingAddress: json['shippingAddress'] as String,
-      totalAmount: (json['totalAmount'] as num).toDouble(),
-      status: json['status'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-    );
-
-// ── UI ─────────────────────────────────────────────────────────────────────
 class MyOrdersPage extends ConsumerWidget {
   const MyOrdersPage({super.key});
 
@@ -109,8 +77,7 @@ class MyOrdersPage extends ConsumerWidget {
                                 fontSize: 16),
                           ),
                           ElevatedButton.icon(
-                            onPressed: () =>
-                                _reorder(context, ref, order.orderId),
+                            onPressed: () => _reorder(context, ref, order.orderId),
                             icon: const Icon(Icons.replay, size: 16),
                             label: const Text('Mua lại', style: TextStyle(fontWeight: FontWeight.bold)),
                             style: ElevatedButton.styleFrom(
@@ -136,11 +103,9 @@ class MyOrdersPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _reorder(
-      BuildContext context, WidgetRef ref, int orderId) async {
-    final apiClient = ref.read(apiClientProvider);
+  Future<void> _reorder(BuildContext context, WidgetRef ref, int orderId) async {
     try {
-      await apiClient.dio.post('${ApiConstants.orders}/$orderId/reorder');
+      await ref.read(reorderActionProvider.notifier).reorder(orderId);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đã thêm sản phẩm vào giỏ hàng!')),
@@ -149,8 +114,7 @@ class MyOrdersPage extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
       }
     }
   }

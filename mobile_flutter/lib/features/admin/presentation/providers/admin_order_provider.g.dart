@@ -6,8 +6,26 @@ part of 'admin_order_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$adminOrderRemoteDataSourceHash() =>
+    r'c1211e6f3618aea81b32fc996da3496e6670ac35';
+
+/// See also [adminOrderRemoteDataSource].
+@ProviderFor(adminOrderRemoteDataSource)
+final adminOrderRemoteDataSourceProvider =
+    AutoDisposeProvider<AdminOrderRemoteDataSource>.internal(
+  adminOrderRemoteDataSource,
+  name: r'adminOrderRemoteDataSourceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$adminOrderRemoteDataSourceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef AdminOrderRemoteDataSourceRef
+    = AutoDisposeProviderRef<AdminOrderRemoteDataSource>;
 String _$adminOrderRepositoryHash() =>
-    r'4742d9e3d5a10836de5bd5a594bf74db021cd186';
+    r'5a86e39f0347c927e6f9911d8abdedc30fa6b13a';
 
 /// See also [adminOrderRepository].
 @ProviderFor(adminOrderRepository)

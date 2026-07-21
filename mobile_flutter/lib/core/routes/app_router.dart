@@ -5,6 +5,7 @@ import '../../features/admin/presentation/pages/admin_coupon_form_page.dart';
 import '../../features/admin/presentation/pages/admin_coupon_list_page.dart';
 import '../../features/admin/presentation/pages/admin_discount_form_page.dart';
 import '../../features/admin/presentation/pages/admin_discount_list_page.dart';
+import '../../features/admin/presentation/pages/admin_discount_detail_page.dart';
 import '../../features/admin/presentation/pages/admin_statistics_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
@@ -59,6 +60,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin/discounts',
       builder: (context, state) => const AdminDiscountListPage(),
+    ),
+    GoRoute(
+      path: '/admin/discounts/detail',
+      builder: (context, state) {
+        final discount = state.extra as AdminDiscount;
+        return AdminDiscountDetailPage(discount: discount);
+      },
     ),
     GoRoute(
       path: '/admin/discounts/add',

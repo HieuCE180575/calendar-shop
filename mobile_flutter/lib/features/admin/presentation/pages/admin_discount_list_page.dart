@@ -277,10 +277,15 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                                   shadowColor: Colors.black.withOpacity(0.05),
                                   margin: const EdgeInsets.only(bottom: 12),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(16),
+                                    onTap: () {
+                                      context.push('/admin/discounts/detail', extra: discount);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
                                           flex: 3,
@@ -387,6 +392,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                                         ),
                                       ],
                                     ),
+                                  ),
                                   ),
                                 );
                               },
