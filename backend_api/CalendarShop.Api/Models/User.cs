@@ -11,11 +11,16 @@ public class User
     public string? Gender { get; set; }
     public DateTime? DateOfBirth { get; set; }
     public string Role { get; set; } = "Customer";
-    public string Status { get; set; } = "Active";
+    public string Status { get; set; } = "Pending";
+    public bool IsEmailConfirmed { get; set; }
+    public string? EmailConfirmationTokenHash { get; set; }
+    public DateTime? EmailConfirmationTokenExpiredAt { get; set; }
+    public DateTime? EmailConfirmedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
     public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
 }

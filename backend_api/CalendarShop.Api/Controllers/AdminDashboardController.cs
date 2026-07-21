@@ -1,7 +1,6 @@
 using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace CalendarShop.Api.Controllers;
 
@@ -20,5 +19,14 @@ public class AdminDashboardController : AppControllerBase
     {
         var stats = await _dashboardService.GetDashboardStatsAsync();
         return Ok(stats);
+    }
+
+    [HttpGet("export-revenue")]
+    public async Task<IActionResult> ExportRevenueExcel()
+    {
+        var fileBytes = await _dashboardService.ExportRevenueExcelAsync();
+        var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        var fileName = $"Revenue_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+        return File(fileBytes, contentType, fileName);
     }
 }

@@ -47,7 +47,16 @@ class OverviewMetricsSection extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          isFullWidth: true,
+        ),
+        _MetricCard(
+          title: 'TONG KHACH HANG',
+          value: AdminDashboardFormatters.number.format(stats.totalUsers),
+          icon: Icons.people_alt_rounded,
+          gradient: LinearGradient(
+            colors: [Colors.purple.shade700, Colors.purpleAccent.shade400],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
       ],
     );
@@ -59,26 +68,24 @@ class _MetricCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Gradient gradient;
-  final bool isFullWidth;
 
   const _MetricCard({
     required this.title,
     required this.value,
     required this.icon,
     required this.gradient,
-    this.isFullWidth = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final cardBody = Container(
+    return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: gradient,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: gradient.colors.first.withOpacity(0.3),
+            color: gradient.colors.first.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -118,15 +125,5 @@ class _MetricCard extends StatelessWidget {
         ],
       ),
     );
-
-    if (isFullWidth) {
-      return Container(
-        width: double.infinity,
-        constraints: const BoxConstraints(minHeight: 90),
-        child: cardBody,
-      );
-    }
-
-    return cardBody;
   }
 }

@@ -1,21 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/app_colors.dart';
 
-class AdminHomePage extends StatelessWidget {
+import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+
+class AdminHomePage extends ConsumerWidget {
   const AdminHomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Bảng quản trị Admin', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Bang quan tri Admin',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.storefront_outlined, color: AppColors.primary),
-            tooltip: 'Trang bán hàng',
+            icon: const Icon(
+              Icons.storefront_outlined,
+              color: AppColors.primary,
+            ),
+            tooltip: 'Trang ban hang',
             onPressed: () => context.go('/products'),
+          ),
+          IconButton(
+            onPressed: () => context.push('/profile'),
+            icon: const Icon(Icons.account_circle_outlined),
+            tooltip: 'Ho so',
+          ),
+          IconButton(
+            onPressed: () async {
+              await ref.read(authNotifierProvider.notifier).logout();
+              if (context.mounted) {
+                context.go('/login');
+              }
+            },
+            icon: const Icon(Icons.logout),
+            tooltip: 'Dang xuat',
           ),
         ],
       ),
@@ -25,8 +49,8 @@ class AdminHomePage extends StatelessWidget {
           _buildAdminTile(
             context,
             icon: Icons.inventory_2_outlined,
-            title: 'Quản lý sản phẩm',
-            subtitle: 'Thêm, sửa, xóa, tồn kho và trạng thái',
+            title: 'Quan ly san pham',
+            subtitle: 'Them, sua, xoa, ton kho va trang thai',
             route: '/admin/products',
             color: const Color(0xFF2563EB),
           ),
@@ -34,8 +58,8 @@ class AdminHomePage extends StatelessWidget {
           _buildAdminTile(
             context,
             icon: Icons.category_outlined,
-            title: 'Quản lý danh mục',
-            subtitle: 'Phân loại các dòng lịch',
+            title: 'Quan ly danh muc',
+            subtitle: 'Phan loai cac dong lich',
             route: '/admin/categories',
             color: const Color(0xFF0284C7),
           ),
@@ -43,17 +67,26 @@ class AdminHomePage extends StatelessWidget {
           _buildAdminTile(
             context,
             icon: Icons.receipt_long_outlined,
-            title: 'Quản lý đơn hàng',
-            subtitle: 'Duyệt đơn, giao hàng, cập nhật trạng thái',
+            title: 'Quan ly don hang',
+            subtitle: 'Duyet don, giao hang, cap nhat trang thai',
             route: '/admin/orders',
             color: const Color(0xFF10B981),
           ),
           const SizedBox(height: 12),
           _buildAdminTile(
             context,
+            icon: Icons.people_alt_outlined,
+            title: 'Quan ly nguoi dung',
+            subtitle: 'Xem danh sach, tim kiem, khoa/mo khoa, phan quyen',
+            route: '/admin/users',
+            color: const Color(0xFFEC4899),
+          ),
+          const SizedBox(height: 12),
+          _buildAdminTile(
+            context,
             icon: Icons.discount_outlined,
-            title: 'Quản lý mã giảm giá',
-            subtitle: 'Bật/tắt coupon, giá trị giảm, hạn sử dụng',
+            title: 'Quan ly ma giam gia',
+            subtitle: 'Bat/tat coupon, gia tri giam, han su dung',
             route: '/admin/coupons',
             color: const Color(0xFFF59E0B),
           ),
@@ -61,8 +94,8 @@ class AdminHomePage extends StatelessWidget {
           _buildAdminTile(
             context,
             icon: Icons.bar_chart_outlined,
-            title: 'Báo cáo & Thống kê',
-            subtitle: 'Tổng doanh thu, số lượng bán, biểu đồ',
+            title: 'Bao cao & Thong ke',
+            subtitle: 'Tong doanh thu, so luong ban, bieu do',
             route: '/admin/statistics',
             color: const Color(0xFF8B5CF6),
           ),
@@ -85,11 +118,18 @@ class AdminHomePage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
-          BoxShadow(color: AppColors.cardShadow, blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+            color: AppColors.cardShadow,
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
@@ -98,9 +138,26 @@ class AdminHomePage extends StatelessWidget {
           ),
           child: Icon(icon, color: color, size: 24),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          size: 14,
+          color: AppColors.textMuted,
+        ),
         onTap: () => context.push(route),
       ),
     );

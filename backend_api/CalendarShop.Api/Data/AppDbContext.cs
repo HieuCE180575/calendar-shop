@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +30,9 @@ public class AppDbContext : DbContext
             .HasIndex(x => x.Phone)
             .IsUnique()
             .HasFilter("[Phone] IS NOT NULL");
+
+        modelBuilder.Entity<User>()
+            .HasIndex(x => x.EmailConfirmationTokenHash);
 
         modelBuilder.Entity<Category>()
             .HasIndex(x => x.CategoryName)
@@ -86,6 +90,21 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<RefreshToken>()
             .HasOne(x => x.User)
             .WithMany(x => x.RefreshTokens)
+            .HasForeignKey(x => x.UserId);
+
+        modelBuilder.Entity<PasswordResetToken>()
+            .HasKey(x => x.ResetTokenId);
+
+        modelBuilder.Entity<PasswordResetToken>()
+            .Property(x => x.ResetTokenId)
+            .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<PasswordResetToken>()
+            .HasIndex(x => x.Token);
+
+        modelBuilder.Entity<PasswordResetToken>()
+            .HasOne(x => x.User)
+            .WithMany(x => x.PasswordResetTokens)
             .HasForeignKey(x => x.UserId);
     }
 }
