@@ -68,20 +68,33 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/products');
+            }
+          },
+        ),
+        title: const Text(
+          'Đơn hàng của tôi',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textMuted,
+          indicatorColor: AppColors.primary,
+          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+          onTap: (_) => setState(() {}),
+        ),
+      ),
       body: Column(
         children: [
-          Material(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textMuted,
-              indicatorColor: AppColors.primary,
-              tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
-              onTap: (_) => setState(() {}),
-            ),
-          ),
           Expanded(
             child: ordersAsync.when(
         data: (allOrders) {
