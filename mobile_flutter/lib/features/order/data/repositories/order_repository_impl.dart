@@ -1,4 +1,5 @@
 import '../../domain/entities/order.dart';
+import '../../domain/entities/create_order_input.dart';
 import '../../domain/repositories/order_repository.dart';
 import '../datasources/order_remote_datasource.dart';
 import '../models/order_model.dart';
@@ -32,7 +33,15 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<OrderEntity> createOrder(CreateOrderRequest request) async {
+  Future<OrderEntity> createOrder(CreateOrderInput input) async {
+    final request = CreateOrderRequest(
+      customerName: input.customerName,
+      customerPhone: input.customerPhone,
+      shippingAddress: input.shippingAddress,
+      paymentMethod: input.paymentMethod,
+      couponCode: input.couponCode,
+      note: input.note,
+    );
     final model = await remoteDataSource.createOrder(request);
     return model.toEntity();
   }

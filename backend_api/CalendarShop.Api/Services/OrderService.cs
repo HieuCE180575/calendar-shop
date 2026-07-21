@@ -169,7 +169,9 @@ public class OrderService : IOrderService
 
     public async Task CancelOrderAsync(int userId, int id, CancelOrderRequest request)
     {
-        var order = await _orderRepository.Entities.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == id && x.UserId == userId);
+        var order = await _orderRepository.Entities
+            .Include(x => x.OrderItems)
+            .FirstOrDefaultAsync(x => x.OrderId == id && x.UserId == userId);
         if (order == null)
         {
             throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
@@ -198,6 +200,7 @@ public class OrderService : IOrderService
             }
         }
 
+        await RestoreCouponUsageIfNeededAsync(order);
         await _orderRepository.SaveChangesAsync();
     }
 
@@ -252,9 +255,13 @@ public class OrderService : IOrderService
         var vnp_TxnRef = pay.GetResponseData("vnp_TxnRef");
         var vnp_SecureHash = vnpayData.TryGetValue("vnp_SecureHash", out var hash) ? hash : string.Empty;
         var vnp_ResponseCode = pay.GetResponseData("vnp_ResponseCode");
+        var vnp_TransactionStatus = pay.GetResponseData("vnp_TransactionStatus");
+        var vnp_Amount = pay.GetResponseData("vnp_Amount");
+        var vnp_TmnCode = pay.GetResponseData("vnp_TmnCode");
+        var expectedTmnCode = _configuration["VNPay:TmnCode"] ?? string.Empty;
 
         bool isSignatureValid = pay.ValidateSignature(vnp_SecureHash, _configuration["VNPay:HashSecret"] ?? string.Empty);
-        
+
         _logger.LogInformation("VNPay signature validation result: {IsValid}", isSignatureValid);
 
         if (!isSignatureValid)
@@ -268,7 +275,13 @@ public class OrderService : IOrderService
             return (true, false);
         }
 
-        bool isSuccess = vnp_ResponseCode == "00";
+        if (!string.IsNullOrWhiteSpace(expectedTmnCode) && vnp_TmnCode != expectedTmnCode)
+        {
+            _logger.LogWarning("VNPay callback rejected because terminal code does not match for OrderId {OrderId}.", orderId);
+            return (true, false);
+        }
+
+        bool isSuccess = vnp_ResponseCode == "00" && vnp_TransactionStatus == "00";
         if (isSuccess)
         {
             _logger.LogInformation("Payment success for OrderId {OrderId}.", orderId);
@@ -278,13 +291,27 @@ public class OrderService : IOrderService
             _logger.LogInformation("Payment failed/cancelled for OrderId {OrderId}.", orderId);
         }
 
-        var order = await _orderRepository.Entities.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == orderId);
+        var order = await _orderRepository.Entities
+            .Include(x => x.OrderItems)
+            .FirstOrDefaultAsync(x => x.OrderId == orderId);
         if (order == null)
         {
             _logger.LogWarning("Order {OrderId} not found.", orderId);
             return (true, isSuccess);
         }
-        
+
+        if (order.PaymentMethod != "VNPay")
+        {
+            _logger.LogWarning("VNPay callback rejected for non-VNPay OrderId {OrderId}.", orderId);
+            return (true, false);
+        }
+
+        if (!IsVNPayAmountValid(vnp_Amount, order.TotalAmount))
+        {
+            _logger.LogWarning("VNPay callback amount mismatch for OrderId {OrderId}.", orderId);
+            return (true, false);
+        }
+
         if (order.Status != "Pending")
         {
             _logger.LogInformation("Order {OrderId} status is {Status}, no update needed.", orderId, order.Status);
@@ -298,7 +325,7 @@ public class OrderService : IOrderService
         else
         {
             order.Status = "Cancelled";
-            
+
             foreach (var item in order.OrderItems)
             {
                 var product = await _productRepository.GetByIdAsync(item.ProductId);
@@ -312,12 +339,13 @@ public class OrderService : IOrderService
                     _productRepository.Update(product);
                 }
             }
+            await RestoreCouponUsageIfNeededAsync(order);
             _logger.LogInformation("Stock restored for OrderId {OrderId}.", orderId);
         }
-        
+
         order.UpdatedAt = DateTime.UtcNow;
         _orderRepository.Update(order);
-        
+
         try
         {
             await _orderRepository.SaveChangesAsync();
@@ -330,5 +358,34 @@ public class OrderService : IOrderService
         }
 
         return (true, isSuccess);
+    }
+
+    private async Task RestoreCouponUsageIfNeededAsync(Order order)
+    {
+        if (!order.CouponId.HasValue)
+        {
+            return;
+        }
+
+        var coupon = await _couponRepository.Entities
+            .FirstOrDefaultAsync(x => x.CouponId == order.CouponId.Value);
+        if (coupon == null || coupon.UsedCount <= 0)
+        {
+            return;
+        }
+
+        coupon.UsedCount--;
+        _couponRepository.Update(coupon);
+    }
+
+    private static bool IsVNPayAmountValid(string amountText, decimal orderTotal)
+    {
+        if (!long.TryParse(amountText, out var callbackAmount))
+        {
+            return false;
+        }
+
+        var expectedAmount = decimal.ToInt64(orderTotal * 100);
+        return callbackAmount == expectedAmount;
     }
 }

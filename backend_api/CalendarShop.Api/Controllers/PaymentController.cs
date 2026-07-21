@@ -9,13 +9,16 @@ public class PaymentController : AppControllerBase
 {
     private readonly IVNPayService _vnpayService;
     private readonly IOrderService _orderService;
-    private readonly IConfiguration _configuration;
+    private readonly ILogger<PaymentController> _logger;
 
-    public PaymentController(IVNPayService vnpayService, IOrderService orderService, IConfiguration configuration)
+    public PaymentController(
+        IVNPayService vnpayService,
+        IOrderService orderService,
+        ILogger<PaymentController> logger)
     {
         _vnpayService = vnpayService;
         _orderService = orderService;
-        _configuration = configuration;
+        _logger = logger;
     }
 
     [Authorize]
@@ -33,7 +36,7 @@ public class PaymentController : AppControllerBase
     public async Task<IActionResult> VNPayReturn()
     {
         var vnpayData = Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString());
-        
+
         bool isSignatureValid = false;
         bool isSuccess = false;
 
@@ -45,9 +48,8 @@ public class PaymentController : AppControllerBase
         }
         catch (Exception ex)
         {
-            return Content(
-                $"<pre>{ex}\n\nINNER:\n{ex.InnerException}</pre>",
-                "text/html");
+            _logger.LogError(ex, "Failed to process VNPay return callback.");
+            return Content(BuildPaymentResultHtml(false), "text/html; charset=utf-8");
         }
 
         if (!isSignatureValid)
@@ -55,7 +57,12 @@ public class PaymentController : AppControllerBase
             return Content("<html><body><h3>Chữ ký không hợp lệ</h3></body></html>", "text/html");
         }
 
-        string htmlContent = $@"
+        return Content(BuildPaymentResultHtml(isSuccess), "text/html; charset=utf-8");
+    }
+
+    private static string BuildPaymentResultHtml(bool isSuccess)
+    {
+        return $@"
 <!DOCTYPE html>
 <html>
 <head>
@@ -80,14 +87,11 @@ public class PaymentController : AppControllerBase
         <button class=""btn"" onclick=""window.close()"">Quay lại ứng dụng</button>
     </div>
     <script>
-        // Thử tự động đóng tab sau 3 giây
         setTimeout(function() {{
             window.close();
         }}, 3000);
     </script>
 </body>
 </html>";
-
-        return Content(htmlContent, "text/html; charset=utf-8");
     }
 }

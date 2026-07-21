@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../data/models/create_order_request.dart';
+import '../../domain/entities/create_order_input.dart';
 import '../providers/order_provider.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 
@@ -41,7 +41,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     });
 
     try {
-      final request = CreateOrderRequest(
+      final input = CreateOrderInput(
         customerName: _nameController.text.trim(),
         customerPhone: _phoneController.text.trim(),
         shippingAddress: _addressController.text.trim(),
@@ -50,7 +50,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       );
 
       final createOrderUseCase = ref.read(createOrderUseCaseProvider);
-      final order = await createOrderUseCase(request);
+      final order = await createOrderUseCase(input);
 
       if (_paymentMethod == 'VNPay') {
         final getVNPayUrlUseCase = ref.read(getVNPayUrlUseCaseProvider);

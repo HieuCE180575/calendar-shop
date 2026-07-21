@@ -120,7 +120,7 @@ public class VNPayLibrary
                 return ipAddress;
             }
         }
-        catch (Exception ex)
+        catch
         {
             return "127.0.0.1";
         }

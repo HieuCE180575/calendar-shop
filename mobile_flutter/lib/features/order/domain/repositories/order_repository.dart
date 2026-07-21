@@ -1,5 +1,5 @@
 import '../entities/order.dart';
-import '../../data/models/create_order_request.dart';
+import '../entities/create_order_input.dart';
 
 /// Hợp đồng nghiệp vụ đơn hàng ở tầng Domain.
 /// Định nghĩa các hành vi nghiệp vụ mà Frontend cần sử dụng.
@@ -14,7 +14,7 @@ abstract class OrderRepository {
   Future<void> cancelOrder(int id, String? reason);
 
   /// Tạo một đơn hàng mới
-  Future<OrderEntity> createOrder(CreateOrderRequest request);
+  Future<OrderEntity> createOrder(CreateOrderInput input);
 
   /// Lấy VNPay Payment URL
   Future<String> getVNPayUrl(int orderId);
