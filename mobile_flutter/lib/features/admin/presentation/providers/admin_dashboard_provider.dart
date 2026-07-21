@@ -4,6 +4,7 @@ import '../../data/datasources/admin_dashboard_remote_datasource.dart';
 import '../../data/repositories/admin_dashboard_repository_impl.dart';
 import '../../domain/entities/admin_dashboard_stats.dart';
 import '../../domain/repositories/admin_dashboard_repository.dart';
+import '../../domain/usecases/export_revenue_excel_usecase.dart';
 import '../../domain/usecases/get_admin_dashboard_stats_usecase.dart';
 
 part 'admin_dashboard_provider.g.dart';
@@ -24,6 +25,13 @@ AdminDashboardRepository adminDashboardRepository(
 final getAdminDashboardStatsUseCaseProvider =
     Provider.autoDispose<GetAdminDashboardStatsUseCase>(
   (ref) => GetAdminDashboardStatsUseCase(
+    ref.watch(adminDashboardRepositoryProvider),
+  ),
+);
+
+final exportRevenueExcelUseCaseProvider =
+    Provider.autoDispose<ExportRevenueExcelUseCase>(
+  (ref) => ExportRevenueExcelUseCase(
     ref.watch(adminDashboardRepositoryProvider),
   ),
 );

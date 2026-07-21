@@ -6,4 +6,5 @@ namespace CalendarShop.Api.Services;
 public interface IAdminDashboardService
 {
     Task<AdminDashboardStatsDto> GetDashboardStatsAsync();
+    Task<byte[]> ExportRevenueExcelAsync();
 }

@@ -21,6 +21,7 @@ AdminDashboardStatsModel _$AdminDashboardStatsModelFromJson(
 
 /// @nodoc
 mixin _$AdminDashboardStatsModel {
+  int get totalUsers => throw _privateConstructorUsedError;
   double get totalRevenue => throw _privateConstructorUsedError;
   int get totalOrders => throw _privateConstructorUsedError;
   int get totalProductsSold => throw _privateConstructorUsedError;
@@ -31,6 +32,9 @@ mixin _$AdminDashboardStatsModel {
   List<RevenueByDayModel> get revenueByDay =>
       throw _privateConstructorUsedError;
   List<RevenueByMonthModel> get revenueByMonth =>
+      throw _privateConstructorUsedError;
+  List<RecentOrderModel> get recentOrders => throw _privateConstructorUsedError;
+  List<LowStockProductModel> get lowStockProducts =>
       throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -46,13 +50,16 @@ abstract class $AdminDashboardStatsModelCopyWith<$Res> {
       _$AdminDashboardStatsModelCopyWithImpl<$Res, AdminDashboardStatsModel>;
   @useResult
   $Res call(
-      {double totalRevenue,
+      {int totalUsers,
+      double totalRevenue,
       int totalOrders,
       int totalProductsSold,
       List<StatusCountModel> ordersByStatus,
       List<BestSellingProductModel> bestSelling,
       List<RevenueByDayModel> revenueByDay,
-      List<RevenueByMonthModel> revenueByMonth});
+      List<RevenueByMonthModel> revenueByMonth,
+      List<RecentOrderModel> recentOrders,
+      List<LowStockProductModel> lowStockProducts});
 }
 
 /// @nodoc
@@ -69,6 +76,7 @@ class _$AdminDashboardStatsModelCopyWithImpl<$Res,
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? totalUsers = null,
     Object? totalRevenue = null,
     Object? totalOrders = null,
     Object? totalProductsSold = null,
@@ -76,8 +84,14 @@ class _$AdminDashboardStatsModelCopyWithImpl<$Res,
     Object? bestSelling = null,
     Object? revenueByDay = null,
     Object? revenueByMonth = null,
+    Object? recentOrders = null,
+    Object? lowStockProducts = null,
   }) {
     return _then(_value.copyWith(
+      totalUsers: null == totalUsers
+          ? _value.totalUsers
+          : totalUsers // ignore: cast_nullable_to_non_nullable
+              as int,
       totalRevenue: null == totalRevenue
           ? _value.totalRevenue
           : totalRevenue // ignore: cast_nullable_to_non_nullable
@@ -106,6 +120,14 @@ class _$AdminDashboardStatsModelCopyWithImpl<$Res,
           ? _value.revenueByMonth
           : revenueByMonth // ignore: cast_nullable_to_non_nullable
               as List<RevenueByMonthModel>,
+      recentOrders: null == recentOrders
+          ? _value.recentOrders
+          : recentOrders // ignore: cast_nullable_to_non_nullable
+              as List<RecentOrderModel>,
+      lowStockProducts: null == lowStockProducts
+          ? _value.lowStockProducts
+          : lowStockProducts // ignore: cast_nullable_to_non_nullable
+              as List<LowStockProductModel>,
     ) as $Val);
   }
 }
@@ -120,13 +142,16 @@ abstract class _$$AdminDashboardStatsModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {double totalRevenue,
+      {int totalUsers,
+      double totalRevenue,
       int totalOrders,
       int totalProductsSold,
       List<StatusCountModel> ordersByStatus,
       List<BestSellingProductModel> bestSelling,
       List<RevenueByDayModel> revenueByDay,
-      List<RevenueByMonthModel> revenueByMonth});
+      List<RevenueByMonthModel> revenueByMonth,
+      List<RecentOrderModel> recentOrders,
+      List<LowStockProductModel> lowStockProducts});
 }
 
 /// @nodoc
@@ -142,6 +167,7 @@ class __$$AdminDashboardStatsModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? totalUsers = null,
     Object? totalRevenue = null,
     Object? totalOrders = null,
     Object? totalProductsSold = null,
@@ -149,8 +175,14 @@ class __$$AdminDashboardStatsModelImplCopyWithImpl<$Res>
     Object? bestSelling = null,
     Object? revenueByDay = null,
     Object? revenueByMonth = null,
+    Object? recentOrders = null,
+    Object? lowStockProducts = null,
   }) {
     return _then(_$AdminDashboardStatsModelImpl(
+      totalUsers: null == totalUsers
+          ? _value.totalUsers
+          : totalUsers // ignore: cast_nullable_to_non_nullable
+              as int,
       totalRevenue: null == totalRevenue
           ? _value.totalRevenue
           : totalRevenue // ignore: cast_nullable_to_non_nullable
@@ -179,6 +211,14 @@ class __$$AdminDashboardStatsModelImplCopyWithImpl<$Res>
           ? _value._revenueByMonth
           : revenueByMonth // ignore: cast_nullable_to_non_nullable
               as List<RevenueByMonthModel>,
+      recentOrders: null == recentOrders
+          ? _value._recentOrders
+          : recentOrders // ignore: cast_nullable_to_non_nullable
+              as List<RecentOrderModel>,
+      lowStockProducts: null == lowStockProducts
+          ? _value._lowStockProducts
+          : lowStockProducts // ignore: cast_nullable_to_non_nullable
+              as List<LowStockProductModel>,
     ));
   }
 }
@@ -187,21 +227,28 @@ class __$$AdminDashboardStatsModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
   const _$AdminDashboardStatsModelImpl(
-      {required this.totalRevenue,
+      {required this.totalUsers,
+      required this.totalRevenue,
       required this.totalOrders,
       required this.totalProductsSold,
       required final List<StatusCountModel> ordersByStatus,
       required final List<BestSellingProductModel> bestSelling,
       required final List<RevenueByDayModel> revenueByDay,
-      required final List<RevenueByMonthModel> revenueByMonth})
+      required final List<RevenueByMonthModel> revenueByMonth,
+      required final List<RecentOrderModel> recentOrders,
+      required final List<LowStockProductModel> lowStockProducts})
       : _ordersByStatus = ordersByStatus,
         _bestSelling = bestSelling,
         _revenueByDay = revenueByDay,
-        _revenueByMonth = revenueByMonth;
+        _revenueByMonth = revenueByMonth,
+        _recentOrders = recentOrders,
+        _lowStockProducts = lowStockProducts;
 
   factory _$AdminDashboardStatsModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$AdminDashboardStatsModelImplFromJson(json);
 
+  @override
+  final int totalUsers;
   @override
   final double totalRevenue;
   @override
@@ -240,9 +287,26 @@ class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
     return EqualUnmodifiableListView(_revenueByMonth);
   }
 
+  final List<RecentOrderModel> _recentOrders;
+  @override
+  List<RecentOrderModel> get recentOrders {
+    if (_recentOrders is EqualUnmodifiableListView) return _recentOrders;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_recentOrders);
+  }
+
+  final List<LowStockProductModel> _lowStockProducts;
+  @override
+  List<LowStockProductModel> get lowStockProducts {
+    if (_lowStockProducts is EqualUnmodifiableListView)
+      return _lowStockProducts;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_lowStockProducts);
+  }
+
   @override
   String toString() {
-    return 'AdminDashboardStatsModel(totalRevenue: $totalRevenue, totalOrders: $totalOrders, totalProductsSold: $totalProductsSold, ordersByStatus: $ordersByStatus, bestSelling: $bestSelling, revenueByDay: $revenueByDay, revenueByMonth: $revenueByMonth)';
+    return 'AdminDashboardStatsModel(totalUsers: $totalUsers, totalRevenue: $totalRevenue, totalOrders: $totalOrders, totalProductsSold: $totalProductsSold, ordersByStatus: $ordersByStatus, bestSelling: $bestSelling, revenueByDay: $revenueByDay, revenueByMonth: $revenueByMonth, recentOrders: $recentOrders, lowStockProducts: $lowStockProducts)';
   }
 
   @override
@@ -250,6 +314,8 @@ class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$AdminDashboardStatsModelImpl &&
+            (identical(other.totalUsers, totalUsers) ||
+                other.totalUsers == totalUsers) &&
             (identical(other.totalRevenue, totalRevenue) ||
                 other.totalRevenue == totalRevenue) &&
             (identical(other.totalOrders, totalOrders) ||
@@ -263,20 +329,27 @@ class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
             const DeepCollectionEquality()
                 .equals(other._revenueByDay, _revenueByDay) &&
             const DeepCollectionEquality()
-                .equals(other._revenueByMonth, _revenueByMonth));
+                .equals(other._revenueByMonth, _revenueByMonth) &&
+            const DeepCollectionEquality()
+                .equals(other._recentOrders, _recentOrders) &&
+            const DeepCollectionEquality()
+                .equals(other._lowStockProducts, _lowStockProducts));
   }
 
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      totalUsers,
       totalRevenue,
       totalOrders,
       totalProductsSold,
       const DeepCollectionEquality().hash(_ordersByStatus),
       const DeepCollectionEquality().hash(_bestSelling),
       const DeepCollectionEquality().hash(_revenueByDay),
-      const DeepCollectionEquality().hash(_revenueByMonth));
+      const DeepCollectionEquality().hash(_revenueByMonth),
+      const DeepCollectionEquality().hash(_recentOrders),
+      const DeepCollectionEquality().hash(_lowStockProducts));
 
   @JsonKey(ignore: true)
   @override
@@ -295,18 +368,23 @@ class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
 
 abstract class _AdminDashboardStatsModel implements AdminDashboardStatsModel {
   const factory _AdminDashboardStatsModel(
-          {required final double totalRevenue,
+          {required final int totalUsers,
+          required final double totalRevenue,
           required final int totalOrders,
           required final int totalProductsSold,
           required final List<StatusCountModel> ordersByStatus,
           required final List<BestSellingProductModel> bestSelling,
           required final List<RevenueByDayModel> revenueByDay,
-          required final List<RevenueByMonthModel> revenueByMonth}) =
+          required final List<RevenueByMonthModel> revenueByMonth,
+          required final List<RecentOrderModel> recentOrders,
+          required final List<LowStockProductModel> lowStockProducts}) =
       _$AdminDashboardStatsModelImpl;
 
   factory _AdminDashboardStatsModel.fromJson(Map<String, dynamic> json) =
       _$AdminDashboardStatsModelImpl.fromJson;
 
+  @override
+  int get totalUsers;
   @override
   double get totalRevenue;
   @override
@@ -321,6 +399,10 @@ abstract class _AdminDashboardStatsModel implements AdminDashboardStatsModel {
   List<RevenueByDayModel> get revenueByDay;
   @override
   List<RevenueByMonthModel> get revenueByMonth;
+  @override
+  List<RecentOrderModel> get recentOrders;
+  @override
+  List<LowStockProductModel> get lowStockProducts;
   @override
   @JsonKey(ignore: true)
   _$$AdminDashboardStatsModelImplCopyWith<_$AdminDashboardStatsModelImpl>
@@ -1033,4 +1115,410 @@ abstract class _RevenueByMonthModel implements RevenueByMonthModel {
   @JsonKey(ignore: true)
   _$$RevenueByMonthModelImplCopyWith<_$RevenueByMonthModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+RecentOrderModel _$RecentOrderModelFromJson(Map<String, dynamic> json) {
+  return _RecentOrderModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$RecentOrderModel {
+  int get orderId => throw _privateConstructorUsedError;
+  String get customerName => throw _privateConstructorUsedError;
+  double get totalAmount => throw _privateConstructorUsedError;
+  String get status => throw _privateConstructorUsedError;
+  DateTime get createdAt => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $RecentOrderModelCopyWith<RecentOrderModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RecentOrderModelCopyWith<$Res> {
+  factory $RecentOrderModelCopyWith(
+          RecentOrderModel value, $Res Function(RecentOrderModel) then) =
+      _$RecentOrderModelCopyWithImpl<$Res, RecentOrderModel>;
+  @useResult
+  $Res call(
+      {int orderId,
+      String customerName,
+      double totalAmount,
+      String status,
+      DateTime createdAt});
+}
+
+/// @nodoc
+class _$RecentOrderModelCopyWithImpl<$Res, $Val extends RecentOrderModel>
+    implements $RecentOrderModelCopyWith<$Res> {
+  _$RecentOrderModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? orderId = null,
+    Object? customerName = null,
+    Object? totalAmount = null,
+    Object? status = null,
+    Object? createdAt = null,
+  }) {
+    return _then(_value.copyWith(
+      orderId: null == orderId
+          ? _value.orderId
+          : orderId // ignore: cast_nullable_to_non_nullable
+              as int,
+      customerName: null == customerName
+          ? _value.customerName
+          : customerName // ignore: cast_nullable_to_non_nullable
+              as String,
+      totalAmount: null == totalAmount
+          ? _value.totalAmount
+          : totalAmount // ignore: cast_nullable_to_non_nullable
+              as double,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$RecentOrderModelImplCopyWith<$Res>
+    implements $RecentOrderModelCopyWith<$Res> {
+  factory _$$RecentOrderModelImplCopyWith(_$RecentOrderModelImpl value,
+          $Res Function(_$RecentOrderModelImpl) then) =
+      __$$RecentOrderModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {int orderId,
+      String customerName,
+      double totalAmount,
+      String status,
+      DateTime createdAt});
+}
+
+/// @nodoc
+class __$$RecentOrderModelImplCopyWithImpl<$Res>
+    extends _$RecentOrderModelCopyWithImpl<$Res, _$RecentOrderModelImpl>
+    implements _$$RecentOrderModelImplCopyWith<$Res> {
+  __$$RecentOrderModelImplCopyWithImpl(_$RecentOrderModelImpl _value,
+      $Res Function(_$RecentOrderModelImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? orderId = null,
+    Object? customerName = null,
+    Object? totalAmount = null,
+    Object? status = null,
+    Object? createdAt = null,
+  }) {
+    return _then(_$RecentOrderModelImpl(
+      orderId: null == orderId
+          ? _value.orderId
+          : orderId // ignore: cast_nullable_to_non_nullable
+              as int,
+      customerName: null == customerName
+          ? _value.customerName
+          : customerName // ignore: cast_nullable_to_non_nullable
+              as String,
+      totalAmount: null == totalAmount
+          ? _value.totalAmount
+          : totalAmount // ignore: cast_nullable_to_non_nullable
+              as double,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$RecentOrderModelImpl implements _RecentOrderModel {
+  const _$RecentOrderModelImpl(
+      {required this.orderId,
+      required this.customerName,
+      required this.totalAmount,
+      required this.status,
+      required this.createdAt});
+
+  factory _$RecentOrderModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RecentOrderModelImplFromJson(json);
+
+  @override
+  final int orderId;
+  @override
+  final String customerName;
+  @override
+  final double totalAmount;
+  @override
+  final String status;
+  @override
+  final DateTime createdAt;
+
+  @override
+  String toString() {
+    return 'RecentOrderModel(orderId: $orderId, customerName: $customerName, totalAmount: $totalAmount, status: $status, createdAt: $createdAt)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RecentOrderModelImpl &&
+            (identical(other.orderId, orderId) || other.orderId == orderId) &&
+            (identical(other.customerName, customerName) ||
+                other.customerName == customerName) &&
+            (identical(other.totalAmount, totalAmount) ||
+                other.totalAmount == totalAmount) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, orderId, customerName, totalAmount, status, createdAt);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RecentOrderModelImplCopyWith<_$RecentOrderModelImpl> get copyWith =>
+      __$$RecentOrderModelImplCopyWithImpl<_$RecentOrderModelImpl>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$RecentOrderModelImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _RecentOrderModel implements RecentOrderModel {
+  const factory _RecentOrderModel(
+      {required final int orderId,
+      required final String customerName,
+      required final double totalAmount,
+      required final String status,
+      required final DateTime createdAt}) = _$RecentOrderModelImpl;
+
+  factory _RecentOrderModel.fromJson(Map<String, dynamic> json) =
+      _$RecentOrderModelImpl.fromJson;
+
+  @override
+  int get orderId;
+  @override
+  String get customerName;
+  @override
+  double get totalAmount;
+  @override
+  String get status;
+  @override
+  DateTime get createdAt;
+  @override
+  @JsonKey(ignore: true)
+  _$$RecentOrderModelImplCopyWith<_$RecentOrderModelImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+LowStockProductModel _$LowStockProductModelFromJson(Map<String, dynamic> json) {
+  return _LowStockProductModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$LowStockProductModel {
+  int get productId => throw _privateConstructorUsedError;
+  String get productName => throw _privateConstructorUsedError;
+  int get stockQuantity => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $LowStockProductModelCopyWith<LowStockProductModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $LowStockProductModelCopyWith<$Res> {
+  factory $LowStockProductModelCopyWith(LowStockProductModel value,
+          $Res Function(LowStockProductModel) then) =
+      _$LowStockProductModelCopyWithImpl<$Res, LowStockProductModel>;
+  @useResult
+  $Res call({int productId, String productName, int stockQuantity});
+}
+
+/// @nodoc
+class _$LowStockProductModelCopyWithImpl<$Res,
+        $Val extends LowStockProductModel>
+    implements $LowStockProductModelCopyWith<$Res> {
+  _$LowStockProductModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? productName = null,
+    Object? stockQuantity = null,
+  }) {
+    return _then(_value.copyWith(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as int,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      stockQuantity: null == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$LowStockProductModelImplCopyWith<$Res>
+    implements $LowStockProductModelCopyWith<$Res> {
+  factory _$$LowStockProductModelImplCopyWith(_$LowStockProductModelImpl value,
+          $Res Function(_$LowStockProductModelImpl) then) =
+      __$$LowStockProductModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int productId, String productName, int stockQuantity});
+}
+
+/// @nodoc
+class __$$LowStockProductModelImplCopyWithImpl<$Res>
+    extends _$LowStockProductModelCopyWithImpl<$Res, _$LowStockProductModelImpl>
+    implements _$$LowStockProductModelImplCopyWith<$Res> {
+  __$$LowStockProductModelImplCopyWithImpl(_$LowStockProductModelImpl _value,
+      $Res Function(_$LowStockProductModelImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? productId = null,
+    Object? productName = null,
+    Object? stockQuantity = null,
+  }) {
+    return _then(_$LowStockProductModelImpl(
+      productId: null == productId
+          ? _value.productId
+          : productId // ignore: cast_nullable_to_non_nullable
+              as int,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      stockQuantity: null == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$LowStockProductModelImpl implements _LowStockProductModel {
+  const _$LowStockProductModelImpl(
+      {required this.productId,
+      required this.productName,
+      required this.stockQuantity});
+
+  factory _$LowStockProductModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LowStockProductModelImplFromJson(json);
+
+  @override
+  final int productId;
+  @override
+  final String productName;
+  @override
+  final int stockQuantity;
+
+  @override
+  String toString() {
+    return 'LowStockProductModel(productId: $productId, productName: $productName, stockQuantity: $stockQuantity)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$LowStockProductModelImpl &&
+            (identical(other.productId, productId) ||
+                other.productId == productId) &&
+            (identical(other.productName, productName) ||
+                other.productName == productName) &&
+            (identical(other.stockQuantity, stockQuantity) ||
+                other.stockQuantity == stockQuantity));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, productId, productName, stockQuantity);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$LowStockProductModelImplCopyWith<_$LowStockProductModelImpl>
+      get copyWith =>
+          __$$LowStockProductModelImplCopyWithImpl<_$LowStockProductModelImpl>(
+              this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$LowStockProductModelImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _LowStockProductModel implements LowStockProductModel {
+  const factory _LowStockProductModel(
+      {required final int productId,
+      required final String productName,
+      required final int stockQuantity}) = _$LowStockProductModelImpl;
+
+  factory _LowStockProductModel.fromJson(Map<String, dynamic> json) =
+      _$LowStockProductModelImpl.fromJson;
+
+  @override
+  int get productId;
+  @override
+  String get productName;
+  @override
+  int get stockQuantity;
+  @override
+  @JsonKey(ignore: true)
+  _$$LowStockProductModelImplCopyWith<_$LowStockProductModelImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }
