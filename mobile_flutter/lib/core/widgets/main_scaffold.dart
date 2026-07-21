@@ -89,6 +89,16 @@ class MainScaffold extends ConsumerWidget {
             icon: const Icon(Icons.account_circle_outlined, color: AppColors.textPrimary),
             tooltip: 'Hồ sơ',
           ),
+          IconButton(
+            onPressed: () async {
+              await ref.read(authNotifierProvider.notifier).logout();
+              if (context.mounted) {
+                context.go('/login');
+              }
+            },
+            icon: const Icon(Icons.logout, color: AppColors.textPrimary),
+            tooltip: 'Đăng xuất',
+          ),
           const SizedBox(width: 8),
         ],
       ),
