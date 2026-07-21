@@ -355,7 +355,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         leading: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF0056C6)),
                         title: const Text('Đơn hàng của tôi', style: TextStyle(fontWeight: FontWeight.w600)),
                         trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                        onTap: () => context.push('/orders'),
+                        onTap: () => context.go('/orders'),
                       ),
                       const Divider(height: 1, indent: 56),
                       ListTile(
@@ -370,7 +370,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           leading: const Icon(Icons.admin_panel_settings_outlined, color: Colors.purple),
                           title: const Text('Trang Quản trị Admin', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.purple)),
                           trailing: const Icon(Icons.chevron_right, color: Colors.purple),
-                          onTap: () => context.push('/admin'),
+                          onTap: () => context.go('/admin'),
                         ),
                       ],
                     ],

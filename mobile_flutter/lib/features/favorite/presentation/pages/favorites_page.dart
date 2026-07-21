@@ -27,6 +27,7 @@ class FavoritesPage extends ConsumerWidget {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => context.go('/products'),
+                    style: ElevatedButton.styleFrom(minimumSize: const Size(200, 48)),
                     child: const Text('Khám phá ngay'),
                   ),
                 ],

@@ -455,7 +455,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                               await ref.read(cartProvider.notifier).addItem(
                                   product.productId, _selectedQuantity);
                               if (context.mounted) {
-                                context.push('/cart');
+                                context.go('/cart');
                               }
                             } catch (e) {
                               if (context.mounted) {

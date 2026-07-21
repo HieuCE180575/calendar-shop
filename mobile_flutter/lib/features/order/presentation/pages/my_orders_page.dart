@@ -176,15 +176,62 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
                               if (status == 'Delivered')
                                 TextButton(
                                   onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (ctx) => WriteReviewDialog(
-                                        orderItemId: item['orderItemId'],
-                                        productId: item['productId'],
-                                      ),
-                                    );
+                                    if (item['review'] != null) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text('Đánh giá của bạn'),
+                                          content: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: List.generate(5, (index) {
+                                                  return Icon(
+                                                    index < (item['review']['rating'] ?? 5) ? Icons.star : Icons.star_border,
+                                                    color: Colors.amber,
+                                                    size: 20,
+                                                  );
+                                                }),
+                                              ),
+                                              const SizedBox(height: 12),
+                                              Text(item['review']['comment'] ?? 'Không có nhận xét'),
+                                            ],
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(ctx),
+                                              child: const Text('Đóng'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () async {
+                                                Navigator.pop(ctx);
+                                                try {
+                                                  final apiClient = ref.read(apiClientProvider);
+                                                  await apiClient.dio.delete('/reviews/${item['review']['reviewId']}');
+                                                  ref.invalidate(myOrdersProvider);
+                                                } catch (e) {
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+                                                  }
+                                                }
+                                              },
+                                              child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    } else {
+                                      showDialog(
+                                        context: context,
+                                        builder: (ctx) => WriteReviewDialog(
+                                          orderItemId: item['orderItemId'],
+                                          productId: item['productId'],
+                                        ),
+                                      ).then((_) => ref.invalidate(myOrdersProvider));
+                                    }
                                   },
-                                  child: const Text('Đánh giá'),
+                                  child: Text(item['review'] != null ? 'Xem đánh giá' : 'Đánh giá'),
                                 ),
                             ],
                           ),
@@ -214,6 +261,14 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
                               elevation: 0,
                             ),
                             onPressed: () async {
+                              final cartState = ref.read(cartProvider);
+                              if (cartState.hasValue) {
+                                for (var existing in cartState.value!) {
+                                  try {
+                                    await ref.read(cartProvider.notifier).removeItem(existing.cartItemId);
+                                  } catch (_) {}
+                                }
+                              }
                               for (var item in items) {
                                 try {
                                   await ref.read(cartProvider.notifier).addItem(
@@ -223,7 +278,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
                                 } catch (_) {}
                               }
                               if (context.mounted) {
-                                context.push('/cart');
+                                context.go('/cart');
                               }
                             },
                             icon: const Icon(Icons.replay, size: 16),

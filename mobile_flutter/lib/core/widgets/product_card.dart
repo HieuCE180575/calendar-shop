@@ -1,25 +1,24 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../features/favorite/presentation/providers/favorite_provider.dart';
 import '../../features/product/domain/entities/product.dart';
 import '../theme/app_colors.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   final Product product;
   final VoidCallback onTap;
-  final bool isFavorite;
-  final VoidCallback? onFavoriteTap;
 
   const ProductCard({
     super.key,
     required this.product,
     required this.onTap,
-    this.isFavorite = false,
-    this.onFavoriteTap,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFavoriteAsync = ref.watch(checkFavoriteProvider(product.productId));
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
     final formattedPrice = currencyFormatter.format(product.price);
     final badgeText = product.categoryName ?? product.calendarType;
@@ -97,27 +96,42 @@ class ProductCard extends StatelessWidget {
                     ),
 
                   // Heart Favorite Icon
-                  if (onFavoriteTap != null)
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: Material(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          customBorder: const CircleBorder(),
-                          onTap: onFavoriteTap,
-                          child: Padding(
-                            padding: const EdgeInsets.all(6.0),
-                            child: Icon(
-                              isFavorite ? Icons.favorite : Icons.favorite_border,
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Material(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () {
+                          final isFav = isFavoriteAsync.value ?? false;
+                          ref
+                              .read(favoriteActionNotifierProvider.notifier)
+                              .toggleFavorite(product.productId, isFav);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: isFavoriteAsync.when(
+                            data: (isFav) => Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
                               size: 16,
-                              color: isFavorite ? Colors.red : AppColors.textSecondary,
+                              color: isFav ? Colors.red : AppColors.textSecondary,
+                            ),
+                            loading: () => const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2)),
+                            error: (_, __) => const Icon(
+                              Icons.error_outline,
+                              size: 16,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ),
                       ),
                     ),
+                  ),
                 ],
               ),
             ),
@@ -160,7 +174,15 @@ class ProductCard extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const Icon(Icons.favorite_border, size: 14, color: AppColors.textMuted),
+                      isFavoriteAsync.maybeWhen(
+                        data: (isFav) => Icon(
+                          isFav ? Icons.favorite : Icons.favorite_border,
+                          size: 14,
+                          color: isFav ? Colors.red : AppColors.textMuted,
+                        ),
+                        orElse: () => const Icon(Icons.favorite_border,
+                            size: 14, color: AppColors.textMuted),
+                      ),
                     ],
                   ),
                 ],
