@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/admin/presentation/pages/admin_home_page.dart';
 import '../../features/admin/presentation/pages/admin_coupon_form_page.dart';
 import '../../features/admin/presentation/pages/admin_coupon_list_page.dart';
+import '../../features/admin/presentation/pages/admin_order_list_page.dart';
 import '../../features/admin/presentation/pages/admin_statistics_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
@@ -22,11 +23,8 @@ final appRouter = GoRouter(
   initialLocation: '/login',
   routes: [
     GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
-    GoRoute(
-        path: '/register', builder: (context, state) => const RegisterPage()),
-    GoRoute(
-        path: '/products',
-        builder: (context, state) => const ProductListPage()),
+    GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
+    GoRoute(path: '/products', builder: (context, state) => const ProductListPage()),
     GoRoute(
       path: '/products/:id',
       builder: (context, state) {
@@ -35,10 +33,13 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(path: '/cart', builder: (context, state) => const CartPage()),
-    GoRoute(
-        path: '/favorites', builder: (context, state) => const FavoritesPage()),
+    GoRoute(path: '/favorites', builder: (context, state) => const FavoritesPage()),
     GoRoute(path: '/orders', builder: (context, state) => const MyOrdersPage()),
     GoRoute(path: '/admin', builder: (context, state) => const AdminHomePage()),
+    GoRoute(
+      path: '/admin/orders',
+      builder: (context, state) => const AdminOrderListPage(),
+    ),
     GoRoute(
       path: '/admin/statistics',
       builder: (context, state) => const AdminStatisticsPage(),
