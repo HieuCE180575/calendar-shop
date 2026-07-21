@@ -84,6 +84,11 @@ class MainScaffold extends ConsumerWidget {
               icon: const Icon(Icons.admin_panel_settings_outlined, color: AppColors.primary),
               tooltip: 'Trang quản trị',
             ),
+          IconButton(
+            onPressed: () => context.push('/profile'),
+            icon: const Icon(Icons.account_circle_outlined, color: AppColors.textPrimary),
+            tooltip: 'Hồ sơ',
+          ),
           const SizedBox(width: 8),
         ],
       ),
