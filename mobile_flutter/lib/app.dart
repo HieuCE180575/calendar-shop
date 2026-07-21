@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/routes/app_router.dart';
+import 'core/theme/app_theme.dart';
 
 class CalendarShopApp extends StatelessWidget {
   const CalendarShopApp({super.key});
@@ -10,10 +11,7 @@ class CalendarShopApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Calendar Shop',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
       routerConfig: appRouter,
     );
   }
