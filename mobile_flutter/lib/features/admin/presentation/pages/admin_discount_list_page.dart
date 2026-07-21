@@ -40,6 +40,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return Container(
+              width: MediaQuery.of(context).size.width,
               padding: EdgeInsets.only(
                 left: 16, 
                 right: 16, 
@@ -141,6 +142,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                           child: const Text('Xóa bộ lọc'),
                         ),
                         ElevatedButton(
+                          style: ElevatedButton.styleFrom(minimumSize: const Size(120, 48)),
                           onPressed: () {
                             ref.read(adminDiscountFilterProvider.notifier).updateFilterAndSort(
                                   filterStatus: statusFilter,
@@ -290,6 +292,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                                         Expanded(
                                           flex: 3,
                                           child: Column(
+                                            mainAxisSize: MainAxisSize.min,
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
@@ -311,6 +314,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                                         Expanded(
                                           flex: 3,
                                           child: Column(
+                                            mainAxisSize: MainAxisSize.min,
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Row(
@@ -350,12 +354,11 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                                         ),
                                         const SizedBox(width: 16),
                                         Column(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
                                             IconButton(
                                               icon: Icon(Icons.edit, color: Colors.blue.shade700),
                                               onPressed: () => context.push('/admin/discounts/edit', extra: discount),
-                                              constraints: const BoxConstraints(),
-                                              padding: const EdgeInsets.all(8),
                                             ),
                                             IconButton(
                                               icon: const Icon(Icons.delete, color: Colors.redAccent),
@@ -368,7 +371,10 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                                                     actions: [
                                                       TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
                                                       ElevatedButton(
-                                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                                        style: ElevatedButton.styleFrom(
+                                                          backgroundColor: Colors.red,
+                                                          minimumSize: const Size(80, 48),
+                                                        ),
                                                         onPressed: () async {
                                                           Navigator.pop(ctx);
                                                           final success = await ref
@@ -385,8 +391,6 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                                                   ),
                                                 );
                                               },
-                                              constraints: const BoxConstraints(),
-                                              padding: const EdgeInsets.all(8),
                                             ),
                                           ],
                                         ),
