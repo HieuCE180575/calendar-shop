@@ -62,16 +62,38 @@ public class ReviewService : IReviewService
 
         // 5. Kiểm tra đã đánh giá OrderItem này chưa (UNIQUE constraint: UserId, ProductId, OrderItemId)
         var existingReview = await _reviewRepository.Entities
-            .AnyAsync(x => x.UserId == userId
+            .FirstOrDefaultAsync(x => x.UserId == userId
                         && x.ProductId == orderItem.ProductId
                         && x.OrderItemId == request.OrderItemId);
 
-        if (existingReview)
+        if (existingReview != null)
         {
-            throw new BadHttpRequestException("Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.");
+            if (existingReview.Status == "Visible")
+            {
+                throw new BadHttpRequestException("Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.");
+            }
+            else
+            {
+                // Khôi phục đánh giá đã xóa (Hidden -> Visible)
+                existingReview.Status = "Visible";
+                existingReview.Rating = request.Rating;
+                existingReview.Comment = request.Comment?.Trim();
+                existingReview.CreatedAt = DateTime.UtcNow;
+                existingReview.UpdatedAt = DateTime.UtcNow;
+
+                _reviewRepository.Update(existingReview);
+                await _reviewRepository.SaveChangesAsync();
+
+                return await _reviewRepository.Entities
+                    .Include(x => x.User)
+                    .Include(x => x.Product)
+                    .Where(x => x.ReviewId == existingReview.ReviewId)
+                    .ProjectTo<ReviewDto>(_mapper.ConfigurationProvider)
+                    .FirstAsync();
+            }
         }
 
-        // 6. Tạo review
+        // 6. Tạo review mới nếu chưa có
         var review = new Review
         {
             UserId = userId,
