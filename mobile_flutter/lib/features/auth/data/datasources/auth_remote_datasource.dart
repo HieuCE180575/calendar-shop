@@ -1,70 +1,50 @@
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/auth_result_model.dart';
+import '../models/forgot_password_result_model.dart';
+import '../models/message_result_model.dart';
+import '../models/register_result_model.dart';
 import '../models/user_model.dart';
-
-class RegisterResultModel {
-  final String message;
-
-  const RegisterResultModel({required this.message});
-
-  factory RegisterResultModel.fromJson(Map<String, dynamic> json) {
-    return RegisterResultModel(message: json['message']?.toString() ?? 'Đăng ký thành công. Vui lòng kiểm tra email.');
-  }
-}
-
-class ForgotPasswordResultModel {
-  final String message;
-  final DateTime? expiredAt;
-
-  const ForgotPasswordResultModel({
-    required this.message,
-    this.expiredAt,
-  });
-
-  factory ForgotPasswordResultModel.fromJson(Map<String, dynamic> json) {
-    return ForgotPasswordResultModel(
-      message: json['message']?.toString() ?? '',
-      expiredAt: DateTime.tryParse(json['expiredAt']?.toString() ?? ''),
-    );
-  }
-}
-
-class MessageResultModel {
-  final String message;
-
-  const MessageResultModel({required this.message});
-
-  factory MessageResultModel.fromJson(Map<String, dynamic> json) {
-    return MessageResultModel(message: json['message']?.toString() ?? 'Thao tác thành công.');
-  }
-}
 
 class AuthRemoteDataSource {
   final ApiClient apiClient;
 
   AuthRemoteDataSource(this.apiClient);
 
-  Future<AuthResultModel> login({required String login, required String password}) async {
+  Future<AuthResultModel> login({
+    required String login,
+    required String password,
+  }) async {
     try {
-      final response = await apiClient.dio.post(ApiConstants.login, data: {
-        'login': login,
-        'password': password,
-      });
+      final response = await apiClient.dio.post(
+        ApiConstants.login,
+        data: {
+          'login': login,
+          'password': password,
+        },
+      );
       return AuthResultModel.fromJson(response.data);
     } catch (e) {
       throw apiClient.handleError(e);
     }
   }
 
-  Future<RegisterResultModel> register({required String fullName, String? email, String? phone, required String password}) async {
+  Future<RegisterResultModel> register({
+    required String fullName,
+    String? email,
+    String? phone,
+    required String password,
+  }) async {
     try {
-      final response = await apiClient.dio.post(ApiConstants.register, data: {
-        'fullName': fullName,
-        'email': _emptyToNull(email),
-        'phone': _emptyToNull(phone),
-        'password': password,
-      });
+      final response = await apiClient.dio.post(
+        ApiConstants.register,
+        data: {
+          'fullName': fullName,
+          'email': _emptyToNull(email),
+          'phone': _emptyToNull(phone),
+          'password': password,
+        },
+      );
       return RegisterResultModel.fromJson(response.data);
     } catch (e) {
       throw apiClient.handleError(e);
@@ -73,9 +53,12 @@ class AuthRemoteDataSource {
 
   Future<void> logout({String? refreshToken}) async {
     try {
-      await apiClient.dio.post(ApiConstants.logout, data: {
-        'refreshToken': _emptyToNull(refreshToken),
-      });
+      await apiClient.dio.post(
+        ApiConstants.logout,
+        data: {
+          'refreshToken': _emptyToNull(refreshToken),
+        },
+      );
     } catch (e) {
       throw apiClient.handleError(e);
     }
@@ -99,48 +82,68 @@ class AuthRemoteDataSource {
     DateTime? dateOfBirth,
   }) async {
     try {
-      final response = await apiClient.dio.put(ApiConstants.profile, data: {
-        'fullName': fullName,
-        'email': _emptyToNull(email),
-        'phone': _emptyToNull(phone),
-        'avatarUrl': _emptyToNull(avatarUrl),
-        'gender': _emptyToNull(gender),
-        'dateOfBirth': dateOfBirth?.toIso8601String(),
-      });
+      final response = await apiClient.dio.put(
+        ApiConstants.profile,
+        data: {
+          'fullName': fullName,
+          'email': _emptyToNull(email),
+          'phone': _emptyToNull(phone),
+          'avatarUrl': _emptyToNull(avatarUrl),
+          'gender': _emptyToNull(gender),
+          'dateOfBirth': dateOfBirth?.toIso8601String(),
+        },
+      );
       return UserModel.fromJson(response.data);
     } catch (e) {
       throw apiClient.handleError(e);
     }
   }
 
-  Future<void> changePassword({required String oldPassword, required String newPassword}) async {
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
     try {
-      await apiClient.dio.put(ApiConstants.changePassword, data: {
-        'oldPassword': oldPassword,
-        'newPassword': newPassword,
-      });
+      await apiClient.dio.put(
+        ApiConstants.changePassword,
+        data: {
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+        },
+      );
     } catch (e) {
       throw apiClient.handleError(e);
     }
   }
 
-  Future<ForgotPasswordResultModel> forgotPassword({required String login}) async {
+  Future<ForgotPasswordResultModel> forgotPassword({
+    required String login,
+  }) async {
     try {
-      final response = await apiClient.dio.post(ApiConstants.forgotPassword, data: {
-        'login': login,
-      });
+      final response = await apiClient.dio.post(
+        ApiConstants.forgotPassword,
+        data: {
+          'login': login,
+        },
+      );
       return ForgotPasswordResultModel.fromJson(response.data);
     } catch (e) {
       throw apiClient.handleError(e);
     }
   }
 
-  Future<void> resetPassword({required String resetToken, required String newPassword}) async {
+  Future<void> resetPassword({
+    required String resetToken,
+    required String newPassword,
+  }) async {
     try {
-      await apiClient.dio.post(ApiConstants.resetPassword, data: {
-        'resetToken': resetToken,
-        'newPassword': newPassword,
-      });
+      await apiClient.dio.post(
+        ApiConstants.resetPassword,
+        data: {
+          'resetToken': resetToken,
+          'newPassword': newPassword,
+        },
+      );
     } catch (e) {
       throw apiClient.handleError(e);
     }
@@ -148,20 +151,28 @@ class AuthRemoteDataSource {
 
   Future<MessageResultModel> confirmEmail({required String token}) async {
     try {
-      final response = await apiClient.dio.post(ApiConstants.confirmEmail, data: {
-        'token': token,
-      });
+      final response = await apiClient.dio.post(
+        ApiConstants.confirmEmail,
+        data: {
+          'token': token,
+        },
+      );
       return MessageResultModel.fromJson(response.data);
     } catch (e) {
       throw apiClient.handleError(e);
     }
   }
 
-  Future<MessageResultModel> resendEmailConfirmation({required String email}) async {
+  Future<MessageResultModel> resendEmailConfirmation({
+    required String email,
+  }) async {
     try {
-      final response = await apiClient.dio.post(ApiConstants.resendEmailConfirmation, data: {
-        'email': email,
-      });
+      final response = await apiClient.dio.post(
+        ApiConstants.resendEmailConfirmation,
+        data: {
+          'email': email,
+        },
+      );
       return MessageResultModel.fromJson(response.data);
     } catch (e) {
       throw apiClient.handleError(e);

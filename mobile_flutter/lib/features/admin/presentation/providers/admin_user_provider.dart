@@ -2,10 +2,38 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/core_providers.dart';
 import '../../data/datasources/admin_user_remote_datasource.dart';
-import '../../data/models/admin_user_model.dart';
+import '../../data/repositories/admin_user_repository_impl.dart';
+import '../../domain/entities/admin_user.dart';
+import '../../domain/repositories/admin_user_repository.dart';
+import '../../domain/usecases/get_admin_user_by_id_usecase.dart';
+import '../../domain/usecases/get_admin_users_usecase.dart';
+import '../../domain/usecases/update_admin_user_role_usecase.dart';
+import '../../domain/usecases/update_admin_user_status_usecase.dart';
 
 final adminUserRemoteDataSourceProvider = Provider<AdminUserRemoteDataSource>((ref) {
   return AdminUserRemoteDataSource(ref.watch(apiClientProvider));
+});
+
+final adminUserRepositoryProvider = Provider<AdminUserRepository>((ref) {
+  return AdminUserRepositoryImpl(ref.watch(adminUserRemoteDataSourceProvider));
+});
+
+final getAdminUsersUseCaseProvider = Provider<GetAdminUsersUseCase>((ref) {
+  return GetAdminUsersUseCase(ref.watch(adminUserRepositoryProvider));
+});
+
+final getAdminUserByIdUseCaseProvider = Provider<GetAdminUserByIdUseCase>((ref) {
+  return GetAdminUserByIdUseCase(ref.watch(adminUserRepositoryProvider));
+});
+
+final updateAdminUserStatusUseCaseProvider =
+    Provider<UpdateAdminUserStatusUseCase>((ref) {
+  return UpdateAdminUserStatusUseCase(ref.watch(adminUserRepositoryProvider));
+});
+
+final updateAdminUserRoleUseCaseProvider =
+    Provider<UpdateAdminUserRoleUseCase>((ref) {
+  return UpdateAdminUserRoleUseCase(ref.watch(adminUserRepositoryProvider));
 });
 
 final adminUserListRefreshProvider = StateProvider<int>((ref) => 0);
@@ -26,17 +54,17 @@ class AdminUserFilter {
   int get hashCode => Object.hash(search, role, status);
 }
 
-final adminUsersProvider = FutureProvider.autoDispose.family<List<AdminUserModel>, AdminUserFilter>((ref, filter) async {
+final adminUsersProvider = FutureProvider.autoDispose.family<List<AdminUser>, AdminUserFilter>((ref, filter) async {
   ref.watch(adminUserListRefreshProvider);
-  return ref.watch(adminUserRemoteDataSourceProvider).getUsers(
-        search: filter.search,
-        role: filter.role,
-        status: filter.status,
-      );
+  return ref.watch(getAdminUsersUseCaseProvider)(
+    search: filter.search,
+    role: filter.role,
+    status: filter.status,
+  );
 });
 
-final adminUserDetailProvider = FutureProvider.autoDispose.family<AdminUserModel, int>((ref, id) async {
-  return ref.watch(adminUserRemoteDataSourceProvider).getUserById(id);
+final adminUserDetailProvider = FutureProvider.autoDispose.family<AdminUser, int>((ref, id) async {
+  return ref.watch(getAdminUserByIdUseCaseProvider)(id);
 });
 
 class AdminUserActionState {
@@ -55,7 +83,10 @@ class AdminUserActionNotifier extends StateNotifier<AdminUserActionState> {
   Future<bool> updateStatus(int id, String status) async {
     state = const AdminUserActionState(isLoading: true);
     try {
-      await ref.read(adminUserRemoteDataSourceProvider).updateStatus(id: id, status: status);
+      await ref.read(updateAdminUserStatusUseCaseProvider)(
+        id: id,
+        status: status,
+      );
       final refresh = ref.read(adminUserListRefreshProvider.notifier);
       refresh.state = refresh.state + 1;
       ref.invalidate(adminUserDetailProvider(id));
@@ -70,7 +101,10 @@ class AdminUserActionNotifier extends StateNotifier<AdminUserActionState> {
   Future<bool> updateRole(int id, String role) async {
     state = const AdminUserActionState(isLoading: true);
     try {
-      await ref.read(adminUserRemoteDataSourceProvider).updateRole(id: id, role: role);
+      await ref.read(updateAdminUserRoleUseCaseProvider)(
+        id: id,
+        role: role,
+      );
       final refresh = ref.read(adminUserListRefreshProvider.notifier);
       refresh.state = refresh.state + 1;
       ref.invalidate(adminUserDetailProvider(id));

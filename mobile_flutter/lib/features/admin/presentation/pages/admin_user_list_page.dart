@@ -63,7 +63,7 @@ class _AdminUserListPageState extends ConsumerState<AdminUserListPage> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String?>(
-                        value: _role,
+                        initialValue: _role,
                         decoration: const InputDecoration(labelText: 'Quyền', border: OutlineInputBorder()),
                         items: const [
                           DropdownMenuItem(value: null, child: Text('Tất cả')),
@@ -76,7 +76,7 @@ class _AdminUserListPageState extends ConsumerState<AdminUserListPage> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: DropdownButtonFormField<String?>(
-                        value: _status,
+                        initialValue: _status,
                         decoration: const InputDecoration(labelText: 'Trạng thái', border: OutlineInputBorder()),
                         items: const [
                           DropdownMenuItem(value: null, child: Text('Tất cả')),

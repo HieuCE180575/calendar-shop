@@ -2,6 +2,7 @@ using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace CalendarShop.Api.Controllers;
 
@@ -16,12 +17,13 @@ public class UsersController : AppControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAll(
+    [EnableQuery]
+    public ActionResult<IQueryable<UserDto>> GetAll(
         [FromQuery] string? search,
         [FromQuery] string? role,
         [FromQuery] string? status)
     {
-        var users = await _userService.GetUsersAsync(search, role, status);
+        var users = _userService.GetUsersQuery(search, role, status);
         return Ok(users);
     }
 

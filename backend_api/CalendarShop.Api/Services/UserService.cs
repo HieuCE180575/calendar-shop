@@ -24,7 +24,7 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public async Task<IReadOnlyList<UserDto>> GetUsersAsync(string? search, string? role, string? status)
+    public IQueryable<UserDto> GetUsersQuery(string? search, string? role, string? status)
     {
         var query = _userRepository.Entities.AsNoTracking();
         var keyword = search?.Trim();
@@ -47,10 +47,9 @@ public class UserService : IUserService
             query = query.Where(x => x.Status == status.Trim());
         }
 
-        return await query
+        return query
             .OrderByDescending(x => x.CreatedAt)
-            .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+            .ProjectTo<UserDto>(_mapper.ConfigurationProvider);
     }
 
     public async Task<UserDto> GetUserByIdAsync(int id)
