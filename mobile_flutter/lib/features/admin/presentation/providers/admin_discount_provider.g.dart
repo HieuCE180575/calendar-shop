@@ -42,7 +42,115 @@ final adminDiscountRepositoryProvider =
 
 typedef AdminDiscountRepositoryRef
     = AutoDisposeProviderRef<AdminDiscountRepository>;
-String _$adminDiscountListHash() => r'd2b229cc8888112e99eaf21ec5d42c7279fdce43';
+String _$getAdminDiscountsUseCaseHash() =>
+    r'45cfacfc29cc046fc414c39454d7b14c6e3e0074';
+
+/// See also [getAdminDiscountsUseCase].
+@ProviderFor(getAdminDiscountsUseCase)
+final getAdminDiscountsUseCaseProvider =
+    AutoDisposeProvider<GetAdminDiscountsUseCase>.internal(
+  getAdminDiscountsUseCase,
+  name: r'getAdminDiscountsUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$getAdminDiscountsUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef GetAdminDiscountsUseCaseRef
+    = AutoDisposeProviderRef<GetAdminDiscountsUseCase>;
+String _$getAdminDiscountByIdUseCaseHash() =>
+    r'42e31a55a3b34f6a3bdf1b7c3adf777d30a1fda0';
+
+/// See also [getAdminDiscountByIdUseCase].
+@ProviderFor(getAdminDiscountByIdUseCase)
+final getAdminDiscountByIdUseCaseProvider =
+    AutoDisposeProvider<GetAdminDiscountByIdUseCase>.internal(
+  getAdminDiscountByIdUseCase,
+  name: r'getAdminDiscountByIdUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$getAdminDiscountByIdUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef GetAdminDiscountByIdUseCaseRef
+    = AutoDisposeProviderRef<GetAdminDiscountByIdUseCase>;
+String _$createAdminDiscountUseCaseHash() =>
+    r'f7965fc08e66cae4ea442846c42df1f7017eaa35';
+
+/// See also [createAdminDiscountUseCase].
+@ProviderFor(createAdminDiscountUseCase)
+final createAdminDiscountUseCaseProvider =
+    AutoDisposeProvider<CreateAdminDiscountUseCase>.internal(
+  createAdminDiscountUseCase,
+  name: r'createAdminDiscountUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$createAdminDiscountUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef CreateAdminDiscountUseCaseRef
+    = AutoDisposeProviderRef<CreateAdminDiscountUseCase>;
+String _$updateAdminDiscountUseCaseHash() =>
+    r'38a870bde7ab64a848fbce2734b1b484028818c1';
+
+/// See also [updateAdminDiscountUseCase].
+@ProviderFor(updateAdminDiscountUseCase)
+final updateAdminDiscountUseCaseProvider =
+    AutoDisposeProvider<UpdateAdminDiscountUseCase>.internal(
+  updateAdminDiscountUseCase,
+  name: r'updateAdminDiscountUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$updateAdminDiscountUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef UpdateAdminDiscountUseCaseRef
+    = AutoDisposeProviderRef<UpdateAdminDiscountUseCase>;
+String _$updateAdminDiscountStatusUseCaseHash() =>
+    r'8c24a3439ca583d1d46dc2d24a2fbabf6c91aaf5';
+
+/// See also [updateAdminDiscountStatusUseCase].
+@ProviderFor(updateAdminDiscountStatusUseCase)
+final updateAdminDiscountStatusUseCaseProvider =
+    AutoDisposeProvider<UpdateAdminDiscountStatusUseCase>.internal(
+  updateAdminDiscountStatusUseCase,
+  name: r'updateAdminDiscountStatusUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$updateAdminDiscountStatusUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef UpdateAdminDiscountStatusUseCaseRef
+    = AutoDisposeProviderRef<UpdateAdminDiscountStatusUseCase>;
+String _$deleteAdminDiscountUseCaseHash() =>
+    r'2bea26fc53a66cc93a8b8acd38dafdf0ca5dc690';
+
+/// See also [deleteAdminDiscountUseCase].
+@ProviderFor(deleteAdminDiscountUseCase)
+final deleteAdminDiscountUseCaseProvider =
+    AutoDisposeProvider<DeleteAdminDiscountUseCase>.internal(
+  deleteAdminDiscountUseCase,
+  name: r'deleteAdminDiscountUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$deleteAdminDiscountUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef DeleteAdminDiscountUseCaseRef
+    = AutoDisposeProviderRef<DeleteAdminDiscountUseCase>;
+String _$adminDiscountListHash() => r'14a9d0f9cddb1eb37b5c7640643cb1276da3329e';
 
 /// See also [adminDiscountList].
 @ProviderFor(adminDiscountList)
@@ -60,7 +168,7 @@ final adminDiscountListProvider = AutoDisposeFutureProvider<
 typedef AdminDiscountListRef = AutoDisposeFutureProviderRef<
     ({List<AdminDiscount> items, int totalCount})>;
 String _$adminDiscountDetailHash() =>
-    r'f69329d3e4c294f793d210cfe325cb9955a39945';
+    r'fdcacc98d204cc1c2297c0ae6f96bc718e64c67a';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -229,7 +337,7 @@ final adminDiscountFilterProvider = AutoDisposeNotifierProvider<
 
 typedef _$AdminDiscountFilter = AutoDisposeNotifier<AdminDiscountFilterState>;
 String _$adminDiscountActionNotifierHash() =>
-    r'06881fcfe1490305bf0933e379b57d6a5a7d8214';
+    r'fe33f2ec7b94a9146e48a2a942800688f46a10b4';
 
 /// See also [AdminDiscountActionNotifier].
 @ProviderFor(AdminDiscountActionNotifier)

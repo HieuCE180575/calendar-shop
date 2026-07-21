@@ -129,6 +129,7 @@ class AdminOrderListPage extends ConsumerWidget {
                                     Expanded(
                                       flex: 2,
                                       child: Column(
+                                        mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text('Đơn #${order.orderId}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -141,6 +142,7 @@ class AdminOrderListPage extends ConsumerWidget {
                                     Expanded(
                                       flex: 2,
                                       child: Column(
+                                        mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Row(
@@ -165,6 +167,7 @@ class AdminOrderListPage extends ConsumerWidget {
                                     Expanded(
                                       flex: 2,
                                       child: Column(
+                                        mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Row(
@@ -189,6 +192,7 @@ class AdminOrderListPage extends ConsumerWidget {
                                     Expanded(
                                       flex: 2,
                                       child: Column(
+                                        mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           Container(

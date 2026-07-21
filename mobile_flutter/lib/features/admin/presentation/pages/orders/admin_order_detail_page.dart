@@ -111,6 +111,7 @@ class _AdminOrderDetailPageState extends ConsumerState<AdminOrderDetailPage> {
                             children: [
                               Expanded(
                                 child: Column(
+                                  mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(item.productName, style: const TextStyle(fontWeight: FontWeight.w500)),

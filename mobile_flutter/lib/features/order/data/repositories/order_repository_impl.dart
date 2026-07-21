@@ -50,4 +50,9 @@ class OrderRepositoryImpl implements OrderRepository {
   Future<String> getVNPayUrl(int orderId) {
     return remoteDataSource.getVNPayUrl(orderId);
   }
+
+  @override
+  Future<void> reorder(int orderId) {
+    return remoteDataSource.reorder(orderId);
+  }
 }

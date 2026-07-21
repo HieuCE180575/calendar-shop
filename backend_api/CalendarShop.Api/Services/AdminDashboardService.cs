@@ -32,7 +32,7 @@ public class AdminDashboardService : IAdminDashboardService
     public async Task<AdminDashboardStatsDto> GetDashboardStatsAsync()
     {
         var deliveredOrders = _orderRepository.Entities.Where(x => x.Status == "Delivered");
-        var totalRevenue = await deliveredOrders.SumAsync(x => x.TotalAmount);
+        var totalRevenue = await deliveredOrders.SumAsync(x => (decimal?)x.TotalAmount) ?? 0;
         var totalOrders = await _orderRepository.Entities.CountAsync();
         var totalProductsSold = await _orderItemRepository.Entities
             .Where(x => x.Order != null && x.Order.Status == "Delivered")
