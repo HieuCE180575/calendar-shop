@@ -18,6 +18,7 @@ public record RefreshTokenRequest(string Token, string RefreshToken);
 
 public record ForgotPasswordRequest(string Login);
 public record ForgotPasswordResponse(string Message, DateTime? ExpiredAt);
+public record VerifyResetCodeRequest(string ResetCode);
 public record ResetPasswordRequest(string ResetToken, string NewPassword);
 public record ConfirmEmailRequest(string Token);
 public record ResendEmailConfirmationRequest(string Email);

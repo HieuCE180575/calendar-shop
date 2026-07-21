@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace CalendarShop.Api.Services;
 
@@ -287,7 +288,7 @@ public class AuthService : IAuthService
             _passwordResetTokenRepository.Update(oldToken);
         }
 
-        var rawToken = GenerateSecurityToken();
+        var rawToken = GenerateOtpCode();
         var expiresAt = DateTime.UtcNow.AddMinutes(PasswordResetMinutes);
         var resetToken = new PasswordResetToken
         {
@@ -303,7 +304,27 @@ public class AuthService : IAuthService
 
         await SendResetPasswordEmailAsync(user, rawToken, expiresAt);
 
-        return new ForgotPasswordResponse("Token đặt lại mật khẩu đã được gửi về email của bạn.", expiresAt);
+        return new ForgotPasswordResponse("Mã OTP đặt lại mật khẩu đã được gửi về email của bạn.", expiresAt);
+    }
+
+    public async Task<MessageResponse> VerifyResetCodeAsync(VerifyResetCodeRequest request)
+    {
+        var rawCode = request.ResetCode.Trim();
+        if (string.IsNullOrWhiteSpace(rawCode))
+        {
+            throw new BadHttpRequestException("Mã OTP không được để trống.");
+        }
+
+        var hashedCode = _passwordService.Hash(rawCode);
+        var resetToken = await _passwordResetTokenRepository.Entities
+            .FirstOrDefaultAsync(x => x.Token == hashedCode && !x.IsUsed && x.ExpiredAt > DateTime.UtcNow);
+
+        if (resetToken == null)
+        {
+            throw new BadHttpRequestException("Mã OTP không hợp lệ hoặc đã hết hạn.");
+        }
+
+        return new MessageResponse("Mã OTP hợp lệ.");
     }
 
     public async Task ResetPasswordAsync(ResetPasswordRequest request)
@@ -507,15 +528,16 @@ public class AuthService : IAuthService
         <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a">
             <h2>Đặt lại mật khẩu Calendar Shop</h2>
             <p>Xin chào <strong>{safeName}</strong>,</p>
-            <p>Token đặt lại mật khẩu của bạn là:</p>
-            <p style="font-size:18px;font-weight:bold;word-break:break-all;background:#f1f5f9;padding:12px;border-radius:8px">{safeToken}</p>
+            <p>Mã OTP đặt lại mật khẩu của bạn là:</p>
+            <p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:#2563eb;background:#f1f5f9;padding:16px;text-align:center;border-radius:8px">{safeToken}</p>
+            <p>Nhập mã OTP 6 số này trong ứng dụng di động để tiến hành đặt lại mật khẩu.</p>
             {resetLinkHtml}
-            <p>Token hết hạn lúc {expiresAt:yyyy-MM-dd HH:mm:ss} UTC.</p>
+            <p>Mã OTP hết hạn lúc {expiresAt:yyyy-MM-dd HH:mm:ss} UTC.</p>
             <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
         </div>
         """;
 
-        await _emailService.SendAsync(user.Email, "Đặt lại mật khẩu Calendar Shop", html, $"Reset token: {rawToken}");
+        await _emailService.SendAsync(user.Email, "Mã OTP đặt lại mật khẩu Calendar Shop", html, $"Mã OTP: {rawToken}");
     }
 
     private string GetApiBaseUrl()
@@ -536,12 +558,28 @@ public class AuthService : IAuthService
 
     private string? BuildOptionalAppResetUrl(string rawToken)
     {
-        if (string.IsNullOrWhiteSpace(_emailSettings.AppBaseUrl))
+        var encodedToken = Uri.EscapeDataString(rawToken);
+
+        if (!string.IsNullOrWhiteSpace(_emailSettings.AppBaseUrl))
         {
-            return null;
+            var baseUrl = _emailSettings.AppBaseUrl.TrimEnd('/');
+            if (baseUrl.Contains("/api/auth/reset-password-page"))
+            {
+                return $"{baseUrl}?token={encodedToken}";
+            }
+
+            if (!baseUrl.Contains("localhost:3000"))
+            {
+                return $"{baseUrl}/#/reset-password?token={encodedToken}";
+            }
         }
 
-        return $"{_emailSettings.AppBaseUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(rawToken)}";
+        return $"{GetApiBaseUrl()}/api/auth/reset-password-page?token={encodedToken}";
+    }
+
+    private string GenerateOtpCode()
+    {
+        return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
     }
 
     private string GenerateSecurityToken()

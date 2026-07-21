@@ -144,6 +144,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> verifyResetCode(String resetCode) async {
+    state = state.copyWith(isLoading: true, error: null, message: null);
+    try {
+      final message = await ref.read(authRepositoryProvider).verifyResetCode(resetCode: resetCode);
+      state = AuthState(message: message);
+      return true;
+    } catch (e) {
+      state = AuthState(error: e.toString());
+      return false;
+    }
+  }
+
   Future<bool> resetPassword(String resetToken, String newPassword) async {
     state = state.copyWith(isLoading: true, error: null, message: null);
     try {

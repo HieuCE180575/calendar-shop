@@ -132,6 +132,22 @@ class AuthRemoteDataSource {
     }
   }
 
+  Future<MessageResultModel> verifyResetCode({
+    required String resetCode,
+  }) async {
+    try {
+      final response = await apiClient.dio.post(
+        ApiConstants.verifyResetCode,
+        data: {
+          'resetCode': resetCode,
+        },
+      );
+      return MessageResultModel.fromJson(response.data);
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
+
   Future<void> resetPassword({
     required String resetToken,
     required String newPassword,

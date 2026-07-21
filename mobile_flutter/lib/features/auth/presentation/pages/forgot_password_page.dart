@@ -180,7 +180,19 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               AppButton(
                 text: 'Gửi mã khôi phục về email',
                 isLoading: state.isLoading,
-                onPressed: () => ref.read(authNotifierProvider.notifier).forgotPassword(_loginController.text.trim()),
+                onPressed: () async {
+                  final login = _loginController.text.trim();
+                  if (login.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Vui lòng nhập Email hoặc Số điện thoại.')),
+                    );
+                    return;
+                  }
+                  final success = await ref.read(authNotifierProvider.notifier).forgotPassword(login);
+                  if (success && mounted) {
+                    context.push('/verify-reset-code?login=${Uri.encodeComponent(login)}');
+                  }
+                },
               ),
               const SizedBox(height: 14),
               SizedBox(
@@ -191,10 +203,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     side: const BorderSide(color: Color(0xFF0056C6)),
                   ),
-                  onPressed: () => context.push('/reset-password'),
+                  onPressed: () => context.push('/verify-reset-code'),
                   icon: const Icon(Icons.key_outlined, color: Color(0xFF0056C6), size: 20),
                   label: const Text(
-                    'Tôi đã có mã Reset Token',
+                    'Tôi đã có mã OTP 6 số',
                     style: TextStyle(color: Color(0xFF0056C6), fontWeight: FontWeight.w600),
                   ),
                 ),
