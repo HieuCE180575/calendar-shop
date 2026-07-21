@@ -6,8 +6,26 @@ part of 'admin_discount_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$adminDiscountRemoteDataSourceHash() =>
+    r'721c41b9aab8a4462639daf1bf9fb8a9ffe342a8';
+
+/// See also [adminDiscountRemoteDataSource].
+@ProviderFor(adminDiscountRemoteDataSource)
+final adminDiscountRemoteDataSourceProvider =
+    AutoDisposeProvider<AdminDiscountRemoteDataSource>.internal(
+  adminDiscountRemoteDataSource,
+  name: r'adminDiscountRemoteDataSourceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$adminDiscountRemoteDataSourceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef AdminDiscountRemoteDataSourceRef
+    = AutoDisposeProviderRef<AdminDiscountRemoteDataSource>;
 String _$adminDiscountRepositoryHash() =>
-    r'16ac6cb988df8252ece63645d7ab276d56849eb3';
+    r'cff643a2a9f44c99dbc47f8eb53f3038f80dc61d';
 
 /// See also [adminDiscountRepository].
 @ProviderFor(adminDiscountRepository)
@@ -24,7 +42,7 @@ final adminDiscountRepositoryProvider =
 
 typedef AdminDiscountRepositoryRef
     = AutoDisposeProviderRef<AdminDiscountRepository>;
-String _$adminDiscountListHash() => r'385575c26ec124340f2486fa28827ac13ce85ff9';
+String _$adminDiscountListHash() => r'd2b229cc8888112e99eaf21ec5d42c7279fdce43';
 
 /// See also [adminDiscountList].
 @ProviderFor(adminDiscountList)
@@ -194,7 +212,7 @@ class _AdminDiscountDetailProviderElement
 }
 
 String _$adminDiscountFilterHash() =>
-    r'f433b14fe90087ca5e73e4dd729c39cec5f5fc25';
+    r'599f9d62fdb23c869e8d8a1d98c067346ec7723d';
 
 /// See also [AdminDiscountFilter].
 @ProviderFor(AdminDiscountFilter)

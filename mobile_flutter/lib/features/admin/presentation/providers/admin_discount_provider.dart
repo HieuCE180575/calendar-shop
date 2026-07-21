@@ -3,13 +3,24 @@ import '../../../../core/providers/core_providers.dart';
 import '../../data/repositories/admin_discount_repository_impl.dart';
 import '../../domain/entities/admin_discount.dart';
 import '../../domain/repositories/admin_discount_repository.dart';
+import '../../data/datasources/admin_discount_remote_datasource.dart';
 
 part 'admin_discount_provider.g.dart';
 
 @riverpod
-AdminDiscountRepository adminDiscountRepository(AdminDiscountRepositoryRef ref) {
+AdminDiscountRemoteDataSource adminDiscountRemoteDataSource(AdminDiscountRemoteDataSourceRef ref) {
   final apiClient = ref.watch(apiClientProvider);
-  return AdminDiscountRepositoryImpl(apiClient.dio);
+  return AdminDiscountRemoteDataSource(apiClient);
+}
+
+@riverpod
+AdminDiscountRepository adminDiscountRepository(AdminDiscountRepositoryRef ref) {
+  final remoteDataSource = ref.watch(adminDiscountRemoteDataSourceProvider);
+  final apiClient = ref.watch(apiClientProvider);
+  return AdminDiscountRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    apiClient: apiClient,
+  );
 }
 
 class AdminDiscountFilterState {

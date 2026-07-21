@@ -72,8 +72,6 @@ public class DiscountService : IDiscountService
 
     public async Task<DiscountDto> CreateDiscountAsync(DiscountCreateUpdateDto request)
     {
-        ValidateDiscountRequest(request);
-
         var discount = new Discount
         {
             Name = request.Name,
@@ -102,8 +100,6 @@ public class DiscountService : IDiscountService
         if (discount == null)
             throw new KeyNotFoundException("Không tìm thấy discount.");
 
-        ValidateDiscountRequest(request);
-
         discount.Name = request.Name;
         discount.DiscountType = request.DiscountType;
         discount.DiscountValue = request.DiscountValue;
@@ -129,31 +125,19 @@ public class DiscountService : IDiscountService
         await _discountRepository.SaveChangesAsync();
     }
 
-    private void ValidateDiscountRequest(DiscountCreateUpdateDto request)
-    {
-        if (request.StartDate > request.EndDate)
-            throw new BadHttpRequestException("Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
-
-        if (request.DiscountType != "Percent" && request.DiscountType != "FixedAmount")
-            throw new BadHttpRequestException("DiscountType không hợp lệ.");
-
-        if (request.Scope != "Product" && request.Scope != "Category")
-            throw new BadHttpRequestException("Scope không hợp lệ.");
-    }
-
     private async Task AssignTargetsAsync(Discount discount, string scope, List<int> targetIds)
     {
         if (scope == "Product")
         {
             var products = await _productRepository.Entities
                 .Where(p => targetIds.Contains(p.ProductId)).ToListAsync();
-            discount.Products = products;
+            foreach(var p in products) discount.Products.Add(p);
         }
         else
         {
             var products = await _productRepository.Entities
                 .Where(p => targetIds.Contains(p.CategoryId)).ToListAsync();
-            discount.Products = products;
+            foreach(var p in products) discount.Products.Add(p);
         }
     }
 }
