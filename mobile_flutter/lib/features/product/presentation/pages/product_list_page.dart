@@ -59,14 +59,14 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
     final cartCount = cartState.value?.length ?? 0;
     final isAdmin = userState.user?.role == 'Admin';
 
-    final categories = ['Tất cả'];
+    final categories = ['Tat ca'];
     categoriesAsync.whenData((cats) {
       for (var c in cats) {
         categories.add(c.categoryName);
       }
     });
 
-    String selectedCatName = 'Tất cả';
+    String selectedCatName = 'Tat ca';
     if (filterState.categoryId != null && categoriesAsync.value != null) {
       final found = categoriesAsync.value!.firstWhere(
         (c) => c.categoryId == filterState.categoryId,
@@ -89,59 +89,89 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textPrimary),
+            icon: const Icon(
+              Icons.notifications_none_outlined,
+              color: AppColors.textPrimary,
+            ),
           ),
           IconButton(
             onPressed: () => context.push('/cart'),
             icon: Badge(
               isLabelVisible: cartCount > 0,
-              label: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 10)),
+              label: Text(
+                '$cartCount',
+                style: const TextStyle(color: Colors.white, fontSize: 10),
+              ),
               backgroundColor: AppColors.primary,
-              child: const Icon(Icons.shopping_bag_outlined, color: AppColors.textPrimary),
+              child: const Icon(
+                Icons.shopping_bag_outlined,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           if (isAdmin)
             IconButton(
               onPressed: () => context.go('/admin'),
-              icon: const Icon(Icons.admin_panel_settings_outlined, color: AppColors.primary),
-              tooltip: 'Trang quản trị',
+              icon: const Icon(
+                Icons.admin_panel_settings_outlined,
+                color: AppColors.primary,
+              ),
+              tooltip: 'Trang quan tri',
             ),
+          IconButton(
+            onPressed: () => context.push('/profile'),
+            icon: const Icon(Icons.account_circle_outlined),
+            tooltip: 'Ho so',
+          ),
+          IconButton(
+            onPressed: () => context.push('/orders'),
+            icon: const Icon(Icons.receipt_long_outlined),
+            tooltip: 'Don hang cua toi',
+          ),
+          IconButton(
+            onPressed: () async {
+              await ref.read(authNotifierProvider.notifier).logout();
+              if (context.mounted) {
+                context.go('/login');
+              }
+            },
+            icon: const Icon(Icons.logout),
+            tooltip: 'Dang xuat',
+          ),
           const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Search Input with Filter Button
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: AppSearchBar(
                 controller: _searchController,
-                hintText: 'Tìm kiếm sản phẩm...',
+                hintText: 'Tim kiem san pham...',
                 onChanged: (value) {
                   ref.read(productFilterProvider.notifier).setSearch(value);
                 },
                 onFilterTap: () => _showFilterBottomSheet(context),
               ),
             ),
-
-            // Horizontal Category Pill Scrollbar
             CategoryTabBar(
               categories: categories,
               selectedCategory: selectedCatName,
               onSelectCategory: (name) {
-                if (name == 'Tất cả') {
+                if (name == 'Tat ca') {
                   ref.read(productFilterProvider.notifier).setCategory(null);
                 } else if (categoriesAsync.value != null) {
-                  final cat = categoriesAsync.value!.firstWhere((c) => c.categoryName == name);
-                  ref.read(productFilterProvider.notifier).setCategory(cat.categoryId);
+                  final cat = categoriesAsync.value!.firstWhere(
+                    (c) => c.categoryName == name,
+                  );
+                  ref
+                      .read(productFilterProvider.notifier)
+                      .setCategory(cat.categoryId);
                 }
               },
             ),
-
             const SizedBox(height: 12),
-
-            // Main Product Grid (2 Columns)
             Expanded(
               child: productsAsync.when(
                 data: (products) {
@@ -150,11 +180,19 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.search_off, size: 64, color: AppColors.textMuted),
+                          const Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: AppColors.textMuted,
+                          ),
                           const SizedBox(height: 12),
                           const Text(
-                            'Không tìm thấy sản phẩm nào',
-                            style: TextStyle(fontSize: 15, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                            'Khong tim thay san pham nao',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                           const SizedBox(height: 12),
                           ElevatedButton.icon(
@@ -167,7 +205,7 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
                               ref.read(productFilterProvider.notifier).reset();
                             },
                             icon: const Icon(Icons.refresh, size: 18),
-                            label: const Text('Xóa bộ lọc'),
+                            label: const Text('Xoa bo loc'),
                           ),
                         ],
                       ),
@@ -180,7 +218,8 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
                     },
                     child: GridView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 0.68,
                         crossAxisSpacing: 12,
@@ -207,13 +246,20 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline, color: AppColors.danger, size: 48),
+                      const Icon(
+                        Icons.error_outline,
+                        color: AppColors.danger,
+                        size: 48,
+                      ),
                       const SizedBox(height: 12),
-                      Text('Lỗi: $err', style: const TextStyle(color: AppColors.textSecondary)),
+                      Text(
+                        'Loi: $err',
+                        style: const TextStyle(color: AppColors.textSecondary),
+                      ),
                       const SizedBox(height: 12),
                       ElevatedButton(
                         onPressed: () => ref.invalidate(productListProvider),
-                        child: const Text('Thử lại'),
+                        child: const Text('Thu lai'),
                       ),
                     ],
                   ),
@@ -244,8 +290,12 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
   void initState() {
     super.initState();
     final filter = ref.read(productFilterProvider);
-    if (filter.minPrice != null) _minPriceController.text = filter.minPrice.toString();
-    if (filter.maxPrice != null) _maxPriceController.text = filter.maxPrice.toString();
+    if (filter.minPrice != null) {
+      _minPriceController.text = filter.minPrice.toString();
+    }
+    if (filter.maxPrice != null) {
+      _maxPriceController.text = filter.maxPrice.toString();
+    }
     _selectedCalendarType = filter.calendarType;
     _selectedSortBy = filter.sort;
   }
@@ -274,8 +324,12 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Bộ lọc & Sắp xếp',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                'Bo loc & Sap xep',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.close),
@@ -285,34 +339,44 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
           ),
           const Divider(),
           const SizedBox(height: 10),
-
-          // Sắp xếp
-          const Text('Sắp xếp theo giá', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          const Text(
+            'Sap xep theo gia',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: [
               ChoiceChip(
-                label: const Text('Mặc định'),
+                label: const Text('Mac dinh'),
                 selected: _selectedSortBy == 'newest',
                 onSelected: (val) => setState(() => _selectedSortBy = 'newest'),
               ),
               ChoiceChip(
-                label: const Text('Giá: Thấp -> Cao'),
+                label: const Text('Gia: Thap -> Cao'),
                 selected: _selectedSortBy == 'price_asc',
-                onSelected: (val) => setState(() => _selectedSortBy = 'price_asc'),
+                onSelected: (val) =>
+                    setState(() => _selectedSortBy = 'price_asc'),
               ),
               ChoiceChip(
-                label: const Text('Giá: Cao -> Thấp'),
+                label: const Text('Gia: Cao -> Thap'),
                 selected: _selectedSortBy == 'price_desc',
-                onSelected: (val) => setState(() => _selectedSortBy = 'price_desc'),
+                onSelected: (val) =>
+                    setState(() => _selectedSortBy = 'price_desc'),
               ),
             ],
           ),
           const SizedBox(height: 16),
-
-          // Khoảng giá
-          const Text('Khoảng giá (VNĐ)', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          const Text(
+            'Khoang gia (VND)',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -320,7 +384,7 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
                 child: TextField(
                   controller: _minPriceController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(hintText: 'Tối thiểu'),
+                  decoration: const InputDecoration(hintText: 'Toi thieu'),
                 ),
               ),
               const Padding(
@@ -331,34 +395,44 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
                 child: TextField(
                   controller: _maxPriceController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(hintText: 'Tối đa'),
+                  decoration: const InputDecoration(hintText: 'Toi da'),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-
-          // Loại lịch
-          const Text('Loại lịch', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          const Text(
+            'Loai lich',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            children: ['Tất cả', 'Lịch bloc', 'Lịch treo tường', 'Lịch để bàn', 'Lịch custom'].map((type) {
-              final isSelected = (type == 'Tất cả' && _selectedCalendarType == null) || _selectedCalendarType == type;
+            children: [
+              'Tat ca',
+              'Lich bloc',
+              'Lich treo tuong',
+              'Lich de ban',
+              'Lich custom',
+            ].map((type) {
+              final isSelected =
+                  (type == 'Tat ca' && _selectedCalendarType == null) ||
+                  _selectedCalendarType == type;
               return ChoiceChip(
                 label: Text(type),
                 selected: isSelected,
                 onSelected: (selected) {
                   setState(() {
-                    _selectedCalendarType = (type == 'Tất cả') ? null : type;
+                    _selectedCalendarType = (type == 'Tat ca') ? null : type;
                   });
                 },
               );
             }).toList(),
           ),
           const SizedBox(height: 24),
-
-          // Actions
           Row(
             children: [
               Expanded(
@@ -367,7 +441,7 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
                     ref.read(productFilterProvider.notifier).reset();
                     Navigator.pop(context);
                   },
-                  child: const Text('Thiết lập lại'),
+                  child: const Text('Thiet lap lai'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -376,14 +450,21 @@ class _FilterBottomSheetState extends ConsumerState<_FilterBottomSheet> {
                   onPressed: () {
                     final minP = double.tryParse(_minPriceController.text);
                     final maxP = double.tryParse(_maxPriceController.text);
-                    ref.read(productFilterProvider.notifier).setPrices(minP, maxP);
-                    ref.read(productFilterProvider.notifier).setCalendarType(_selectedCalendarType);
+                    ref.read(productFilterProvider.notifier).setPrices(
+                          minP,
+                          maxP,
+                        );
+                    ref
+                        .read(productFilterProvider.notifier)
+                        .setCalendarType(_selectedCalendarType);
                     if (_selectedSortBy != null) {
-                      ref.read(productFilterProvider.notifier).setSort(_selectedSortBy!);
+                      ref
+                          .read(productFilterProvider.notifier)
+                          .setSort(_selectedSortBy!);
                     }
                     Navigator.pop(context);
                   },
-                  child: const Text('Áp dụng'),
+                  child: const Text('Ap dung'),
                 ),
               ),
             ],

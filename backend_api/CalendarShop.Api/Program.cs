@@ -15,6 +15,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.OData;
 using Microsoft.OData.ModelBuilder;
 using CalendarShop.Api.Dtos;
+using CalendarShop.Api.Options;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -48,7 +49,7 @@ try
             Scheme = "Bearer",
             BearerFormat = "JWT",
             In = ParameterLocation.Header,
-            Description = "Nhập JWT Token của bạn để xác thực."
+            Description = "Nhap JWT Token cua ban de xac thuc."
         });
         options.AddSecurityRequirement(new OpenApiSecurityRequirement
         {
@@ -71,8 +72,21 @@ try
 
     builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+    builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+    var emailStartupSettings = builder.Configuration.GetSection("Email").Get<EmailSettings>() ?? new EmailSettings();
+    Log.Information("Email SMTP config loaded. Environment={Environment}, Enabled={Enabled}, Host={Host}, Port={Port}, EnableSsl={EnableSsl}, UserName={UserName}, FromEmail={FromEmail}",
+        builder.Environment.EnvironmentName,
+        emailStartupSettings.Enabled,
+        emailStartupSettings.Host,
+        emailStartupSettings.Port,
+        emailStartupSettings.EnableSsl,
+        emailStartupSettings.UserName,
+        emailStartupSettings.FromEmail);
+    builder.Services.AddHttpContextAccessor();
+
     builder.Services.AddScoped<PasswordService>();
     builder.Services.AddScoped<JwtService>();
+    builder.Services.AddScoped<IEmailService, SmtpEmailService>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ICartService, CartService>();
     builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -82,6 +96,7 @@ try
     builder.Services.AddScoped<IFavoriteService, FavoriteService>();
     builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
     builder.Services.AddScoped<ICouponService, CouponService>();
+    builder.Services.AddScoped<IUserService, UserService>();
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -160,4 +175,3 @@ static Microsoft.OData.Edm.IEdmModel GetEdmModel()
     builder.EntitySet<CouponDto>("Coupons").EntityType.HasKey(x => x.CouponId);
     return builder.GetEdmModel();
 }
-

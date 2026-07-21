@@ -28,17 +28,22 @@ CREATE TABLE dbo.Users (
     Gender NVARCHAR(20) NULL,
     DateOfBirth DATE NULL,
     Role NVARCHAR(20) NOT NULL DEFAULT 'Customer',
-    Status NVARCHAR(20) NOT NULL DEFAULT 'Active',
+    Status NVARCHAR(20) NOT NULL DEFAULT 'Pending',
+    IsEmailConfirmed BIT NOT NULL DEFAULT 0,
+    EmailConfirmationTokenHash NVARCHAR(500) NULL,
+    EmailConfirmationTokenExpiredAt DATETIME2 NULL,
+    EmailConfirmedAt DATETIME2 NULL,
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT CK_Users_EmailOrPhone CHECK (Email IS NOT NULL OR Phone IS NOT NULL),
     CONSTRAINT CK_Users_Role CHECK (Role IN ('Customer', 'Admin')),
-    CONSTRAINT CK_Users_Status CHECK (Status IN ('Active', 'Locked'))
+    CONSTRAINT CK_Users_Status CHECK (Status IN ('Active', 'Locked', 'Pending'))
 );
 GO
 
 CREATE UNIQUE INDEX UX_Users_Email ON dbo.Users(Email) WHERE Email IS NOT NULL;
 CREATE UNIQUE INDEX UX_Users_Phone ON dbo.Users(Phone) WHERE Phone IS NOT NULL;
+CREATE INDEX IX_Users_EmailConfirmationTokenHash ON dbo.Users(EmailConfirmationTokenHash) WHERE EmailConfirmationTokenHash IS NOT NULL;
 GO
 
 CREATE TABLE dbo.UserAddresses (
@@ -299,7 +304,7 @@ WHERE o.Status = 'Delivered'
 GROUP BY p.ProductId, p.ProductName, p.CalendarType;
 GO
 
--- Password demo: SHA256('123456')
+-- Password demo: SHA256('123456') = 8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92
 SET IDENTITY_INSERT dbo.Users ON;
 INSERT INTO dbo.Users (
     UserId,
@@ -308,11 +313,13 @@ INSERT INTO dbo.Users (
     Phone,
     PasswordHash,
     Role,
-    Status
+    Status,
+    IsEmailConfirmed,
+    EmailConfirmedAt
 )
 VALUES
-    (1, N'Admin Calendar Shop', N'admin@calendarshop.com', N'0900000000', N'8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92', N'Admin', N'Active'),
-    (2, N'Nguyen Van A', N'customer@gmail.com', N'0911111111', N'8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92', N'Customer', N'Active');
+    (1, N'Admin Calendar Shop', N'admin@calendarshop.com', N'0900000000', N'8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92', N'Admin', N'Active', 1, SYSUTCDATETIME()),
+    (2, N'Nguyen Van A', N'customer@gmail.com', N'0911111111', N'8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92', N'Customer', N'Active', 1, SYSUTCDATETIME());
 SET IDENTITY_INSERT dbo.Users OFF;
 GO
 

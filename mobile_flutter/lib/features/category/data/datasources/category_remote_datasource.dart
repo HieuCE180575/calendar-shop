@@ -10,7 +10,15 @@ class CategoryRemoteDataSource {
   Future<List<CategoryModel>> getCategories() async {
     try {
       final response = await apiClient.dio.get(ApiConstants.categories);
-      return (response.data as List).map((e) => CategoryModel.fromJson(e)).toList();
+      final List dataList;
+      if (response.data is Map && (response.data as Map).containsKey('value')) {
+        dataList = response.data['value'] as List;
+      } else if (response.data is List) {
+        dataList = response.data as List;
+      } else {
+        dataList = [];
+      }
+      return dataList.map((e) => CategoryModel.fromJson(e)).toList();
     } catch (e) {
       throw apiClient.handleError(e);
     }
