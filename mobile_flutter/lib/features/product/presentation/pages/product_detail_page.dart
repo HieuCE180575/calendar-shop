@@ -81,7 +81,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           if (!isAdmin && authState.user != null)
             Consumer(
               builder: (context, ref, child) {
-                final isFavoriteAsync = ref.watch(checkFavoriteProvider(widget.productId));
+                final isFavoriteAsync =
+                    ref.watch(checkFavoriteProvider(widget.productId));
                 return isFavoriteAsync.when(
                   data: (isFavorite) => IconButton(
                     icon: Icon(
@@ -89,10 +90,15 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                       color: isFavorite ? Colors.red : AppColors.textPrimary,
                     ),
                     onPressed: () {
-                      ref.read(favoriteActionNotifierProvider.notifier).toggleFavorite(widget.productId, isFavorite);
+                      ref
+                          .read(favoriteActionNotifierProvider.notifier)
+                          .toggleFavorite(widget.productId, isFavorite);
                     },
                   ),
-                  loading: () => const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
+                  loading: () => const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2)),
                   error: (_, __) => const SizedBox(),
                 );
               },
@@ -117,17 +123,21 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       body: Stack(
         children: [
           productAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+            loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.primary)),
             error: (err, __) => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+                  const Icon(Icons.error_outline,
+                      size: 48, color: AppColors.danger),
                   const SizedBox(height: 12),
-                  Text('Lỗi: $err', style: const TextStyle(color: AppColors.textSecondary)),
+                  Text('Lỗi: $err',
+                      style: const TextStyle(color: AppColors.textSecondary)),
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: () => ref.invalidate(productDetailProvider(widget.productId)),
+                    onPressed: () =>
+                        ref.invalidate(productDetailProvider(widget.productId)),
                     child: const Text('Thử lại'),
                   ),
                 ],
@@ -146,22 +156,27 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                           width: double.infinity,
                           height: 320,
                           color: AppColors.surface,
-                          child: product.imageUrl != null && product.imageUrl!.startsWith('http')
+                          child: product.imageUrl != null &&
+                                  product.imageUrl!.startsWith('http')
                               ? CachedNetworkImage(
                                   imageUrl: product.imageUrl!,
                                   fit: BoxFit.cover,
                                   placeholder: (_, __) => Container(
                                     color: AppColors.primaryLight,
-                                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                                    child: const Center(
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2)),
                                   ),
                                   errorWidget: (_, __, ___) => Container(
                                     color: AppColors.primaryLight,
-                                    child: const Icon(Icons.calendar_month, size: 100, color: AppColors.primary),
+                                    child: const Icon(Icons.calendar_month,
+                                        size: 100, color: AppColors.primary),
                                   ),
                                 )
                               : Container(
                                   color: AppColors.primaryLight,
-                                  child: const Icon(Icons.calendar_month, size: 100, color: AppColors.primary),
+                                  child: const Icon(Icons.calendar_month,
+                                      size: 100, color: AppColors.primary),
                                 ),
                         ),
                         // Pagination Dots Mockup
@@ -174,11 +189,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                             children: List.generate(
                               4,
                               (idx) => Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 3),
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 3),
                                 width: idx == 0 ? 16 : 6,
                                 height: 6,
                                 decoration: BoxDecoration(
-                                  color: idx == 0 ? AppColors.primary : Colors.white.withValues(alpha: 0.6),
+                                  color: idx == 0
+                                      ? AppColors.primary
+                                      : Colors.white.withValues(alpha: 0.6),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
@@ -193,7 +211,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                       transform: Matrix4.translationValues(0, -16, 0),
                       decoration: const BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(24)),
                       ),
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -204,7 +223,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
                                   color: AppColors.primaryLight,
                                   borderRadius: BorderRadius.circular(20),
@@ -238,21 +258,29 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                           // Rating ⭐ & Stock Row
                           Row(
                             children: [
-                              const Icon(Icons.star, color: AppColors.secondary, size: 18),
+                              const Icon(Icons.star,
+                                  color: AppColors.secondary, size: 18),
                               const SizedBox(width: 4),
                               const Text(
                                 '4.8',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: AppColors.textPrimary),
                               ),
                               const SizedBox(width: 4),
                               const Text(
                                 '(128 đánh giá)',
-                                style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                                style: TextStyle(
+                                    color: AppColors.textMuted, fontSize: 13),
                               ),
                               const Spacer(),
                               Text(
                                 'Kho: ${product.stockQuantity}',
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
@@ -271,22 +299,30 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
                           // Description
                           Text(
-                            product.description != null && product.description!.isNotEmpty
+                            product.description != null &&
+                                    product.description!.isNotEmpty
                                 ? product.description!
                                 : 'Bộ lịch cao cấp với chất liệu giấy in sắc nét, thiết kế tinh tế phù hợp trang trí không gian sống và làm việc.',
-                            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.6),
+                            style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                                height: 1.6),
                           ),
                           const SizedBox(height: 20),
 
                           // Kích thước Chips
                           const Text(
                             'Kích thước',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary),
                           ),
                           const SizedBox(height: 10),
                           Wrap(
                             spacing: 10,
-                            children: ['30x40 cm', '40x60 cm', '50x70 cm'].map((size) {
+                            children: ['30x40 cm', '40x60 cm', '50x70 cm']
+                                .map((size) {
                               final isSelected = size == _selectedSize;
                               return ChoiceChip(
                                 label: Text(size),
@@ -294,11 +330,17 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                                 selectedColor: AppColors.primaryLight,
                                 backgroundColor: AppColors.background,
                                 labelStyle: TextStyle(
-                                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.textPrimary,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
                                 ),
                                 side: BorderSide(
-                                  color: isSelected ? AppColors.primary : AppColors.border,
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.border,
                                 ),
                                 onSelected: (val) {
                                   setState(() => _selectedSize = size);
@@ -314,7 +356,10 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                             children: [
                               const Text(
                                 'Số lượng',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary),
                               ),
                               QuantitySelector(
                                 quantity: _selectedQuantity,
@@ -342,7 +387,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           if (actionState.isLoading)
             Container(
               color: Colors.black26,
-              child: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              child: const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary)),
             ),
         ],
       ),
@@ -351,7 +397,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       bottomNavigationBar: productAsync.maybeWhen(
         data: (product) {
           if (isAdmin) return const SizedBox.shrink();
-          final isAvailable = product.status == 'Active' && product.stockQuantity > 0;
+          final isAvailable =
+              product.status == 'Active' && product.stockQuantity > 0;
 
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -373,11 +420,13 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                     onPressed: isAvailable
                         ? () async {
                             try {
-                              await ref.read(cartProvider.notifier).addItem(product.productId, _selectedQuantity);
+                              await ref.read(cartProvider.notifier).addItem(
+                                  product.productId, _selectedQuantity);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Đã thêm sản phẩm vào giỏ hàng!'),
+                                    content:
+                                        Text('Đã thêm sản phẩm vào giỏ hàng!'),
                                     backgroundColor: AppColors.success,
                                   ),
                                 );
@@ -385,7 +434,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Lỗi: $e'), backgroundColor: AppColors.danger),
+                                  SnackBar(
+                                      content: Text('Lỗi: $e'),
+                                      backgroundColor: AppColors.danger),
                                 );
                               }
                             }
@@ -401,14 +452,17 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                     onPressed: isAvailable
                         ? () async {
                             try {
-                              await ref.read(cartProvider.notifier).addItem(product.productId, _selectedQuantity);
+                              await ref.read(cartProvider.notifier).addItem(
+                                  product.productId, _selectedQuantity);
                               if (context.mounted) {
                                 context.push('/cart');
                               }
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Lỗi: $e'), backgroundColor: AppColors.danger),
+                                  SnackBar(
+                                      content: Text('Lỗi: $e'),
+                                      backgroundColor: AppColors.danger),
                                 );
                               }
                             }
@@ -423,6 +477,58 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         },
         orElse: () => const SizedBox.shrink(),
       ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color color;
+    String text;
+    switch (status) {
+      case 'Active':
+        color = Colors.green;
+        text = 'Đang bán';
+        break;
+      case 'OutOfStock':
+        color = Colors.orange;
+        text = 'Hết hàng';
+        break;
+      case 'Hidden':
+        color = Colors.grey;
+        text = 'Ẩn';
+        break;
+      default:
+        color = Colors.black;
+        text = status;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Text(
+        text,
+        style:
+            TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
+
+// Overlay widget hiển thị khi đang load xử lý API
+class ContainerOverlay extends StatelessWidget {
+  final Widget child;
+
+  const ContainerOverlay({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.3),
+      alignment: Alignment.center,
+      child: child,
     );
   }
 }

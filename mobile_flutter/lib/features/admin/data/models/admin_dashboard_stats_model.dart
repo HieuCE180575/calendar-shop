@@ -7,6 +7,7 @@ part 'admin_dashboard_stats_model.g.dart';
 @freezed
 class AdminDashboardStatsModel with _$AdminDashboardStatsModel {
   const factory AdminDashboardStatsModel({
+    required int totalUsers,
     required double totalRevenue,
     required int totalOrders,
     required int totalProductsSold,
@@ -14,6 +15,8 @@ class AdminDashboardStatsModel with _$AdminDashboardStatsModel {
     required List<BestSellingProductModel> bestSelling,
     required List<RevenueByDayModel> revenueByDay,
     required List<RevenueByMonthModel> revenueByMonth,
+    required List<RecentOrderModel> recentOrders,
+    required List<LowStockProductModel> lowStockProducts,
   }) = _AdminDashboardStatsModel;
 
   factory AdminDashboardStatsModel.fromJson(Map<String, dynamic> json) =>
@@ -68,8 +71,35 @@ class RevenueByMonthModel with _$RevenueByMonthModel {
       _$RevenueByMonthModelFromJson(json);
 }
 
+@freezed
+class RecentOrderModel with _$RecentOrderModel {
+  const factory RecentOrderModel({
+    required int orderId,
+    required String customerName,
+    required double totalAmount,
+    required String status,
+    required DateTime createdAt,
+  }) = _RecentOrderModel;
+
+  factory RecentOrderModel.fromJson(Map<String, dynamic> json) =>
+      _$RecentOrderModelFromJson(json);
+}
+
+@freezed
+class LowStockProductModel with _$LowStockProductModel {
+  const factory LowStockProductModel({
+    required int productId,
+    required String productName,
+    required int stockQuantity,
+  }) = _LowStockProductModel;
+
+  factory LowStockProductModel.fromJson(Map<String, dynamic> json) =>
+      _$LowStockProductModelFromJson(json);
+}
+
 extension AdminDashboardStatsModelMapper on AdminDashboardStatsModel {
   AdminDashboardStats toEntity() => AdminDashboardStats(
+        totalUsers: totalUsers,
         totalRevenue: totalRevenue,
         totalOrders: totalOrders,
         totalProductsSold: totalProductsSold,
@@ -77,6 +107,8 @@ extension AdminDashboardStatsModelMapper on AdminDashboardStatsModel {
         bestSelling: bestSelling.map((e) => e.toEntity()).toList(),
         revenueByDay: revenueByDay.map((e) => e.toEntity()).toList(),
         revenueByMonth: revenueByMonth.map((e) => e.toEntity()).toList(),
+        recentOrders: recentOrders.map((e) => e.toEntity()).toList(),
+        lowStockProducts: lowStockProducts.map((e) => e.toEntity()).toList(),
       );
 }
 
@@ -109,5 +141,23 @@ extension RevenueByMonthModelMapper on RevenueByMonthModel {
         month: month,
         revenue: revenue,
         orderCount: orderCount,
+      );
+}
+
+extension RecentOrderModelMapper on RecentOrderModel {
+  RecentOrder toEntity() => RecentOrder(
+        orderId: orderId,
+        customerName: customerName,
+        totalAmount: totalAmount,
+        status: status,
+        createdAt: createdAt,
+      );
+}
+
+extension LowStockProductModelMapper on LowStockProductModel {
+  LowStockProduct toEntity() => LowStockProduct(
+        productId: productId,
+        productName: productName,
+        stockQuantity: stockQuantity,
       );
 }

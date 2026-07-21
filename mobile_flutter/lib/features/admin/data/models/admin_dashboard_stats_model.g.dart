@@ -9,6 +9,7 @@ part of 'admin_dashboard_stats_model.dart';
 _$AdminDashboardStatsModelImpl _$$AdminDashboardStatsModelImplFromJson(
         Map<String, dynamic> json) =>
     _$AdminDashboardStatsModelImpl(
+      totalUsers: (json['totalUsers'] as num).toInt(),
       totalRevenue: (json['totalRevenue'] as num).toDouble(),
       totalOrders: (json['totalOrders'] as num).toInt(),
       totalProductsSold: (json['totalProductsSold'] as num).toInt(),
@@ -25,11 +26,18 @@ _$AdminDashboardStatsModelImpl _$$AdminDashboardStatsModelImplFromJson(
       revenueByMonth: (json['revenueByMonth'] as List<dynamic>)
           .map((e) => RevenueByMonthModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      recentOrders: (json['recentOrders'] as List<dynamic>)
+          .map((e) => RecentOrderModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      lowStockProducts: (json['lowStockProducts'] as List<dynamic>)
+          .map((e) => LowStockProductModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$$AdminDashboardStatsModelImplToJson(
         _$AdminDashboardStatsModelImpl instance) =>
     <String, dynamic>{
+      'totalUsers': instance.totalUsers,
       'totalRevenue': instance.totalRevenue,
       'totalOrders': instance.totalOrders,
       'totalProductsSold': instance.totalProductsSold,
@@ -37,6 +45,8 @@ Map<String, dynamic> _$$AdminDashboardStatsModelImplToJson(
       'bestSelling': instance.bestSelling,
       'revenueByDay': instance.revenueByDay,
       'revenueByMonth': instance.revenueByMonth,
+      'recentOrders': instance.recentOrders,
+      'lowStockProducts': instance.lowStockProducts,
     };
 
 _$StatusCountModelImpl _$$StatusCountModelImplFromJson(
@@ -101,4 +111,40 @@ Map<String, dynamic> _$$RevenueByMonthModelImplToJson(
       'month': instance.month,
       'revenue': instance.revenue,
       'orderCount': instance.orderCount,
+    };
+
+_$RecentOrderModelImpl _$$RecentOrderModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$RecentOrderModelImpl(
+      orderId: (json['orderId'] as num).toInt(),
+      customerName: json['customerName'] as String,
+      totalAmount: (json['totalAmount'] as num).toDouble(),
+      status: json['status'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+
+Map<String, dynamic> _$$RecentOrderModelImplToJson(
+        _$RecentOrderModelImpl instance) =>
+    <String, dynamic>{
+      'orderId': instance.orderId,
+      'customerName': instance.customerName,
+      'totalAmount': instance.totalAmount,
+      'status': instance.status,
+      'createdAt': instance.createdAt.toIso8601String(),
+    };
+
+_$LowStockProductModelImpl _$$LowStockProductModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$LowStockProductModelImpl(
+      productId: (json['productId'] as num).toInt(),
+      productName: json['productName'] as String,
+      stockQuantity: (json['stockQuantity'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$$LowStockProductModelImplToJson(
+        _$LowStockProductModelImpl instance) =>
+    <String, dynamic>{
+      'productId': instance.productId,
+      'productName': instance.productName,
+      'stockQuantity': instance.stockQuantity,
     };

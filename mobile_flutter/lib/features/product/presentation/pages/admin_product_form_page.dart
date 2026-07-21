@@ -323,7 +323,7 @@ class _AdminProductFormPageState extends ConsumerState<AdminProductFormPage> {
           ),
           if (actionState.isLoading)
             Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               alignment: Alignment.center,
               child: const CircularProgressIndicator(),
             ),

@@ -13,4 +13,9 @@ class AdminDashboardRepositoryImpl implements AdminDashboardRepository {
     final model = await remoteDataSource.getDashboardStats();
     return model.toEntity();
   }
+
+  @override
+  Future<List<int>> exportRevenueExcel() {
+    return remoteDataSource.exportRevenueExcel();
+  }
 }

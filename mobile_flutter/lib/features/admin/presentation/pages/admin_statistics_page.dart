@@ -7,6 +7,8 @@ import '../widgets/best_selling_products_card.dart';
 import '../widgets/overview_metrics_section.dart';
 import '../widgets/revenue_chart_card.dart';
 import '../widgets/status_breakdown_card.dart';
+import '../widgets/recent_orders_card.dart';
+import '../widgets/low_stock_products_card.dart';
 
 class AdminStatisticsPage extends ConsumerWidget {
   const AdminStatisticsPage({super.key});
@@ -45,6 +47,10 @@ class AdminStatisticsPage extends ConsumerWidget {
                 const AdminDashboardHeader(),
                 const SizedBox(height: 20),
                 OverviewMetricsSection(stats: stats),
+                if (stats.lowStockProducts.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  LowStockProductsCard(products: stats.lowStockProducts),
+                ],
                 const SizedBox(height: 24),
                 StatusBreakdownCard(stats: stats),
                 const SizedBox(height: 24),
@@ -53,6 +59,10 @@ class AdminStatisticsPage extends ConsumerWidget {
                 MonthlyRevenueChartCard(data: stats.revenueByMonth),
                 const SizedBox(height: 24),
                 BestSellingProductsCard(products: stats.bestSelling),
+                if (stats.recentOrders.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  RecentOrdersCard(orders: stats.recentOrders),
+                ],
                 const SizedBox(height: 40),
               ],
             ),

@@ -1,4 +1,5 @@
 class AdminDashboardStats {
+  final int totalUsers;
   final double totalRevenue;
   final int totalOrders;
   final int totalProductsSold;
@@ -6,8 +7,11 @@ class AdminDashboardStats {
   final List<BestSellingProduct> bestSelling;
   final List<RevenueByDay> revenueByDay;
   final List<RevenueByMonth> revenueByMonth;
+  final List<RecentOrder> recentOrders;
+  final List<LowStockProduct> lowStockProducts;
 
   const AdminDashboardStats({
+    required this.totalUsers,
     required this.totalRevenue,
     required this.totalOrders,
     required this.totalProductsSold,
@@ -15,6 +19,8 @@ class AdminDashboardStats {
     required this.bestSelling,
     required this.revenueByDay,
     required this.revenueByMonth,
+    required this.recentOrders,
+    required this.lowStockProducts,
   });
 }
 
@@ -63,5 +69,33 @@ class RevenueByMonth {
     required this.month,
     required this.revenue,
     required this.orderCount,
+  });
+}
+
+class RecentOrder {
+  final int orderId;
+  final String customerName;
+  final double totalAmount;
+  final String status;
+  final DateTime createdAt;
+
+  const RecentOrder({
+    required this.orderId,
+    required this.customerName,
+    required this.totalAmount,
+    required this.status,
+    required this.createdAt,
+  });
+}
+
+class LowStockProduct {
+  final int productId;
+  final String productName;
+  final int stockQuantity;
+
+  const LowStockProduct({
+    required this.productId,
+    required this.productName,
+    required this.stockQuantity,
   });
 }
