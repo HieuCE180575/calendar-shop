@@ -47,18 +47,22 @@ namespace CalendarShop.Api.Infrastructure
                     problemDetails.Detail = exception.Message;
                     break;
 
-                case InvalidOperationException:
+                case Microsoft.EntityFrameworkCore.DbUpdateException dbEx:
                     problemDetails.Status = StatusCodes.Status400BadRequest;
-                    problemDetails.Title = "Bad Request";
+                    problemDetails.Title = "Database Constraint Error";
                     problemDetails.Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1";
-                    problemDetails.Detail = exception.Message;
+                    problemDetails.Detail = dbEx.InnerException != null 
+                        ? dbEx.InnerException.Message 
+                        : dbEx.Message;
                     break;
 
                 default:
                     problemDetails.Status = StatusCodes.Status500InternalServerError;
                     problemDetails.Title = "Internal Server Error";
                     problemDetails.Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1";
-                    problemDetails.Detail = exception.Message; // Expose message directly for local development debugging
+                    problemDetails.Detail = exception.InnerException != null
+                        ? $"{exception.Message} (Inner: {exception.InnerException.Message})"
+                        : exception.Message;
                     break;
             }
 

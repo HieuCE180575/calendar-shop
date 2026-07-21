@@ -1,5 +1,8 @@
 USE CalendarShopDB;
 GO
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
 
 IF COL_LENGTH('dbo.Users', 'IsEmailConfirmed') IS NULL
 BEGIN

@@ -478,7 +478,14 @@ public class AuthService : IAuthService
         </div>
         """;
 
-        await _emailService.SendAsync(user.Email, "Xác nhận tài khoản Calendar Shop", html, $"Xác nhận email: {confirmUrl}");
+        try
+        {
+            await _emailService.SendAsync(user.Email, "Xác nhận tài khoản Calendar Shop", html, $"Xác nhận email: {confirmUrl}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Warning] Could not send confirmation email to {user.Email}: {ex.Message}");
+        }
     }
 
     private async Task SendResetPasswordEmailAsync(User user, string rawToken, DateTime expiresAt)
