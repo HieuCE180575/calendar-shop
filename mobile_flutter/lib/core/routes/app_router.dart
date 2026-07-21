@@ -15,6 +15,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/reset_password_page.dart';
+import '../../features/auth/presentation/pages/verify_reset_code_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/category/presentation/pages/admin_category_page.dart';
 import '../../features/favorite/presentation/pages/favorites_page.dart';
@@ -27,7 +28,6 @@ import '../../features/product/domain/entities/product.dart';
 import '../../features/product/presentation/pages/admin_product_form_page.dart';
 import '../../features/product/presentation/pages/admin_product_list_page.dart';
 import '../../features/product/presentation/pages/product_detail_page.dart';
-import '../../features/product/presentation/pages/product_list_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -40,6 +40,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/forgot-password',
       builder: (context, state) => const ForgotPasswordPage(),
+    ),
+    GoRoute(
+      path: '/verify-reset-code',
+      builder: (context, state) => VerifyResetCodePage(
+        login: state.uri.queryParameters['login'],
+      ),
     ),
     GoRoute(
       path: '/confirm-email',
