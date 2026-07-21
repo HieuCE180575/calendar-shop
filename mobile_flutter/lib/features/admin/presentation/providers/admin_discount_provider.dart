@@ -203,4 +203,18 @@ class AdminDiscountActionNotifier extends _$AdminDiscountActionNotifier {
       return false;
     }
   }
+
+  Future<bool> updateDiscountStatus(int id, String status) async {
+    state = true;
+    try {
+      await ref.read(adminDiscountRepositoryProvider).updateDiscountStatus(id, status);
+      ref.invalidate(adminDiscountListProvider);
+      ref.invalidate(adminDiscountDetailProvider(id));
+      state = false;
+      return true;
+    } catch (e) {
+      state = false;
+      return false;
+    }
+  }
 }

@@ -45,6 +45,13 @@ public class DiscountsController : AppControllerBase
         return NoContent();
     }
 
+    [HttpPut("{id:int}/status")]
+    public async Task<IActionResult> UpdateStatus(int id, UpdateDiscountStatusRequest request)
+    {
+        await _discountService.UpdateDiscountStatusAsync(id, request);
+        return NoContent();
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

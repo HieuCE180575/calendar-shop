@@ -55,7 +55,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String?>(
                       decoration: const InputDecoration(labelText: 'Trạng thái'),
-                      value: statusFilter,
+                      initialValue: statusFilter,
                       items: const [
                         DropdownMenuItem(value: null, child: Text('Tất cả')),
                         DropdownMenuItem(value: 'Active', child: Text('Đang hoạt động (Active)')),
@@ -120,7 +120,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String?>(
                       decoration: const InputDecoration(labelText: 'Mức giảm'),
-                      value: discountValueSort,
+                      initialValue: discountValueSort,
                       items: const [
                         DropdownMenuItem(value: null, child: Text('Không sắp xếp')),
                         DropdownMenuItem(value: 'asc', child: Text('Tăng dần')),
@@ -274,7 +274,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                                 return Card(
                                   color: Colors.white,
                                   elevation: 1,
-                                  shadowColor: Colors.black.withOpacity(0.05),
+                                  shadowColor: Colors.black.withValues(alpha: 0.05),
                                   margin: const EdgeInsets.only(bottom: 12),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                   child: InkWell(
@@ -338,7 +338,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                                             child: Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                               decoration: BoxDecoration(
-                                                color: statusColor.withOpacity(0.1),
+                                                color: statusColor.withValues(alpha: 0.1),
                                                 borderRadius: BorderRadius.circular(8),
                                               ),
                                               child: Text(
@@ -431,7 +431,7 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
           ),
           if (actionState)
             Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               alignment: Alignment.center,
               child: const CircularProgressIndicator(),
             ),

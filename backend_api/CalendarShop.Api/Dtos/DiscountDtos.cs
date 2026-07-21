@@ -20,6 +20,8 @@ public record DiscountCreateUpdateDto(
     DateTime StartDate,
     DateTime EndDate,
     string Status,
-    string Scope, // "Product" or "Category"
+    string Scope,
     List<int> TargetIds
 );
+
+public record UpdateDiscountStatusRequest(string Status);
