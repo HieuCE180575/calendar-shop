@@ -77,38 +77,7 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text(
-          'Calendar Shop',
-          style: TextStyle(
-            color: AppColors.primary,
-            fontWeight: FontWeight.w800,
-            fontSize: 22,
-          ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textPrimary),
-          ),
-          IconButton(
-            onPressed: () => context.push('/cart'),
-            icon: Badge(
-              isLabelVisible: cartCount > 0,
-              label: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 10)),
-              backgroundColor: AppColors.primary,
-              child: const Icon(Icons.shopping_bag_outlined, color: AppColors.textPrimary),
-            ),
-          ),
-          if (isAdmin)
-            IconButton(
-              onPressed: () => context.go('/admin'),
-              icon: const Icon(Icons.admin_panel_settings_outlined, color: AppColors.primary),
-              tooltip: 'Trang quản trị',
-            ),
-          const SizedBox(width: 8),
-        ],
-      ),
+
       body: SafeArea(
         child: Column(
           children: [

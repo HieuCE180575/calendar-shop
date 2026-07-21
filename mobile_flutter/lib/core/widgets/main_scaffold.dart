@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/cart/presentation/providers/cart_provider.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 
 class MainScaffold extends ConsumerWidget {
@@ -16,9 +17,10 @@ class MainScaffold extends ConsumerWidget {
 
   int _calculateSelectedIndex(String path) {
     if (path.startsWith('/products') || path == '/') return 0;
-    if (path.startsWith('/categories') || path.startsWith('/admin/categories')) return 1;
+    if (path.startsWith('/favorites')) return 1;
     if (path.startsWith('/cart')) return 2;
-    if (path.startsWith('/profile') || path.startsWith('/orders') || path.startsWith('/admin')) return 3;
+    if (path.startsWith('/orders')) return 3;
+    if (path.startsWith('/profile') || path.startsWith('/admin')) return 0;
     return 0;
   }
 
@@ -28,7 +30,7 @@ class MainScaffold extends ConsumerWidget {
         context.go('/products');
         break;
       case 1:
-        context.go('/categories');
+        context.go('/favorites');
         break;
       case 2:
         context.go('/cart');
@@ -43,9 +45,48 @@ class MainScaffold extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartState = ref.watch(cartProvider);
     final cartCount = cartState.value?.length ?? 0;
+    final userState = ref.watch(authNotifierProvider);
+    final isAdmin = userState.user?.role == 'Admin';
     final selectedIndex = _calculateSelectedIndex(currentPath);
 
+    String title = 'Calendar Shop';
+    if (currentPath.startsWith('/favorites')) title = 'Sản phẩm yêu thích';
+    if (currentPath.startsWith('/cart')) title = 'Giỏ hàng ($cartCount)';
+    if (currentPath.startsWith('/orders')) title = 'Đơn hàng của tôi';
+
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w800,
+            fontSize: 22,
+          ),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textPrimary),
+          ),
+          IconButton(
+            onPressed: () => context.push('/cart'),
+            icon: Badge(
+              isLabelVisible: cartCount > 0,
+              label: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 10)),
+              backgroundColor: AppColors.primary,
+              child: const Icon(Icons.shopping_bag_outlined, color: AppColors.textPrimary),
+            ),
+          ),
+          if (isAdmin)
+            IconButton(
+              onPressed: () => context.go('/admin'),
+              icon: const Icon(Icons.admin_panel_settings_outlined, color: AppColors.primary),
+              tooltip: 'Trang quản trị',
+            ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: child,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -76,9 +117,9 @@ class MainScaffold extends ConsumerWidget {
               label: 'Trang chủ',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.grid_view_outlined),
-              activeIcon: Icon(Icons.grid_view),
-              label: 'Danh mục',
+              icon: Icon(Icons.favorite_outline),
+              activeIcon: Icon(Icons.favorite),
+              label: 'Ưa thích',
             ),
             BottomNavigationBarItem(
               icon: Badge(
@@ -96,9 +137,9 @@ class MainScaffold extends ConsumerWidget {
               label: 'Giỏ hàng',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Hồ sơ',
+              icon: Icon(Icons.receipt_long_outlined),
+              activeIcon: Icon(Icons.receipt_long),
+              label: 'Đơn hàng',
             ),
           ],
         ),

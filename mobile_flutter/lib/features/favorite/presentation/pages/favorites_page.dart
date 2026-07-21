@@ -13,11 +13,7 @@ class FavoritesPage extends ConsumerWidget {
     final favoritesAsyncValue = ref.watch(favoriteListProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sản phẩm yêu thích'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
+
       body: favoritesAsyncValue.when(
         data: (favorites) {
           if (favorites.isEmpty) {

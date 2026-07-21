@@ -98,18 +98,7 @@ class _CartPageState extends ConsumerState<CartPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Giỏ hàng ($itemCount)',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: const Text('Sửa', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
+
       body: cartState.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (error, _) => Center(

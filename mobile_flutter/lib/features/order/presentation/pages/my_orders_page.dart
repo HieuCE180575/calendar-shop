@@ -62,19 +62,22 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Đơn hàng của tôi', style: TextStyle(fontWeight: FontWeight.bold)),
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textMuted,
-          indicatorColor: AppColors.primary,
-          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
-          onTap: (_) => setState(() {}),
-        ),
-      ),
-      body: ordersAsync.when(
+      body: Column(
+        children: [
+          Material(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textMuted,
+              indicatorColor: AppColors.primary,
+              tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+              onTap: (_) => setState(() {}),
+            ),
+          ),
+          Expanded(
+            child: ordersAsync.when(
         data: (allOrders) {
           final currentTabStatus = _mapTabToStatus(_tabs[_tabController.index]);
           final filteredOrders = currentTabStatus == 'ALL'
@@ -237,6 +240,9 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
         },
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (err, _) => Center(child: Text('Lỗi tải đơn hàng: $err', style: const TextStyle(color: AppColors.danger))),
+      ),
+          ),
+        ],
       ),
     );
   }
