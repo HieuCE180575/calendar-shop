@@ -36,5 +36,7 @@ abstract class AdminDiscountRepository {
     required List<int> targetIds,
   });
 
+  Future<void> updateDiscountStatus(int id, String status);
+
   Future<void> deleteDiscount(int id);
 }

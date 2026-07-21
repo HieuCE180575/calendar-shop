@@ -204,7 +204,7 @@ class _AdminDiscountFormPageState extends ConsumerState<AdminDiscountFormPage> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _discountType,
+                          initialValue: _discountType,
                           decoration: _buildInputDecoration('Loại giảm'),
                           items: const [
                             DropdownMenuItem(value: 'Percent', child: Text('Theo %')),
@@ -239,7 +239,7 @@ class _AdminDiscountFormPageState extends ConsumerState<AdminDiscountFormPage> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _scope,
+                          initialValue: _scope,
                           decoration: _buildInputDecoration('Áp dụng cho'),
                           items: const [
                             DropdownMenuItem(value: 'Product', child: Text('Sản phẩm')),
@@ -302,7 +302,7 @@ class _AdminDiscountFormPageState extends ConsumerState<AdminDiscountFormPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _status,
+                    initialValue: _status,
                     decoration: _buildInputDecoration('Trạng thái'),
                     items: const [
                       DropdownMenuItem(value: 'Active', child: Text('Hoạt động')),
@@ -336,7 +336,7 @@ class _AdminDiscountFormPageState extends ConsumerState<AdminDiscountFormPage> {
           ),
           if (isLoading)
             Container(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               alignment: Alignment.center,
               child: const CircularProgressIndicator(),
             ),
@@ -369,7 +369,7 @@ class _AdminDiscountFormPageState extends ConsumerState<AdminDiscountFormPage> {
     try {
       if (_scope == 'Product') {
         final items = await ref.read(productListProvider.future);
-        if (!context.mounted) return;
+        if (!mounted) return;
         final result = await showDialog<List<int>>(
           context: context,
           builder: (context) => _MultiSelectDialog(
@@ -378,12 +378,13 @@ class _AdminDiscountFormPageState extends ConsumerState<AdminDiscountFormPage> {
             initialSelected: _selectedProductIds,
           ),
         );
+        if (!mounted) return;
         if (result != null) {
           setState(() => _selectedProductIds = result);
         }
       } else {
         final items = await ref.read(categoryListProvider.future);
-        if (!context.mounted) return;
+        if (!mounted) return;
         final result = await showDialog<List<int>>(
           context: context,
           builder: (context) => _MultiSelectDialog(
@@ -392,12 +393,13 @@ class _AdminDiscountFormPageState extends ConsumerState<AdminDiscountFormPage> {
             initialSelected: _selectedCategoryIds,
           ),
         );
+        if (!mounted) return;
         if (result != null) {
           setState(() => _selectedCategoryIds = result);
         }
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đang tải dữ liệu, vui lòng thử lại sau')));
       }
     }

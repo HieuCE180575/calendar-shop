@@ -1,4 +1,5 @@
 import '../../../../core/network/api_client.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../models/admin_discount_model.dart';
 
 class AdminDiscountRemoteDataSource {
@@ -45,7 +46,7 @@ class AdminDiscountRemoteDataSource {
       queryParams.add('\$orderby=${orderBys.join(', ')}');
     }
 
-    final url = '/discounts?${queryParams.join('&')}';
+    final url = '${ApiConstants.discounts}?${queryParams.join('&')}';
     final response = await apiClient.dio.get(url);
     
     final List data;
@@ -73,24 +74,24 @@ class AdminDiscountRemoteDataSource {
   }
 
   Future<AdminDiscountModel> getDiscountById(int id) async {
-    final response = await apiClient.dio.get('/discounts/$id');
+    final response = await apiClient.dio.get('${ApiConstants.discounts}/$id');
     return AdminDiscountModel.fromJson(response.data);
   }
 
   Future<AdminDiscountModel> createDiscount(Map<String, dynamic> data) async {
-    final response = await apiClient.dio.post('/discounts', data: data);
+    final response = await apiClient.dio.post(ApiConstants.discounts, data: data);
     return AdminDiscountModel.fromJson(response.data);
   }
 
   Future<void> updateDiscount(int id, Map<String, dynamic> data) async {
-    await apiClient.dio.put('/discounts/$id', data: data);
+    await apiClient.dio.put('${ApiConstants.discounts}/$id', data: data);
   }
 
   Future<void> deleteDiscount(int id) async {
-    await apiClient.dio.delete('/discounts/$id');
+    await apiClient.dio.delete('${ApiConstants.discounts}/$id');
   }
 
   Future<void> updateDiscountStatus(int id, String status) async {
-    await apiClient.dio.put('/discounts/$id/status', data: {'status': status});
+    await apiClient.dio.put('${ApiConstants.discounts}/$id/status', data: {'status': status});
   }
 }

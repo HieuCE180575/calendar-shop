@@ -12,25 +12,24 @@ public class DiscountService : IDiscountService
 {
     private readonly IRepository<Discount> _discountRepository;
     private readonly IRepository<Product> _productRepository;
-    private readonly IRepository<Category> _categoryRepository;
     private readonly IMapper _mapper;
 
     public DiscountService(
         IRepository<Discount> discountRepository,
         IRepository<Product> productRepository,
-        IRepository<Category> categoryRepository,
         IMapper mapper)
     {
         _discountRepository = discountRepository;
         _productRepository = productRepository;
-        _categoryRepository = categoryRepository;
         _mapper = mapper;
     }
 
     public decimal GetDiscountedPrice(Product product)
     {
-        if (product.Discount == null || product.Discount.Status != "Active" || 
-            product.Discount.StartDate > DateTime.UtcNow || product.Discount.EndDate < DateTime.UtcNow)
+        if (product.Discount == null ||
+            product.Discount.Status != "Active" ||
+            product.Discount.StartDate > DateTime.UtcNow ||
+            product.Discount.EndDate < DateTime.UtcNow)
         {
             return product.Price;
         }
@@ -47,9 +46,7 @@ public class DiscountService : IDiscountService
             currentPrice = product.Price - discount.DiscountValue;
         }
 
-        if (currentPrice < 0) currentPrice = 0;
-
-        return currentPrice;
+        return currentPrice < 0 ? 0 : currentPrice;
     }
 
     public IQueryable<DiscountDto> GetAllDiscountsQuery()
@@ -65,7 +62,9 @@ public class DiscountService : IDiscountService
             .FirstOrDefaultAsync();
 
         if (discount == null)
-            throw new KeyNotFoundException("Không tìm thấy discount.");
+        {
+            throw new KeyNotFoundException("Không tìm thấy mã giảm giá.");
+        }
 
         return discount;
     }
@@ -98,7 +97,9 @@ public class DiscountService : IDiscountService
             .FirstOrDefaultAsync(d => d.DiscountId == id);
 
         if (discount == null)
-            throw new KeyNotFoundException("Không tìm thấy discount.");
+        {
+            throw new KeyNotFoundException("Không tìm thấy mã giảm giá.");
+        }
 
         discount.Name = request.Name;
         discount.DiscountType = request.DiscountType;
@@ -115,11 +116,26 @@ public class DiscountService : IDiscountService
         await _discountRepository.SaveChangesAsync();
     }
 
+    public async Task UpdateDiscountStatusAsync(int id, UpdateDiscountStatusRequest request)
+    {
+        var discount = await _discountRepository.GetByIdAsync(id);
+        if (discount == null)
+        {
+            throw new KeyNotFoundException("Không tìm thấy mã giảm giá.");
+        }
+
+        discount.Status = request.Status;
+        _discountRepository.Update(discount);
+        await _discountRepository.SaveChangesAsync();
+    }
+
     public async Task DeleteDiscountAsync(int id)
     {
         var discount = await _discountRepository.GetByIdAsync(id);
         if (discount == null)
-            throw new KeyNotFoundException("Không tìm thấy discount.");
+        {
+            throw new KeyNotFoundException("Không tìm thấy mã giảm giá.");
+        }
 
         _discountRepository.Delete(discount);
         await _discountRepository.SaveChangesAsync();
@@ -127,17 +143,24 @@ public class DiscountService : IDiscountService
 
     private async Task AssignTargetsAsync(Discount discount, string scope, List<int> targetIds)
     {
-        if (scope == "Product")
+        if (targetIds.Count == 0)
         {
-            var products = await _productRepository.Entities
-                .Where(p => targetIds.Contains(p.ProductId)).ToListAsync();
-            foreach(var p in products) discount.Products.Add(p);
+            throw new BadHttpRequestException("Phải chọn ít nhất một đối tượng áp dụng giảm giá.");
         }
-        else
+
+        IQueryable<Product> query = scope == "Product"
+            ? _productRepository.Entities.Where(p => targetIds.Contains(p.ProductId))
+            : _productRepository.Entities.Where(p => targetIds.Contains(p.CategoryId));
+
+        var products = await query.ToListAsync();
+        if (products.Count == 0)
         {
-            var products = await _productRepository.Entities
-                .Where(p => targetIds.Contains(p.CategoryId)).ToListAsync();
-            foreach(var p in products) discount.Products.Add(p);
+            throw new KeyNotFoundException("Không tìm thấy sản phẩm phù hợp với mã giảm giá.");
+        }
+
+        foreach (var product in products)
+        {
+            discount.Products.Add(product);
         }
     }
 }
