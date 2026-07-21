@@ -30,7 +30,7 @@ class FavoritesPage extends ConsumerWidget {
                   const Text('Bạn chưa có sản phẩm yêu thích nào.', style: TextStyle(fontSize: 16)),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () => context.go('/'),
+                    onPressed: () => context.go('/products'),
                     child: const Text('Khám phá ngay'),
                   ),
                 ],
