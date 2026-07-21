@@ -4,6 +4,8 @@ import '../../domain/entities/admin_order.dart';
 import '../../domain/repositories/admin_order_repository.dart';
 import '../../data/datasources/admin_order_remote_datasource.dart';
 import '../../data/repositories/admin_order_repository_impl.dart';
+import '../../domain/usecases/get_admin_orders_usecase.dart';
+import '../../domain/usecases/update_admin_order_status_usecase.dart';
 
 part 'admin_order_provider.g.dart';
 
@@ -21,6 +23,16 @@ AdminOrderRepository adminOrderRepository(AdminOrderRepositoryRef ref) {
     remoteDataSource: remoteDataSource,
     apiClient: apiClient,
   );
+}
+
+@riverpod
+GetAdminOrdersUseCase getAdminOrdersUseCase(GetAdminOrdersUseCaseRef ref) {
+  return GetAdminOrdersUseCase(ref.watch(adminOrderRepositoryProvider));
+}
+
+@riverpod
+UpdateAdminOrderStatusUseCase updateAdminOrderStatusUseCase(UpdateAdminOrderStatusUseCaseRef ref) {
+  return UpdateAdminOrderStatusUseCase(ref.watch(adminOrderRepositoryProvider));
 }
 
 @riverpod
@@ -45,9 +57,29 @@ class AdminOrderStatusFilter extends _$AdminOrderStatusFilter {
 
 @riverpod
 Future<List<AdminOrder>> adminOrders(AdminOrdersRef ref) {
-  final repository = ref.watch(adminOrderRepositoryProvider);
+  final getAdminOrdersUseCase = ref.watch(getAdminOrdersUseCaseProvider);
   final search = ref.watch(adminOrderSearchQueryProvider);
   final status = ref.watch(adminOrderStatusFilterProvider);
 
-  return repository.getOrders(search: search, status: status);
+  return getAdminOrdersUseCase(search: search, status: status);
 }
+
+@riverpod
+class AdminOrderAction extends _$AdminOrderAction {
+  @override
+  bool build() => false; // isLoading
+
+  Future<bool> updateStatus(int id, String status, {String? note}) async {
+    state = true;
+    try {
+      await ref.read(updateAdminOrderStatusUseCaseProvider)(id, status, note: note);
+      ref.invalidate(adminOrdersProvider);
+      state = false;
+      return true;
+    } catch (_) {
+      state = false;
+      return false;
+    }
+  }
+}
+

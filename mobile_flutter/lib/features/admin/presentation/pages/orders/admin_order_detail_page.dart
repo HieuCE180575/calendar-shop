@@ -26,10 +26,10 @@ class _AdminOrderDetailPageState extends ConsumerState<AdminOrderDetailPage> {
   Future<void> _updateStatus(String newStatus) async {
     setState(() => _isLoading = true);
     try {
-      final repo = ref.read(adminOrderRepositoryProvider);
-      await repo.updateOrderStatus(_order.orderId, newStatus);
-      // Refresh the list
-      ref.invalidate(adminOrdersProvider);
+      final success = await ref.read(adminOrderActionProvider.notifier).updateStatus(_order.orderId, newStatus);
+      if (!success) {
+        throw Exception('Cập nhật trạng thái thất bại');
+      }
       // Update local state
       setState(() {
         _order = _order.copyWith(status: newStatus);

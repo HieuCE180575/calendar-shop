@@ -41,7 +41,43 @@ final adminOrderRepositoryProvider =
 );
 
 typedef AdminOrderRepositoryRef = AutoDisposeProviderRef<AdminOrderRepository>;
-String _$adminOrdersHash() => r'340d73f6428a43c06b4e4fc3fa8e0877eafa1b48';
+String _$getAdminOrdersUseCaseHash() =>
+    r'7de0b770726fc5c5b776c2331406250907587377';
+
+/// See also [getAdminOrdersUseCase].
+@ProviderFor(getAdminOrdersUseCase)
+final getAdminOrdersUseCaseProvider =
+    AutoDisposeProvider<GetAdminOrdersUseCase>.internal(
+  getAdminOrdersUseCase,
+  name: r'getAdminOrdersUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$getAdminOrdersUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef GetAdminOrdersUseCaseRef
+    = AutoDisposeProviderRef<GetAdminOrdersUseCase>;
+String _$updateAdminOrderStatusUseCaseHash() =>
+    r'5950308d3f8b28a641dffe87a85f89c187a9ec08';
+
+/// See also [updateAdminOrderStatusUseCase].
+@ProviderFor(updateAdminOrderStatusUseCase)
+final updateAdminOrderStatusUseCaseProvider =
+    AutoDisposeProvider<UpdateAdminOrderStatusUseCase>.internal(
+  updateAdminOrderStatusUseCase,
+  name: r'updateAdminOrderStatusUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$updateAdminOrderStatusUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef UpdateAdminOrderStatusUseCaseRef
+    = AutoDisposeProviderRef<UpdateAdminOrderStatusUseCase>;
+String _$adminOrdersHash() => r'47f84ae0095d7a3b58013108ec2d3d0d662e42fe';
 
 /// See also [adminOrders].
 @ProviderFor(adminOrders)
@@ -90,5 +126,21 @@ final adminOrderStatusFilterProvider =
 );
 
 typedef _$AdminOrderStatusFilter = AutoDisposeNotifier<String>;
+String _$adminOrderActionHash() => r'8a86383a3c93cab60496e63806bae63385be639a';
+
+/// See also [AdminOrderAction].
+@ProviderFor(AdminOrderAction)
+final adminOrderActionProvider =
+    AutoDisposeNotifierProvider<AdminOrderAction, bool>.internal(
+  AdminOrderAction.new,
+  name: r'adminOrderActionProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$adminOrderActionHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$AdminOrderAction = AutoDisposeNotifier<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

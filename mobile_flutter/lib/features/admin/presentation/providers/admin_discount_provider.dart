@@ -4,6 +4,12 @@ import '../../data/repositories/admin_discount_repository_impl.dart';
 import '../../domain/entities/admin_discount.dart';
 import '../../domain/repositories/admin_discount_repository.dart';
 import '../../data/datasources/admin_discount_remote_datasource.dart';
+import '../../domain/usecases/get_admin_discounts_usecase.dart';
+import '../../domain/usecases/get_admin_discount_by_id_usecase.dart';
+import '../../domain/usecases/create_admin_discount_usecase.dart';
+import '../../domain/usecases/update_admin_discount_usecase.dart';
+import '../../domain/usecases/update_admin_discount_status_usecase.dart';
+import '../../domain/usecases/delete_admin_discount_usecase.dart';
 
 part 'admin_discount_provider.g.dart';
 
@@ -21,6 +27,36 @@ AdminDiscountRepository adminDiscountRepository(AdminDiscountRepositoryRef ref) 
     remoteDataSource: remoteDataSource,
     apiClient: apiClient,
   );
+}
+
+@riverpod
+GetAdminDiscountsUseCase getAdminDiscountsUseCase(GetAdminDiscountsUseCaseRef ref) {
+  return GetAdminDiscountsUseCase(ref.watch(adminDiscountRepositoryProvider));
+}
+
+@riverpod
+GetAdminDiscountByIdUseCase getAdminDiscountByIdUseCase(GetAdminDiscountByIdUseCaseRef ref) {
+  return GetAdminDiscountByIdUseCase(ref.watch(adminDiscountRepositoryProvider));
+}
+
+@riverpod
+CreateAdminDiscountUseCase createAdminDiscountUseCase(CreateAdminDiscountUseCaseRef ref) {
+  return CreateAdminDiscountUseCase(ref.watch(adminDiscountRepositoryProvider));
+}
+
+@riverpod
+UpdateAdminDiscountUseCase updateAdminDiscountUseCase(UpdateAdminDiscountUseCaseRef ref) {
+  return UpdateAdminDiscountUseCase(ref.watch(adminDiscountRepositoryProvider));
+}
+
+@riverpod
+UpdateAdminDiscountStatusUseCase updateAdminDiscountStatusUseCase(UpdateAdminDiscountStatusUseCaseRef ref) {
+  return UpdateAdminDiscountStatusUseCase(ref.watch(adminDiscountRepositoryProvider));
+}
+
+@riverpod
+DeleteAdminDiscountUseCase deleteAdminDiscountUseCase(DeleteAdminDiscountUseCaseRef ref) {
+  return DeleteAdminDiscountUseCase(ref.watch(adminDiscountRepositoryProvider));
 }
 
 class AdminDiscountFilterState {
@@ -103,7 +139,7 @@ class AdminDiscountFilter extends _$AdminDiscountFilter {
 @riverpod
 Future<({List<AdminDiscount> items, int totalCount})> adminDiscountList(AdminDiscountListRef ref) {
   final filter = ref.watch(adminDiscountFilterProvider);
-  return ref.watch(adminDiscountRepositoryProvider).getDiscounts(
+  return ref.watch(getAdminDiscountsUseCaseProvider)(
     searchQuery: filter.searchQuery,
     page: filter.page,
     pageSize: filter.pageSize,
@@ -116,7 +152,7 @@ Future<({List<AdminDiscount> items, int totalCount})> adminDiscountList(AdminDis
 
 @riverpod
 Future<AdminDiscount> adminDiscountDetail(AdminDiscountDetailRef ref, int id) {
-  return ref.watch(adminDiscountRepositoryProvider).getDiscountById(id);
+  return ref.watch(getAdminDiscountByIdUseCaseProvider)(id);
 }
 
 @riverpod
@@ -138,7 +174,7 @@ class AdminDiscountActionNotifier extends _$AdminDiscountActionNotifier {
   }) async {
     state = true;
     try {
-      await ref.read(adminDiscountRepositoryProvider).createDiscount(
+      await ref.read(createAdminDiscountUseCaseProvider)(
             name: name,
             discountType: discountType,
             discountValue: discountValue,
@@ -170,7 +206,7 @@ class AdminDiscountActionNotifier extends _$AdminDiscountActionNotifier {
   }) async {
     state = true;
     try {
-      await ref.read(adminDiscountRepositoryProvider).updateDiscount(
+      await ref.read(updateAdminDiscountUseCaseProvider)(
             id,
             name: name,
             discountType: discountType,
@@ -194,7 +230,7 @@ class AdminDiscountActionNotifier extends _$AdminDiscountActionNotifier {
   Future<bool> deleteDiscount(int id) async {
     state = true;
     try {
-      await ref.read(adminDiscountRepositoryProvider).deleteDiscount(id);
+      await ref.read(deleteAdminDiscountUseCaseProvider)(id);
       ref.invalidate(adminDiscountListProvider);
       state = false;
       return true;
@@ -207,7 +243,7 @@ class AdminDiscountActionNotifier extends _$AdminDiscountActionNotifier {
   Future<bool> updateDiscountStatus(int id, String status) async {
     state = true;
     try {
-      await ref.read(adminDiscountRepositoryProvider).updateDiscountStatus(id, status);
+      await ref.read(updateAdminDiscountStatusUseCaseProvider)(id, status);
       ref.invalidate(adminDiscountListProvider);
       ref.invalidate(adminDiscountDetailProvider(id));
       state = false;
@@ -218,3 +254,4 @@ class AdminDiscountActionNotifier extends _$AdminDiscountActionNotifier {
     }
   }
 }
+

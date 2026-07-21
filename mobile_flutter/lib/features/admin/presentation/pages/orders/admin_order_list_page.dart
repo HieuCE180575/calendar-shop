@@ -220,21 +220,14 @@ class AdminOrderListPage extends ConsumerWidget {
                               PopupMenuButton<String>(
                                 icon: const Icon(Icons.more_vert, color: Colors.grey),
                                 onSelected: (newStatus) async {
-                                  try {
-                                    final repo = ref.read(adminOrderRepositoryProvider);
-                                    await repo.updateOrderStatus(order.orderId, newStatus);
-                                    ref.invalidate(adminOrdersProvider);
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Đã cập nhật trạng thái đơn #${order.orderId} thành $newStatus')),
-                                      );
-                                    }
-                                  } catch (e) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Lỗi cập nhật trạng thái: $e')),
-                                      );
-                                    }
+                                  final success = await ref.read(adminOrderActionProvider.notifier).updateStatus(order.orderId, newStatus);
+                                  if (!success) {
+                                    throw Exception('Cập nhật thất bại');
+                                  }
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Đã cập nhật trạng thái đơn #${order.orderId} thành $newStatus')),
+                                    );
                                   }
                                 },
                                 itemBuilder: (context) {
