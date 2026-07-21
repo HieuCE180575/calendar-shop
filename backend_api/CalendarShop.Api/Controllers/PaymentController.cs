@@ -9,26 +9,15 @@ public class PaymentController : AppControllerBase
 {
     private readonly IVNPayService _vnpayService;
     private readonly IOrderService _orderService;
-<<<<<<< HEAD
+    private readonly IConfiguration _configuration;
     private readonly ILogger<PaymentController> _logger;
 
-    public PaymentController(
-        IVNPayService vnpayService,
-        IOrderService orderService,
-        ILogger<PaymentController> logger)
-    {
-        _vnpayService = vnpayService;
-        _orderService = orderService;
-        _logger = logger;
-=======
-    private readonly IConfiguration _configuration;
-
-    public PaymentController(IVNPayService vnpayService, IOrderService orderService, IConfiguration configuration)
+    public PaymentController(IVNPayService vnpayService, IOrderService orderService, IConfiguration configuration, ILogger<PaymentController> logger)
     {
         _vnpayService = vnpayService;
         _orderService = orderService;
         _configuration = configuration;
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
+        _logger = logger;
     }
 
     [Authorize]
@@ -45,26 +34,6 @@ public class PaymentController : AppControllerBase
     [HttpGet("vnpay-return")]
     public async Task<IActionResult> VNPayReturn()
     {
-<<<<<<< HEAD
-        var vnpayData = Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString());
-
-        bool isSignatureValid = false;
-        bool isSuccess = false;
-
-        try
-        {
-            var result = await _orderService.HandlePaymentCallbackAsync(vnpayData);
-            isSignatureValid = result.IsSignatureValid;
-            isSuccess = result.IsSuccess;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to process VNPay return callback.");
-            return Content(BuildPaymentResultHtml(false), "text/html; charset=utf-8");
-        }
-
-        if (!isSignatureValid)
-=======
         var vnpayData = Request.Query;
         var pay = new VNPayLibrary();
         
@@ -88,19 +57,10 @@ public class PaymentController : AppControllerBase
         bool checkSignature = pay.ValidateSignature(vnp_SecureHash, _configuration["VNPay:HashSecret"] ?? string.Empty);
 
         if (!checkSignature)
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
         {
             return Content("<html><body><h3>Chữ ký không hợp lệ</h3></body></html>", "text/html");
         }
 
-<<<<<<< HEAD
-        return Content(BuildPaymentResultHtml(isSuccess), "text/html; charset=utf-8");
-    }
-
-    private static string BuildPaymentResultHtml(bool isSuccess)
-    {
-        return $@"
-=======
         try
         {
             await _orderService.HandlePaymentCallbackAsync(orderId, vnp_ResponseCode == "00");
@@ -113,7 +73,6 @@ public class PaymentController : AppControllerBase
         }
 
         string htmlContent = $@"
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
 <!DOCTYPE html>
 <html>
 <head>
@@ -132,30 +91,20 @@ public class PaymentController : AppControllerBase
 </head>
 <body>
     <div class=""card"">
-<<<<<<< HEAD
-        {(isSuccess 
-=======
         {(vnp_ResponseCode == "00" 
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
             ? "<h2 class='success'>✅ Thanh toán thành công!</h2><p>Đơn hàng của bạn đã được xác nhận. Cảm ơn bạn đã mua sắm.</p>" 
             : "<h2 class='error'>❌ Thanh toán thất bại!</h2><p>Giao dịch chưa hoàn tất hoặc đã bị hủy. Vui lòng thử lại sau.</p>")}
         <button class=""btn"" onclick=""window.close()"">Quay lại ứng dụng</button>
     </div>
     <script>
-<<<<<<< HEAD
-=======
         // Thử tự động đóng tab sau 3 giây
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
         setTimeout(function() {{
             window.close();
         }}, 3000);
     </script>
 </body>
 </html>";
-<<<<<<< HEAD
-=======
 
         return Content(htmlContent, "text/html; charset=utf-8");
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
     }
 }

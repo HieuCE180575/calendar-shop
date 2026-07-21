@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-<<<<<<< HEAD
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -12,12 +11,6 @@ import '../../../review/presentation/widgets/write_review_dialog.dart';
 import '../../domain/entities/order.dart';
 import '../providers/order_provider.dart';
 
-=======
-import '../providers/order_provider.dart';
-import '../widgets/order_card_widget.dart';
-
-/// Màn hình danh sách đơn hàng của người dùng hiện tại.
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
 class MyOrdersPage extends ConsumerStatefulWidget {
   const MyOrdersPage({super.key});
 
@@ -25,7 +18,6 @@ class MyOrdersPage extends ConsumerStatefulWidget {
   ConsumerState<MyOrdersPage> createState() => _MyOrdersPageState();
 }
 
-<<<<<<< HEAD
 class _MyOrdersPageState extends ConsumerState<MyOrdersPage>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
@@ -39,27 +31,11 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage>
     'Đã hủy',
   ];
 
-=======
-class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBindingObserver {
-  
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-<<<<<<< HEAD
     _tabController = TabController(length: _tabs.length, vsync: this);
-=======
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-<<<<<<< HEAD
-    _tabController.dispose();
-=======
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
     super.dispose();
   }
 
@@ -70,7 +46,6 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBinding
     }
   }
 
-<<<<<<< HEAD
   String _mapTabToStatus(String tab) {
     switch (tab) {
       case 'Chờ xác nhận':
@@ -116,35 +91,13 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBinding
         error: (err, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(20),
-=======
-  @override
-  Widget build(BuildContext context) {
-    final ordersState = ref.watch(myOrdersProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đơn hàng của tôi'),
-        centerTitle: true,
-      ),
-      body: ordersState.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stackTrace) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.error_outline, color: Colors.red, size: 60),
                 const SizedBox(height: 10),
                 Text(
-<<<<<<< HEAD
                   'Không thể tải đơn hàng: $err',
-=======
-                  'Không thể tải đơn hàng: $error',
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.red),
                 ),
@@ -158,7 +111,6 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBinding
             ),
           ),
         ),
-<<<<<<< HEAD
         data: (allOrders) {
           final currentTabStatus = _mapTabToStatus(_tabs[_tabController.index]);
           final filteredOrders = currentTabStatus == 'ALL'
@@ -172,15 +124,10 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBinding
                   .toList();
 
           if (filteredOrders.isEmpty) {
-=======
-        data: (orders) {
-          if (orders.isEmpty) {
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-<<<<<<< HEAD
                   const Icon(
                     Icons.receipt_long_outlined,
                     size: 64,
@@ -195,19 +142,6 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBinding
                     ),
                   ),
                   const SizedBox(height: 16),
-=======
-                  const Icon(Icons.receipt_long_outlined,
-                      size: 80, color: Colors.grey),
-                  const SizedBox(height: 15),
-                  const Text(
-                    'Bạn chưa có đơn hàng nào!',
-                    style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 15),
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
                   ElevatedButton(
                     onPressed: () => context.go('/products'),
                     child: const Text('Mua sắm ngay'),
@@ -218,7 +152,6 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBinding
           }
 
           return RefreshIndicator(
-<<<<<<< HEAD
             onRefresh: () async => ref.invalidate(myOrdersProvider),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
@@ -227,25 +160,11 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBinding
               itemBuilder: (context, index) {
                 final order = filteredOrders[index];
                 return _buildOrderCard(context, order);
-=======
-            onRefresh: () async {
-              ref.invalidate(myOrdersProvider);
-            },
-            child: ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                return OrderCardWidget(
-                  order: order,
-                  onTap: () => context.push('/orders/${order.orderId}'),
-                );
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
               },
             ),
           );
         },
-<<<<<<< HEAD
+
       ),
     );
   }
@@ -409,8 +328,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with WidgetsBinding
             ],
           ),
         ),
-=======
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
+
       ),
     );
   }

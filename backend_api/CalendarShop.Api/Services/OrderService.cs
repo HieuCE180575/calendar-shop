@@ -239,95 +239,6 @@ public class OrderService : IOrderService
         await _orderRepository.SaveChangesAsync();
     }
 
-<<<<<<< HEAD
-    public async Task<(bool IsSignatureValid, bool IsSuccess)> HandlePaymentCallbackAsync(Dictionary<string, string> vnpayData)
-    {
-        _logger.LogInformation("VNPay callback received.");
-
-        var pay = new VNPayLibrary();
-        foreach (var (key, value) in vnpayData)
-        {
-            if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
-            {
-                pay.AddResponseData(key, value);
-            }
-        }
-
-        var vnp_TxnRef = pay.GetResponseData("vnp_TxnRef");
-        var vnp_SecureHash = vnpayData.TryGetValue("vnp_SecureHash", out var hash) ? hash : string.Empty;
-        var vnp_ResponseCode = pay.GetResponseData("vnp_ResponseCode");
-        var vnp_TransactionStatus = pay.GetResponseData("vnp_TransactionStatus");
-        var vnp_Amount = pay.GetResponseData("vnp_Amount");
-        var vnp_TmnCode = pay.GetResponseData("vnp_TmnCode");
-        var expectedTmnCode = _configuration["VNPay:TmnCode"] ?? string.Empty;
-
-        bool isSignatureValid = pay.ValidateSignature(vnp_SecureHash, _configuration["VNPay:HashSecret"] ?? string.Empty);
-
-        _logger.LogInformation("VNPay signature validation result: {IsValid}", isSignatureValid);
-
-        if (!isSignatureValid)
-        {
-            return (false, false);
-        }
-
-        if (string.IsNullOrEmpty(vnp_TxnRef) || !int.TryParse(vnp_TxnRef, out int orderId))
-        {
-            _logger.LogWarning("Invalid orderId from VNPay callback.");
-            return (true, false);
-        }
-
-        if (!string.IsNullOrWhiteSpace(expectedTmnCode) && vnp_TmnCode != expectedTmnCode)
-        {
-            _logger.LogWarning("VNPay callback rejected because terminal code does not match for OrderId {OrderId}.", orderId);
-            return (true, false);
-        }
-
-        bool isSuccess = vnp_ResponseCode == "00" && vnp_TransactionStatus == "00";
-        if (isSuccess)
-        {
-            _logger.LogInformation("Payment success for OrderId {OrderId}.", orderId);
-        }
-        else
-        {
-            _logger.LogInformation("Payment failed/cancelled for OrderId {OrderId}.", orderId);
-        }
-
-        var order = await _orderRepository.Entities
-            .Include(x => x.OrderItems)
-            .FirstOrDefaultAsync(x => x.OrderId == orderId);
-        if (order == null)
-        {
-            _logger.LogWarning("Order {OrderId} not found.", orderId);
-            return (true, isSuccess);
-        }
-
-        if (order.PaymentMethod != "VNPay")
-        {
-            _logger.LogWarning("VNPay callback rejected for non-VNPay OrderId {OrderId}.", orderId);
-            return (true, false);
-        }
-
-        if (!IsVNPayAmountValid(vnp_Amount, order.TotalAmount))
-        {
-            _logger.LogWarning("VNPay callback amount mismatch for OrderId {OrderId}.", orderId);
-            return (true, false);
-        }
-
-        if (order.Status != "Pending")
-        {
-            _logger.LogInformation("Order {OrderId} status is {Status}, no update needed.", orderId, order.Status);
-            return (true, isSuccess);
-        }
-
-        if (isSuccess)
-        {
-            order.Status = "Confirmed";
-        }
-        else
-        {
-            order.Status = "Cancelled";
-
-=======
     public async Task HandlePaymentCallbackAsync(int orderId, bool isSuccess)
     {
         var order = await _orderRepository.Entities.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == orderId);
@@ -343,74 +254,19 @@ public class OrderService : IOrderService
         {
             order.Status = "Failed";
             
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
             foreach (var item in order.OrderItems)
             {
                 var product = await _productRepository.GetByIdAsync(item.ProductId);
                 if (product != null)
                 {
                     product.StockQuantity += item.Quantity;
-<<<<<<< HEAD
-                    if (product.Status == "OutOfStock" && product.StockQuantity > 0)
-=======
                     if (product.Status == "OutOfStock")
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
                     {
                         product.Status = "Active";
                     }
                     _productRepository.Update(product);
                 }
             }
-<<<<<<< HEAD
-            await RestoreCouponUsageIfNeededAsync(order);
-            _logger.LogInformation("Stock restored for OrderId {OrderId}.", orderId);
-        }
-
-        order.UpdatedAt = DateTime.UtcNow;
-        _orderRepository.Update(order);
-
-        try
-        {
-            await _orderRepository.SaveChangesAsync();
-            _logger.LogInformation("Order {OrderId} updated to {Status}.", orderId, order.Status);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "SaveChanges exception for OrderId {OrderId}", orderId);
-            throw;
-        }
-
-        return (true, isSuccess);
-    }
-
-    private async Task RestoreCouponUsageIfNeededAsync(Order order)
-    {
-        if (!order.CouponId.HasValue)
-        {
-            return;
-        }
-
-        var coupon = await _couponRepository.Entities
-            .FirstOrDefaultAsync(x => x.CouponId == order.CouponId.Value);
-        if (coupon == null || coupon.UsedCount <= 0)
-        {
-            return;
-        }
-
-        coupon.UsedCount--;
-        _couponRepository.Update(coupon);
-    }
-
-    private static bool IsVNPayAmountValid(string amountText, decimal orderTotal)
-    {
-        if (!long.TryParse(amountText, out var callbackAmount))
-        {
-            return false;
-        }
-
-        var expectedAmount = decimal.ToInt64(orderTotal * 100);
-        return callbackAmount == expectedAmount;
-=======
         }
         order.UpdatedAt = DateTime.UtcNow;
         _orderRepository.Update(order);
@@ -431,6 +287,22 @@ public class OrderService : IOrderService
 
             throw;
         }
->>>>>>> 7ece4cf (feat: implement VNPay payment integration)
+    }
+    private async Task RestoreCouponUsageIfNeededAsync(Order order)
+    {
+        if (!order.CouponId.HasValue)
+        {
+            return;
+        }
+
+        var coupon = await _couponRepository.Entities
+            .FirstOrDefaultAsync(x => x.CouponId == order.CouponId.Value);
+        if (coupon == null || coupon.UsedCount <= 0)
+        {
+            return;
+        }
+
+        coupon.UsedCount--;
+        _couponRepository.Update(coupon);
     }
 }

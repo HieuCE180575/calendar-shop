@@ -105,6 +105,7 @@ class _AdminDashboardHeaderState extends ConsumerState<AdminDashboardHeader> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green.shade600,
               foregroundColor: Colors.white,
+              minimumSize: const Size(0, 48), // Ghi đè minimumSize của Theme (vốn là Size.fromHeight -> vô hạn width)
             ),
           ),
         ],
