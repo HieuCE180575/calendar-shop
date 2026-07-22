@@ -73,6 +73,7 @@ try
     builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
     builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+    builder.Services.Configure<LocalLlmSettings>(builder.Configuration.GetSection("LocalLlm"));
     var emailStartupSettings = builder.Configuration.GetSection("Email").Get<EmailSettings>() ?? new EmailSettings();
     Log.Information("Email SMTP config loaded. Environment={Environment}, Enabled={Enabled}, Host={Host}, Port={Port}, EnableSsl={EnableSsl}, UserName={UserName}, FromEmail={FromEmail}",
         builder.Environment.EnvironmentName,
@@ -101,6 +102,8 @@ try
     builder.Services.AddScoped<IDiscountService, DiscountService>();
     builder.Services.AddScoped<INotificationService, NotificationService>();
     builder.Services.AddHostedService<CalendarShop.Api.Infrastructure.NotificationBackgroundService>();
+    builder.Services.AddScoped<IChatAssistantService, ChatAssistantService>();
+    builder.Services.AddHttpClient<ILocalLlmService, LocalLlmService>();
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
