@@ -29,6 +29,28 @@ class AuthRemoteDataSource {
     }
   }
 
+  Future<AuthResultModel> googleLogin({
+    required String email,
+    String? fullName,
+    String? photoUrl,
+    String? idToken,
+  }) async {
+    try {
+      final response = await apiClient.dio.post(
+        ApiConstants.googleLogin,
+        data: {
+          'email': email,
+          'fullName': _emptyToNull(fullName),
+          'photoUrl': _emptyToNull(photoUrl),
+          'idToken': _emptyToNull(idToken),
+        },
+      );
+      return AuthResultModel.fromJson(response.data);
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
+
   Future<RegisterResultModel> register({
     required String fullName,
     String? email,

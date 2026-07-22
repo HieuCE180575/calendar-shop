@@ -110,6 +110,66 @@ public class AuthService : IAuthService
         return ToAuthResponse(user, refreshTokenValue);
     }
 
+    public async Task<AuthResponse> GoogleLoginAsync(GoogleLoginRequest request)
+    {
+        var email = NormalizeEmail(request.Email ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new BadHttpRequestException("Email Google không hợp lệ.");
+        }
+
+        var user = await _userRepository.Entities.FirstOrDefaultAsync(x => x.Email == email);
+
+        if (user != null)
+        {
+            if (user.Status == "Locked")
+            {
+                throw new BadHttpRequestException("Tài khoản của bạn đã bị khóa.");
+            }
+
+            user.IsEmailConfirmed = true;
+            user.EmailConfirmedAt ??= DateTime.UtcNow;
+            if (user.Status == "Pending")
+            {
+                user.Status = "Active";
+            }
+            if (string.IsNullOrEmpty(user.AvatarUrl) && !string.IsNullOrWhiteSpace(request.PhotoUrl))
+            {
+                user.AvatarUrl = request.PhotoUrl.Trim();
+            }
+            user.UpdatedAt = DateTime.UtcNow;
+            _userRepository.Update(user);
+        }
+        else
+        {
+            var fullName = !string.IsNullOrWhiteSpace(request.FullName)
+                ? request.FullName.Trim()
+                : email.Split('@')[0];
+
+            user = new User
+            {
+                FullName = fullName,
+                Email = email,
+                PasswordHash = _passwordService.Hash(Guid.NewGuid().ToString("N") + "!1Aa"),
+                AvatarUrl = NormalizeNullable(request.PhotoUrl),
+                Role = "Customer",
+                Status = "Active",
+                IsEmailConfirmed = true,
+                EmailConfirmedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _userRepository.AddAsync(user);
+        }
+
+        await _userRepository.SaveChangesAsync();
+
+        var refreshTokenValue = await CreateRefreshTokenAsync(user.UserId);
+        await _refreshTokenRepository.SaveChangesAsync();
+
+        return ToAuthResponse(user, refreshTokenValue);
+    }
+
     public async Task<UserDto> GetMeAsync(int userId)
     {
         var user = await GetUserOrThrowAsync(userId);

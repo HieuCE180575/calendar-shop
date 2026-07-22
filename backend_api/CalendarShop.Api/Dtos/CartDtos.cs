@@ -14,6 +14,8 @@ public class CartItemDto
     public int StockQuantity { get; set; }
     public bool IsSelected { get; set; }
     public decimal LineTotal { get; set; }
+    public string ProductStatus { get; set; } = "Active";
+    public bool IsAvailable { get; set; } = true;
 }
 
 public record CartSummaryDto(List<CartItemDto> Items, decimal TotalAmount);

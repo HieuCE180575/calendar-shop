@@ -85,7 +85,11 @@ public class FavoriteService : IFavoriteService
     public IQueryable<FavoriteDto> GetMyFavoritesQuery(int userId)
     {
         return _favoriteRepository.Entities
-            .Where(x => x.UserId == userId)
+            .Where(x => x.UserId == userId
+                && x.Product != null
+                && !x.Product.IsDeleted
+                && x.Product.Status == "Active"
+                && (x.Product.Category == null || x.Product.Category.Status == "Active"))
             .OrderByDescending(x => x.CreatedAt)
             .ProjectTo<FavoriteDto>(_mapper.ConfigurationProvider);
     }
@@ -93,6 +97,11 @@ public class FavoriteService : IFavoriteService
     public async Task<bool> IsFavoriteAsync(int userId, int productId)
     {
         return await _favoriteRepository.Entities
-            .AnyAsync(x => x.UserId == userId && x.ProductId == productId);
+            .AnyAsync(x => x.UserId == userId
+                && x.ProductId == productId
+                && x.Product != null
+                && !x.Product.IsDeleted
+                && x.Product.Status == "Active"
+                && (x.Product.Category == null || x.Product.Category.Status == "Active"));
     }
 }

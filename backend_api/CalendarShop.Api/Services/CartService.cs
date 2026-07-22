@@ -30,6 +30,8 @@ public class CartService : ICartService
     {
         var cartItems = _cartItemRepository.Entities
             .Include(x => x.Product)
+                .ThenInclude(p => p.Category)
+            .Include(x => x.Product)
                 .ThenInclude(p => p.Discount)
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
@@ -42,9 +44,19 @@ public class CartService : ICartService
             var cartItem = cartItems.First(x => x.CartItemId == dto.CartItemId);
             if (cartItem.Product != null)
             {
-                var discountedPrice = _discountService.GetDiscountedPrice(cartItem.Product);
+                var product = cartItem.Product;
+                var discountedPrice = _discountService.GetDiscountedPrice(product);
                 dto.Price = discountedPrice;
                 dto.LineTotal = discountedPrice * dto.Quantity;
+                dto.ProductStatus = product.Status;
+                dto.IsAvailable = !product.IsDeleted 
+                    && product.Status == "Active" 
+                    && (product.Category == null || product.Category.Status == "Active");
+            }
+            else
+            {
+                dto.ProductStatus = "Deleted";
+                dto.IsAvailable = false;
             }
         }
 

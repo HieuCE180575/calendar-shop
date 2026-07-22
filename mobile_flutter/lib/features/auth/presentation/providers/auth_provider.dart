@@ -70,6 +70,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<void> loginWithGoogle({
+    required String email,
+    String? fullName,
+    String? photoUrl,
+    String? idToken,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null, message: null);
+    try {
+      final result = await ref.read(authRepositoryProvider).googleLogin(
+            email: email,
+            fullName: fullName,
+            photoUrl: photoUrl,
+            idToken: idToken,
+          );
+      state = AuthState(user: result.user, message: 'Đăng nhập Google thành công.');
+    } catch (e) {
+      state = AuthState(error: e.toString());
+    }
+  }
+
   Future<void> register(String fullName, String email, String phone, String password) async {
     state = state.copyWith(isLoading: true, error: null, message: null);
     try {

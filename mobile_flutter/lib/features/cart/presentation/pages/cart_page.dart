@@ -388,8 +388,28 @@ class _CartPageState extends ConsumerState<CartPage> {
                   item.productName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: item.isAvailable ? AppColors.textPrimary : AppColors.textMuted,
+                    decoration: item.isAvailable ? null : TextDecoration.lineThrough,
+                  ),
                 ),
+                if (!item.isAvailable) ...[
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Text(
+                      'Sản phẩm này không còn bán',
+                      style: TextStyle(color: Colors.red.shade700, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   CurrencyFormatter.vnd(item.price),

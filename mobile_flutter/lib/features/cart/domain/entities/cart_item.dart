@@ -14,5 +14,7 @@ class CartItemEntity with _$CartItemEntity {
     required int stockQuantity,
     required bool isSelected,
     required double lineTotal,
+    @Default('Active') String productStatus,
+    @Default(true) bool isAvailable,
   }) = _CartItemEntity;
 }
