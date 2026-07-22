@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/chat_answer_model.dart';
@@ -12,6 +14,10 @@ class ChatRemoteDataSource {
       final response = await apiClient.dio.post(
         ApiConstants.chatAsk,
         data: {'message': message},
+        options: Options(
+          receiveTimeout: const Duration(seconds: 360),
+          sendTimeout: const Duration(seconds: 30),
+        ),
       );
       return ChatAnswerModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {

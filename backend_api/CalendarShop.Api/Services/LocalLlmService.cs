@@ -12,17 +12,25 @@ public class LocalLlmService : ILocalLlmService
 
     private readonly HttpClient _httpClient;
     private readonly LocalLlmSettings _settings;
+    private readonly ILogger<LocalLlmService> _logger;
 
-    public LocalLlmService(HttpClient httpClient, IOptions<LocalLlmSettings> settings)
+    public LocalLlmService(HttpClient httpClient, IOptions<LocalLlmSettings> settings, ILogger<LocalLlmService> logger)
     {
         _httpClient = httpClient;
         _settings = settings.Value;
+        _logger = logger;
     }
 
     public async Task<string?> GenerateAnswerAsync(string prompt, CancellationToken cancellationToken = default)
     {
         if (!_settings.Enabled || string.IsNullOrWhiteSpace(_settings.BaseUrl) || string.IsNullOrWhiteSpace(_settings.Model))
         {
+            _logger.LogError(
+                "LocalLlmService.GenerateAnswerAsync invalid configuration. Enabled={Enabled}, BaseUrlSet={BaseUrlSet}, ModelSet={ModelSet}",
+                _settings.Enabled,
+                !string.IsNullOrWhiteSpace(_settings.BaseUrl),
+                !string.IsNullOrWhiteSpace(_settings.Model));
+
             throw new InvalidOperationException("Local LLM chưa được cấu hình hoặc đang bị tắt.");
         }
 
@@ -37,6 +45,15 @@ public class LocalLlmService : ILocalLlmService
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _settings.ApiKey);
         }
+
+        _logger.LogInformation(
+            "LocalLlmService.GenerateAnswerAsync preparing request. BaseUrl={BaseUrl}, Path={Path}, Model={Model}, TimeoutSeconds={TimeoutSeconds}, PromptLength={PromptLength}, ApiKeySet={ApiKeySet}",
+            _settings.BaseUrl,
+            _settings.ChatCompletionsPath,
+            _settings.Model,
+            Math.Max(5, _settings.TimeoutSeconds),
+            prompt.Length,
+            !string.IsNullOrWhiteSpace(_settings.ApiKey));
 
         var payload = new
         {
@@ -63,23 +80,61 @@ public class LocalLlmService : ILocalLlmService
             requestContent,
             cancellationToken);
 
+        _logger.LogInformation(
+            "LocalLlmService.GenerateAnswerAsync received response. StatusCode={StatusCode}, Reason={ReasonPhrase}",
+            (int)response.StatusCode,
+            response.ReasonPhrase);
+
         if (!response.IsSuccessStatusCode)
         {
             var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogError(
+                "LocalLlmService.GenerateAnswerAsync failed response body. StatusCode={StatusCode}, ErrorPreview={ErrorPreview}",
+                (int)response.StatusCode,
+                Preview(errorBody));
+
             throw new InvalidOperationException(
                 $"Local LLM trả về lỗi {(int)response.StatusCode} {response.ReasonPhrase}: {errorBody}");
         }
 
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         var completion = await JsonSerializer.DeserializeAsync<ChatCompletionResponse>(stream, JsonOptions, cancellationToken);
-        var answer = completion?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
+        var choice = completion?.Choices?.FirstOrDefault();
+        var answer = choice?.Message?.Content?.Trim();
+
+        _logger.LogInformation(
+            "LocalLlmService.GenerateAnswerAsync parsed response. ChoiceCount={ChoiceCount}, FinishReason={FinishReason}, ContentLength={ContentLength}, ReasoningLength={ReasoningLength}",
+            completion?.Choices?.Count ?? 0,
+            choice?.FinishReason ?? "(null)",
+            answer?.Length ?? 0,
+            choice?.Message?.ReasoningContent?.Length ?? 0);
 
         if (string.IsNullOrWhiteSpace(answer))
         {
+            _logger.LogError(
+                "LocalLlmService.GenerateAnswerAsync empty content. FinishReason={FinishReason}, ReasoningPreview={ReasoningPreview}",
+                choice?.FinishReason ?? "(null)",
+                Preview(choice?.Message?.ReasoningContent ?? string.Empty));
+
             throw new InvalidOperationException("Local LLM trả về phản hồi rỗng hoặc thiếu choices[0].message.content.");
         }
 
+        _logger.LogInformation(
+            "LocalLlmService.GenerateAnswerAsync completed. AnswerPreview={AnswerPreview}",
+            Preview(answer));
+
         return answer;
+    }
+
+    private static string Preview(string value, int maxLength = 240)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var singleLine = string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return singleLine.Length <= maxLength ? singleLine : singleLine[..maxLength] + "...";
     }
 
     private sealed class ChatCompletionResponse
@@ -90,10 +145,14 @@ public class LocalLlmService : ILocalLlmService
     private sealed class ChatCompletionChoice
     {
         public ChatCompletionMessage? Message { get; set; }
+
+        public string? FinishReason { get; set; }
     }
 
     private sealed class ChatCompletionMessage
     {
         public string? Content { get; set; }
+
+        public string? ReasoningContent { get; set; }
     }
 }

@@ -10,6 +10,6 @@ public class LocalLlmSettings
     public int TimeoutSeconds { get; set; } = 30;
     public int MaxProductCandidates { get; set; } = 5;
     public int MaxCouponCandidates { get; set; } = 5;
-    public int MaxOverviewProducts { get; set; } = 50;
-    public int MaxOverviewCoupons { get; set; } = 20;
+    public int MaxOverviewProducts { get; set; } = 12;
+    public int MaxOverviewCoupons { get; set; } = 6;
 }
