@@ -20,4 +20,8 @@ class AdminDashboardFormatters {
     }
     return value.toStringAsFixed(0);
   }
+
+  static String shortCurrency(double value) {
+    return '${compactRevenue(value)} ₫';
+  }
 }

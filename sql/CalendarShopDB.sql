@@ -18,7 +18,8 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
-CREATE TABLE dbo.Users (
+CREATE TABLE dbo.Users
+(
     UserId INT IDENTITY(1,1) PRIMARY KEY,
     FullName NVARCHAR(100) NOT NULL,
     Email NVARCHAR(255) NULL,
@@ -47,7 +48,8 @@ CREATE UNIQUE INDEX UX_Users_Phone ON dbo.Users(Phone) WHERE Phone IS NOT NULL;
 CREATE INDEX IX_Users_EmailConfirmationTokenHash ON dbo.Users(EmailConfirmationTokenHash) WHERE EmailConfirmationTokenHash IS NOT NULL;
 GO
 
-CREATE TABLE dbo.UserAddresses (
+CREATE TABLE dbo.UserAddresses
+(
     AddressId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     ReceiverName NVARCHAR(100) NOT NULL,
@@ -63,7 +65,8 @@ CREATE TABLE dbo.UserAddresses (
 );
 GO
 
-CREATE TABLE dbo.RefreshTokens (
+CREATE TABLE dbo.RefreshTokens
+(
     RefreshTokenId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     Token NVARCHAR(500) NOT NULL,
@@ -74,7 +77,8 @@ CREATE TABLE dbo.RefreshTokens (
 );
 GO
 
-CREATE TABLE dbo.PasswordResetTokens (
+CREATE TABLE dbo.PasswordResetTokens
+(
     ResetTokenId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     Token NVARCHAR(500) NOT NULL,
@@ -88,7 +92,8 @@ GO
 CREATE INDEX IX_PasswordResetTokens_Token ON dbo.PasswordResetTokens(Token);
 GO
 
-CREATE TABLE dbo.Categories (
+CREATE TABLE dbo.Categories
+(
     CategoryId INT IDENTITY(1,1) PRIMARY KEY,
     CategoryName NVARCHAR(100) NOT NULL UNIQUE,
     Description NVARCHAR(500) NULL,
@@ -99,7 +104,8 @@ CREATE TABLE dbo.Categories (
 );
 GO
 
-CREATE TABLE dbo.Discounts (
+CREATE TABLE dbo.Discounts
+(
     DiscountId INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(200) NOT NULL,
     DiscountType NVARCHAR(20) NOT NULL DEFAULT 'Percent',
@@ -114,7 +120,8 @@ CREATE TABLE dbo.Discounts (
 );
 GO
 
-CREATE TABLE dbo.Products (
+CREATE TABLE dbo.Products
+(
     ProductId INT IDENTITY(1,1) PRIMARY KEY,
     CategoryId INT NOT NULL,
     DiscountId INT NULL,
@@ -136,7 +143,8 @@ CREATE TABLE dbo.Products (
 );
 GO
 
-CREATE TABLE dbo.ProductImages (
+CREATE TABLE dbo.ProductImages
+(
     ProductImageId INT IDENTITY(1,1) PRIMARY KEY,
     ProductId INT NOT NULL,
     ImageUrl NVARCHAR(500) NOT NULL,
@@ -145,7 +153,8 @@ CREATE TABLE dbo.ProductImages (
 );
 GO
 
-CREATE TABLE dbo.CartItems (
+CREATE TABLE dbo.CartItems
+(
     CartItemId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     ProductId INT NOT NULL,
@@ -160,7 +169,8 @@ CREATE TABLE dbo.CartItems (
 );
 GO
 
-CREATE TABLE dbo.Favorites (
+CREATE TABLE dbo.Favorites
+(
     FavoriteId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     ProductId INT NOT NULL,
@@ -171,7 +181,8 @@ CREATE TABLE dbo.Favorites (
 );
 GO
 
-CREATE TABLE dbo.Coupons (
+CREATE TABLE dbo.Coupons
+(
     CouponId INT IDENTITY(1,1) PRIMARY KEY,
     Code NVARCHAR(50) NOT NULL UNIQUE,
     Description NVARCHAR(500) NULL,
@@ -191,7 +202,8 @@ CREATE TABLE dbo.Coupons (
 );
 GO
 
-CREATE TABLE dbo.Orders (
+CREATE TABLE dbo.Orders
+(
     OrderId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     CouponId INT NULL,
@@ -216,7 +228,8 @@ CREATE TABLE dbo.Orders (
 );
 GO
 
-CREATE TABLE dbo.OrderItems (
+CREATE TABLE dbo.OrderItems
+(
     OrderItemId INT IDENTITY(1,1) PRIMARY KEY,
     OrderId INT NOT NULL,
     ProductId INT NOT NULL,
@@ -233,7 +246,8 @@ CREATE TABLE dbo.OrderItems (
 );
 GO
 
-CREATE TABLE dbo.OrderStatusHistories (
+CREATE TABLE dbo.OrderStatusHistories
+(
     HistoryId INT IDENTITY(1,1) PRIMARY KEY,
     OrderId INT NOT NULL,
     OldStatus NVARCHAR(20) NULL,
@@ -246,7 +260,8 @@ CREATE TABLE dbo.OrderStatusHistories (
 );
 GO
 
-CREATE TABLE dbo.Notifications (
+CREATE TABLE dbo.Notifications
+(
     NotificationId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     Title NVARCHAR(200) NOT NULL,
@@ -258,7 +273,8 @@ CREATE TABLE dbo.Notifications (
 );
 GO
 
-CREATE TABLE dbo.Reviews (
+CREATE TABLE dbo.Reviews
+(
     ReviewId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
     ProductId INT NOT NULL,
@@ -291,45 +307,46 @@ GO
 
 CREATE OR ALTER VIEW dbo.v_RevenueByDay
 AS
-SELECT
-    CAST(CreatedAt AS DATE) AS RevenueDate,
-    SUM(TotalAmount) AS TotalRevenue,
-    COUNT(*) AS TotalOrders
-FROM dbo.Orders
-WHERE Status = 'Delivered'
-GROUP BY CAST(CreatedAt AS DATE);
+    SELECT
+        CAST(CreatedAt AS DATE) AS RevenueDate,
+        SUM(TotalAmount) AS TotalRevenue,
+        COUNT(*) AS TotalOrders
+    FROM dbo.Orders
+    WHERE Status = 'Delivered'
+    GROUP BY CAST(CreatedAt AS DATE);
 GO
 
 CREATE OR ALTER VIEW dbo.v_RevenueByMonth
 AS
-SELECT
-    YEAR(CreatedAt) AS RevenueYear,
-    MONTH(CreatedAt) AS RevenueMonth,
-    SUM(TotalAmount) AS TotalRevenue,
-    COUNT(*) AS TotalOrders
-FROM dbo.Orders
-WHERE Status = 'Delivered'
-GROUP BY YEAR(CreatedAt), MONTH(CreatedAt);
+    SELECT
+        YEAR(CreatedAt) AS RevenueYear,
+        MONTH(CreatedAt) AS RevenueMonth,
+        SUM(TotalAmount) AS TotalRevenue,
+        COUNT(*) AS TotalOrders
+    FROM dbo.Orders
+    WHERE Status = 'Delivered'
+    GROUP BY YEAR(CreatedAt), MONTH(CreatedAt);
 GO
 
 CREATE OR ALTER VIEW dbo.v_BestSellingProducts
 AS
-SELECT
-    p.ProductId,
-    p.ProductName,
-    p.CalendarType,
-    SUM(oi.Quantity) AS TotalSold,
-    SUM(oi.TotalPrice) AS TotalRevenue
-FROM dbo.OrderItems oi
-JOIN dbo.Orders o ON oi.OrderId = o.OrderId
-JOIN dbo.Products p ON oi.ProductId = p.ProductId
-WHERE o.Status = 'Delivered'
-GROUP BY p.ProductId, p.ProductName, p.CalendarType;
+    SELECT
+        p.ProductId,
+        p.ProductName,
+        p.CalendarType,
+        SUM(oi.Quantity) AS TotalSold,
+        SUM(oi.TotalPrice) AS TotalRevenue
+    FROM dbo.OrderItems oi
+        JOIN dbo.Orders o ON oi.OrderId = o.OrderId
+        JOIN dbo.Products p ON oi.ProductId = p.ProductId
+    WHERE o.Status = 'Delivered'
+    GROUP BY p.ProductId, p.ProductName, p.CalendarType;
 GO
 
 -- Password demo: SHA256('123456') = 8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92
 SET IDENTITY_INSERT dbo.Users ON;
-INSERT INTO dbo.Users (
+INSERT INTO dbo.Users
+    (
     UserId,
     FullName,
     Email,
@@ -339,7 +356,7 @@ INSERT INTO dbo.Users (
     Status,
     IsEmailConfirmed,
     EmailConfirmedAt
-)
+    )
 VALUES
     (1, N'Admin Calendar Shop', N'admin@calendarshop.com', N'0900000000', N'8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92', N'Admin', N'Active', 1, SYSUTCDATETIME()),
     (2, N'Nguyen Van A', N'customer@gmail.com', N'0911111111', N'8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92', N'Customer', N'Active', 1, SYSUTCDATETIME());
@@ -347,12 +364,13 @@ SET IDENTITY_INSERT dbo.Users OFF;
 GO
 
 SET IDENTITY_INSERT dbo.Categories ON;
-INSERT INTO dbo.Categories (
+INSERT INTO dbo.Categories
+    (
     CategoryId,
     CategoryName,
     Description,
     Status
-)
+    )
 VALUES
     (1, N'Lịch treo tường', N'Lịch treo tường dùng cho gia đình và văn phòng', N'Active'),
     (2, N'Lịch để bàn', N'Lịch để bàn nhỏ gọn', N'Active'),
@@ -363,9 +381,10 @@ SET IDENTITY_INSERT dbo.Categories OFF;
 GO
 
 SET IDENTITY_INSERT dbo.Discounts ON;
-INSERT INTO dbo.Discounts (
+INSERT INTO dbo.Discounts
+    (
     DiscountId, Name, DiscountType, DiscountValue, StartDate, EndDate, Status, CreatedAt
-)
+    )
 VALUES
     (1, N'Black Friday giảm 20% lịch để bàn', 'Percent', 20, '2026-01-01', '2026-12-31', 'Active', '2026-01-01T00:00:00Z'),
     (2, N'Giảm thẳng 50k lịch bloc', 'FixedAmount', 50000, '2026-01-01', '2026-12-31', 'Active', '2026-01-02T00:00:00Z');
@@ -373,7 +392,8 @@ SET IDENTITY_INSERT dbo.Discounts OFF;
 GO
 
 SET IDENTITY_INSERT dbo.Products ON;
-INSERT INTO dbo.Products (
+INSERT INTO dbo.Products
+    (
     ProductId,
     CategoryId,
     DiscountId,
@@ -384,7 +404,7 @@ INSERT INTO dbo.Products (
     ImageUrl,
     CalendarType,
     Status
-)
+    )
 VALUES
     (1, 1, NULL, N'Lịch treo tường 2026 phong cảnh Việt Nam', N'Lịch treo tường 12 tháng.', 120000, 50, NULL, N'Wall Calendar', N'Active'),
     (2, 2, 1, N'Lịch để bàn mini 2026', N'Lịch để bàn nhỏ gọn.', 65000, 100, NULL, N'Desk Calendar', N'Active'),
@@ -395,7 +415,8 @@ SET IDENTITY_INSERT dbo.Products OFF;
 GO
 
 SET IDENTITY_INSERT dbo.Coupons ON;
-INSERT INTO dbo.Coupons (
+INSERT INTO dbo.Coupons
+    (
     CouponId,
     Code,
     Description,
@@ -407,7 +428,7 @@ INSERT INTO dbo.Coupons (
     UsageLimit,
     UsedCount,
     Status
-)
+    )
 VALUES
     (1, N'WELCOME10', N'Giảm 10 phần trăm cho khách hàng mới', N'Percent', 10, 100000, '2026-01-01', '2026-12-31', 1000, 12, N'Active'),
     (2, N'GIAM50K', N'Giảm 50,000 VND cho đơn từ 500,000 VND', N'Amount', 50000, 500000, '2026-01-01', '2026-12-31', 500, 8, N'Active'),
@@ -417,7 +438,8 @@ SET IDENTITY_INSERT dbo.Coupons OFF;
 GO
 
 SET IDENTITY_INSERT dbo.Orders ON;
-INSERT INTO dbo.Orders (
+INSERT INTO dbo.Orders
+    (
     OrderId,
     UserId,
     CouponId,
@@ -434,7 +456,7 @@ INSERT INTO dbo.Orders (
     CancelReason,
     CreatedAt,
     UpdatedAt
-)
+    )
 VALUES
     (1, 2, NULL, N'Lý Thị I', '0911111111', N'123 Đường A, Quận 1, TP HCM', 240000, 0, 0, 240000, 'COD', 'Delivered', NULL, NULL, '2026-05-15T10:00:00Z', NULL),
     (2, 2, NULL, N'Bùi Văn J', '0911111112', N'456 Đường B, Quận 3, TP HCM', 180000, 0, 0, 180000, 'Banking', 'Delivered', NULL, NULL, '2026-06-20T14:30:00Z', NULL),
@@ -450,7 +472,8 @@ SET IDENTITY_INSERT dbo.Orders OFF;
 GO
 
 SET IDENTITY_INSERT dbo.OrderItems ON;
-INSERT INTO dbo.OrderItems (
+INSERT INTO dbo.OrderItems
+    (
     OrderItemId,
     OrderId,
     ProductId,
@@ -459,7 +482,7 @@ INSERT INTO dbo.OrderItems (
     UnitPrice,
     Quantity,
     TotalPrice
-)
+    )
 VALUES
     (1, 1, 1, N'Lịch treo tường 2026 phong cảnh Việt Nam', NULL, 120000, 2, 240000),
     (2, 2, 3, N'Lịch bloc đại 2026', NULL, 180000, 1, 180000),
@@ -476,7 +499,8 @@ VALUES
 SET IDENTITY_INSERT dbo.OrderItems OFF;
 GO
 
-INSERT INTO dbo.OrderStatusHistories (OrderId, OldStatus, NewStatus, ChangedByUserId, Note, CreatedAt)
+INSERT INTO dbo.OrderStatusHistories
+    (OrderId, OldStatus, NewStatus, ChangedByUserId, Note, CreatedAt)
 VALUES
     (1, NULL, 'Delivered', 1, N'Seeded order history', '2026-05-15T10:05:00Z'),
     (2, NULL, 'Delivered', 1, N'Seeded order history', '2026-06-20T14:35:00Z'),

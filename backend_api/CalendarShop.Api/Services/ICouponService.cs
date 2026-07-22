@@ -9,4 +9,5 @@ public interface ICouponService
     Task<CouponDto> CreateCouponAsync(CouponCreateUpdateDto request);
     Task UpdateCouponAsync(int id, CouponCreateUpdateDto request);
     Task UpdateCouponStatusAsync(int id, string status);
+    Task<CouponDto> CheckCouponAsync(string code, decimal subTotal);
 }

@@ -41,4 +41,5 @@ class ApiConstants {
   static const String discounts = '/discounts';
   static const String notifications = '/notifications';
   static const String chatAsk = '/chat/ask';
+  static const String addresses = '/addresses';
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/admin_dashboard_stats.dart';
 import 'admin_dashboard_formatters.dart';
 import 'dashboard_section_card.dart';
@@ -31,7 +32,7 @@ class DailyRevenueChartCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -55,20 +56,16 @@ class DailyRevenueChartCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: Colors.indigo,
+                          color: AppColors.primary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Container(
                         width: 28,
                         height: barHeight > 5 ? barHeight : 5,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.indigo.shade400, Colors.indigo.shade700],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                          borderRadius: const BorderRadius.vertical(
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.vertical(
                             top: Radius.circular(6),
                           ),
                         ),
@@ -78,7 +75,7 @@ class DailyRevenueChartCard extends StatelessWidget {
                         dateStr,
                         style: const TextStyle(
                           fontSize: 10,
-                          color: Color(0xFF64748B),
+                          color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -120,7 +117,7 @@ class MonthlyRevenueChartCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -144,20 +141,16 @@ class MonthlyRevenueChartCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: Colors.teal,
+                          color: AppColors.success,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Container(
                         width: 32,
                         height: barHeight > 5 ? barHeight : 5,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.teal.shade300, Colors.teal.shade600],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                          borderRadius: const BorderRadius.vertical(
+                        decoration: const BoxDecoration(
+                          color: AppColors.success,
+                          borderRadius: BorderRadius.vertical(
                             top: Radius.circular(6),
                           ),
                         ),
@@ -167,7 +160,7 @@ class MonthlyRevenueChartCard extends StatelessWidget {
                         monthStr,
                         style: const TextStyle(
                           fontSize: 10,
-                          color: Color(0xFF64748B),
+                          color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -200,14 +193,14 @@ class _EmptyChartCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 32),
           Center(
             child: Text(
               message,
-              style: const TextStyle(color: Colors.grey),
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
           ),
           const SizedBox(height: 32),

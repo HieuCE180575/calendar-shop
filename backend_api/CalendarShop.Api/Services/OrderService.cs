@@ -188,9 +188,9 @@ public class OrderService : IOrderService
         {
             throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
         }
-        if (order.Status != "Pending")
+        if (order.Status != "Pending" && order.Status != "Confirmed")
         {
-            throw new BadHttpRequestException("Chỉ được hủy đơn khi đơn đang Pending.");
+            throw new BadHttpRequestException("Chỉ được hủy đơn khi chưa giao hàng.");
         }
 
         order.Status = "Cancelled";
@@ -303,7 +303,8 @@ public class OrderService : IOrderService
             return (false, false);
         }
 
-        if (string.IsNullOrEmpty(vnp_TxnRef) || !int.TryParse(vnp_TxnRef, out int orderId))
+        var txnRefParts = vnp_TxnRef?.Split('_');
+        if (txnRefParts == null || txnRefParts.Length == 0 || !int.TryParse(txnRefParts[0], out int orderId))
         {
             _logger.LogWarning("Invalid orderId from VNPay callback.");
             return (true, false);
@@ -351,6 +352,8 @@ public class OrderService : IOrderService
             _logger.LogInformation("Order {OrderId} status is {Status}, no update needed.", orderId, order.Status);
             return (true, isSuccess);
         }
+
+
 
         if (isSuccess)
         {

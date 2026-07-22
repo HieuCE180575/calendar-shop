@@ -1,4 +1,4 @@
-﻿import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
 
 import '../widgets/main_scaffold.dart';
 
@@ -108,7 +108,16 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(
-        path: '/checkout', builder: (context, state) => const CheckoutPage()),
+      path: '/checkout',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return CheckoutPage(
+          couponCode: extra?['couponCode'] as String?,
+          discountAmount: extra?['discountAmount'] as double? ?? 0.0,
+          cartTotal: extra?['cartTotal'] as double? ?? 0.0,
+        );
+      },
+    ),
     GoRoute(
       path: '/vnpay-waiting/:id',
       builder: (context, state) {

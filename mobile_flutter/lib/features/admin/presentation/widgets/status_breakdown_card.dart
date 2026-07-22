@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/admin_dashboard_stats.dart';
 import 'dashboard_section_card.dart';
 
@@ -11,11 +12,11 @@ class StatusBreakdownCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = <String, Color>{
-      'Pending': Colors.orange,
+      'Pending': AppColors.warning,
       'Confirmed': Colors.blue,
-      'Shipping': Colors.indigo,
-      'Delivered': Colors.green,
-      'Cancelled': Colors.red,
+      'Shipping': AppColors.primary,
+      'Delivered': AppColors.success,
+      'Cancelled': AppColors.danger,
     };
 
     final statusNameVi = <String, String>{
@@ -37,7 +38,7 @@ class StatusBreakdownCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -73,7 +74,7 @@ class StatusBreakdownCard extends StatelessWidget {
                             style: const TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 13,
-                              color: Color(0xFF475569),
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -83,7 +84,7 @@ class StatusBreakdownCard extends StatelessWidget {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
-                          color: Color(0xFF1E293B),
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ],
@@ -93,7 +94,7 @@ class StatusBreakdownCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
                       value: percentage,
-                      backgroundColor: Colors.grey.shade100,
+                      backgroundColor: AppColors.divider,
                       valueColor: AlwaysStoppedAnimation<Color>(color),
                       minHeight: 8,
                     ),
