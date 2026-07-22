@@ -286,6 +286,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
                               final apiClient = ref.read(apiClientProvider);
                               try {
                                 await apiClient.dio.post('/orders/${order['orderId']}/reorder');
+                                ref.invalidate(cartProvider);
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Đã thêm sản phẩm vào giỏ hàng!')),

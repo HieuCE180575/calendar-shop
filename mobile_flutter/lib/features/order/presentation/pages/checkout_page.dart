@@ -11,6 +11,7 @@ import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../address/domain/entities/address.dart';
 import '../../../address/presentation/providers/address_provider.dart';
 import '../../../address/presentation/widgets/address_selection_bottom_sheet.dart';
+import '../../../notification/presentation/providers/notification_provider.dart';
 
 class CheckoutPage extends ConsumerStatefulWidget {
   const CheckoutPage({
@@ -100,6 +101,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       }
 
       ref.invalidate(cartProvider);
+      ref.invalidate(notificationNotifierProvider);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
