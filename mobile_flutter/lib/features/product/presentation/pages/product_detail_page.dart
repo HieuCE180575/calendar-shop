@@ -203,6 +203,19 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                             ),
                           ),
                         ),
+                        Positioned(
+                          bottom: 24,
+                          right: 16,
+                          child: FloatingActionButton.extended(
+                            heroTag: 'ar_preview_fab',
+                            onPressed: () => context.push('/products/${product.productId}/ar-preview'),
+                            icon: const Icon(Icons.view_in_ar_outlined),
+                            label: const Text('Xem thử AR 🕶️'),
+                            backgroundColor: Colors.white.withValues(alpha: 0.95),
+                            foregroundColor: AppColors.primary,
+                            elevation: 3,
+                          ),
+                        ),
                       ],
                     ),
 

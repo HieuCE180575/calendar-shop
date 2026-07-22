@@ -23,6 +23,7 @@ public class OrderService : IOrderService
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
     private readonly ILogger<OrderService> _logger;
+    private readonly INotificationService _notificationService;
 
     public OrderService(
         IRepository<Order> orderRepository,
@@ -33,7 +34,8 @@ public class OrderService : IOrderService
         IConfiguration configuration,
         ILogger<OrderService> logger,
         IDiscountService discountService,
-        IRepository<Discount> discountRepository)
+        IRepository<Discount> discountRepository,
+        INotificationService notificationService)
     {
         _orderRepository = orderRepository;
         _cartItemRepository = cartItemRepository;
@@ -44,6 +46,7 @@ public class OrderService : IOrderService
         _mapper = mapper;
         _configuration = configuration;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     public async Task<OrderDto> CreateOrderAsync(int userId, CreateOrderRequest request)
@@ -211,6 +214,13 @@ public class OrderService : IOrderService
 
         await RestoreCouponUsageIfNeededAsync(order);
         await _orderRepository.SaveChangesAsync();
+
+        await _notificationService.CreateNotificationAsync(
+            userId,
+            "Hủy đơn hàng thành công",
+            $"Đơn hàng #{order.OrderId} của bạn đã được hủy thành công. Lý do: {request.Reason}",
+            "OrderUpdate"
+        );
     }
 
     public IQueryable<OrderDto> AdminGetAllOrdersQuery()
@@ -246,6 +256,22 @@ public class OrderService : IOrderService
         order.UpdatedAt = DateTime.UtcNow;
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
+
+        string title = "Cập nhật trạng thái đơn hàng";
+        string content = request.Status switch
+        {
+            "Confirmed" => $"Đơn hàng #{order.OrderId} của bạn đã được xác nhận và đang chuẩn bị đóng gói.",
+            "Shipping" => $"Đơn hàng #{order.OrderId} của bạn đang trên đường giao tới bạn.",
+            "Delivered" => $"Đơn hàng #{order.OrderId} của bạn đã được giao thành công.",
+            "Cancelled" => $"Đơn hàng #{order.OrderId} của bạn đã bị hủy bởi quản trị viên.",
+            _ => $"Đơn hàng #{order.OrderId} của bạn đã chuyển sang trạng thái: {request.Status}."
+        };
+        await _notificationService.CreateNotificationAsync(
+            order.UserId,
+            title,
+            content,
+            "OrderUpdate"
+        );
     }
     public async Task<(bool IsSignatureValid, bool IsSuccess)> HandlePaymentCallbackAsync(Dictionary<string, string> vnpayData)
     {
@@ -358,6 +384,17 @@ public class OrderService : IOrderService
         {
             await _orderRepository.SaveChangesAsync();
             _logger.LogInformation("Order {OrderId} updated to {Status}.", orderId, order.Status);
+
+            string cbTitle = isSuccess ? "Thanh toán thành công" : "Thanh toán thất bại";
+            string cbContent = isSuccess 
+                ? $"Đơn hàng #{order.OrderId} đã được thanh toán thành công qua VNPay và được xác nhận."
+                : $"Thanh toán cho đơn hàng #{order.OrderId} qua VNPay không thành công. Đơn hàng đã bị hủy.";
+            await _notificationService.CreateNotificationAsync(
+                order.UserId,
+                cbTitle,
+                cbContent,
+                "OrderUpdate"
+            );
         }
         catch (Exception ex)
         {

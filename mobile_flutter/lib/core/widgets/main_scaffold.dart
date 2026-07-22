@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/cart/presentation/providers/cart_provider.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/notification/presentation/providers/notification_provider.dart';
 import '../theme/app_colors.dart';
 
 class MainScaffold extends ConsumerWidget {
@@ -46,6 +47,7 @@ class MainScaffold extends ConsumerWidget {
     final cartState = ref.watch(cartProvider);
     final cartCount = cartState.value?.length ?? 0;
     final userState = ref.watch(authNotifierProvider);
+    final unreadNotifications = ref.watch(unreadNotificationsCountProvider);
     final isAdmin = userState.user?.role == 'Admin';
     final selectedIndex = _calculateSelectedIndex(currentPath);
 
@@ -66,8 +68,14 @@ class MainScaffold extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.textPrimary),
+            onPressed: () => context.push('/notifications'),
+            icon: Badge(
+              isLabelVisible: unreadNotifications > 0,
+              label: Text('$unreadNotifications', style: const TextStyle(color: Colors.white, fontSize: 10)),
+              backgroundColor: AppColors.primary,
+              child: const Icon(Icons.notifications_none_outlined, color: AppColors.textPrimary),
+            ),
+            tooltip: 'Thông báo',
           ),
           IconButton(
             onPressed: () => context.push('/cart'),

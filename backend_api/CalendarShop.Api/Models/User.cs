@@ -16,6 +16,7 @@ public class User
     public string? EmailConfirmationTokenHash { get; set; }
     public DateTime? EmailConfirmationTokenExpiredAt { get; set; }
     public DateTime? EmailConfirmedAt { get; set; }
+    public string? FcmToken { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
@@ -23,4 +24,5 @@ public class User
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
+    public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }
