@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../providers/admin_dashboard_provider.dart';
 import 'dashboard_section_card.dart';
 
@@ -31,7 +32,7 @@ class _AdminDashboardHeaderState extends ConsumerState<AdminDashboardHeader> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Xuất file thành công tại: Downloads\\$fileName'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
       }
@@ -40,7 +41,7 @@ class _AdminDashboardHeaderState extends ConsumerState<AdminDashboardHeader> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Lỗi xuất file: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.danger,
           ),
         );
       }
@@ -58,34 +59,33 @@ class _AdminDashboardHeaderState extends ConsumerState<AdminDashboardHeader> {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.indigo.withValues(alpha: 0.1),
+            decoration: const BoxDecoration(
+              color: AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.analytics_rounded,
-              color: Colors.indigo.shade800,
+              color: AppColors.primary,
               size: 28,
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Statistics Dashboard',
+                  'Thống kê tổng quan',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Du lieu thuc te cap nhat luc ${DateFormat('HH:mm dd/MM/yyyy').format(DateTime.now().toLocal())}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                  'Dữ liệu thực tế cập nhật lúc ${DateFormat('HH:mm dd/MM/yyyy').format(DateTime.now().toLocal())}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -104,8 +104,10 @@ class _AdminDashboardHeaderState extends ConsumerState<AdminDashboardHeader> {
                 : const Icon(Icons.download),
             label: const Text('Export Doanh Thu'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green.shade600,
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
+              elevation: 0,
+              minimumSize: const Size(0, 48), 
             ),
           ),
         ],

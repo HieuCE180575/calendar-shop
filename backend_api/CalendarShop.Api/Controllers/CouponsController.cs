@@ -23,6 +23,26 @@ public class CouponsController : AppControllerBase
         return Ok(_couponService.GetAllCouponsQuery());
     }
 
+    [HttpGet("check")]
+    [AllowAnonymous]
+    public async Task<ActionResult<CouponDto>> CheckCoupon([FromQuery] string code, [FromQuery] decimal subTotal)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return BadRequest("Mã giảm giá không được để trống.");
+        }
+        
+        try
+        {
+            var coupon = await _couponService.CheckCouponAsync(code, subTotal);
+            return Ok(coupon);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<CouponDto>> GetById(int id)
     {

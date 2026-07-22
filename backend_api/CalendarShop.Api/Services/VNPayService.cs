@@ -47,7 +47,7 @@ public class VNPayService : IVNPayService
         pay.AddRequestData("vnp_OrderInfo", $"Thanh toán đơn hàng {order.OrderId}");
         pay.AddRequestData("vnp_OrderType", "other");
         pay.AddRequestData("vnp_ReturnUrl", returnUrl);
-        pay.AddRequestData("vnp_TxnRef", order.OrderId.ToString());
+        pay.AddRequestData("vnp_TxnRef", $"{order.OrderId}_{timeNow.Ticks}");
 
         var paymentUrl = pay.CreateRequestUrl(vnpayUrl, hashSecret);
 

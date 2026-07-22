@@ -45,7 +45,7 @@ class AdminStatisticsPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const AdminDashboardHeader(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 OverviewMetricsSection(stats: stats),
                 if (stats.lowStockProducts.isNotEmpty) ...[
                   const SizedBox(height: 24),

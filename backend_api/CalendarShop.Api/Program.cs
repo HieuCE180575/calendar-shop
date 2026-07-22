@@ -104,7 +104,7 @@ try
     builder.Services.AddHostedService<CalendarShop.Api.Infrastructure.NotificationBackgroundService>();
     builder.Services.AddScoped<IChatAssistantService, ChatAssistantService>();
     builder.Services.AddHttpClient<ILocalLlmService, LocalLlmService>();
-
+    builder.Services.AddScoped<IAddressService, AddressService>();
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
@@ -182,6 +182,7 @@ static Microsoft.OData.Edm.IEdmModel GetEdmModel()
     builder.EntitySet<CouponDto>("Coupons").EntityType.HasKey(x => x.CouponId);
     builder.EntitySet<DiscountDto>("Discounts").EntityType.HasKey(x => x.DiscountId);
     builder.EntitySet<NotificationDto>("Notifications").EntityType.HasKey(x => x.NotificationId);
+    builder.EntitySet<AddressDto>("Addresses").EntityType.HasKey(x => x.AddressId);
     return builder.GetEdmModel();
 }
 
