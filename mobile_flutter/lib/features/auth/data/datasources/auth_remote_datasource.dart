@@ -11,6 +11,25 @@ class AuthRemoteDataSource {
 
   AuthRemoteDataSource(this.apiClient);
 
+  Future<Map<String, bool>> checkAvailability({String? email, String? phone}) async {
+    try {
+      final response = await apiClient.dio.get(
+        '/auth/check-availability',
+        queryParameters: {
+          if (email != null && email.isNotEmpty) 'email': email,
+          if (phone != null && phone.isNotEmpty) 'phone': phone,
+        },
+      );
+      final data = response.data as Map<String, dynamic>;
+      return {
+        'emailExists': data['emailExists'] == true,
+        'phoneExists': data['phoneExists'] == true,
+      };
+    } catch (_) {
+      return {'emailExists': false, 'phoneExists': false};
+    }
+  }
+
   Future<AuthResultModel> login({
     required String login,
     required String password,

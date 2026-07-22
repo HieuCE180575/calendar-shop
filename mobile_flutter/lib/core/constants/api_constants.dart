@@ -16,6 +16,28 @@ class ApiConstants {
     return 'http://localhost:51441/api';
   }
 
+  /// Automatically resolves image URLs:
+  /// - Converts relative paths `/images/...` to absolute URLs using baseUrl host.
+  /// - On Android Emulator, rewrites `localhost:51441` or `127.0.0.1:51441` to `10.0.2.2:51441`.
+  /// - On Web, ensures `localhost:51441` is used.
+  static String resolveImageUrl(String? url) {
+    if (url == null || url.trim().isEmpty) return '';
+    String resolved = url.trim();
+
+    if (resolved.startsWith('/')) {
+      final hostBase = baseUrl.replaceAll('/api', '');
+      return '$hostBase$resolved';
+    }
+
+    if (kIsWeb) {
+      resolved = resolved.replaceAll('10.0.2.2:51441', 'localhost:51441');
+    } else if (Platform.isAndroid) {
+      resolved = resolved.replaceAll('localhost:51441', '10.0.2.2:51441');
+      resolved = resolved.replaceAll('127.0.0.1:51441', '10.0.2.2:51441');
+    }
+    return resolved;
+  }
+
   static const String login = '/auth/login';
   static const String googleLogin = '/auth/google-login';
   static const String register = '/auth/register';

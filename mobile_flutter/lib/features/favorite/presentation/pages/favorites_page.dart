@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../providers/favorite_provider.dart';
 
@@ -72,9 +73,9 @@ class FavoritesPage extends ConsumerWidget {
                                     end: Alignment.bottomRight,
                                   ),
                                 ),
-                                child: fav.imageUrl != null && fav.imageUrl!.isNotEmpty
+                                child: ApiConstants.resolveImageUrl(fav.imageUrl).isNotEmpty
                                     ? Image.network(
-                                        fav.imageUrl!,
+                                        ApiConstants.resolveImageUrl(fav.imageUrl),
                                         fit: BoxFit.cover,
                                         errorBuilder: (_, __, ___) => const Icon(
                                           Icons.calendar_month,

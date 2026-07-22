@@ -663,4 +663,23 @@ public class AuthService : IAuthService
         var trimmed = value?.Trim();
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
+
+    public async Task<AvailabilityCheckResponse> CheckAvailabilityAsync(string? email, string? phone)
+    {
+        var normalizedEmail = NormalizeEmail(email);
+        var emailExists = false;
+        if (!string.IsNullOrWhiteSpace(normalizedEmail))
+        {
+            emailExists = await _userRepository.Entities.AnyAsync(x => x.Email != null && x.Email.ToLower() == normalizedEmail);
+        }
+
+        var normalizedPhone = NormalizePhone(phone);
+        var phoneExists = false;
+        if (!string.IsNullOrWhiteSpace(normalizedPhone))
+        {
+            phoneExists = await _userRepository.Entities.AnyAsync(x => x.Phone != null && x.Phone == normalizedPhone);
+        }
+
+        return new AvailabilityCheckResponse(emailExists, phoneExists);
+    }
 }

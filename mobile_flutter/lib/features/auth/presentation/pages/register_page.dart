@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +24,24 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
+  String? _fullNameError;
+  String? _emailError;
+  String? _phoneError;
+  String? _passwordError;
+  String? _confirmPasswordError;
+
+  Timer? _debounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fullNameController.addListener(_onFullNameChanged);
+    _emailController.addListener(_onEmailChanged);
+    _phoneController.addListener(_onPhoneChanged);
+    _passwordController.addListener(_onPasswordChanged);
+    _confirmPasswordController.addListener(_onConfirmPasswordChanged);
+  }
+
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -29,19 +49,162 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
+  }
+
+  void _onFullNameChanged() {
+    final text = _fullNameController.text.trim();
+    if (text.isNotEmpty && text.length < 2) {
+      setState(() => _fullNameError = 'Họ và tên quá ngắn');
+    } else {
+      setState(() => _fullNameError = null);
+    }
+  }
+
+  void _onEmailChanged() {
+    final text = _emailController.text.trim();
+    if (text.isEmpty) {
+      setState(() => _emailError = null);
+      return;
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(text)) {
+      setState(() => _emailError = 'Email không hợp lệ (ví dụ: example@gmail.com)');
+    } else {
+      setState(() => _emailError = null);
+      _triggerAvailabilityCheck();
+    }
+  }
+
+  void _onPhoneChanged() {
+    final text = _phoneController.text.trim();
+    if (text.isEmpty) {
+      setState(() => _phoneError = null);
+      return;
+    }
+    if (!text.startsWith('0')) {
+      setState(() => _phoneError = 'Số điện thoại phải bắt đầu bằng số 0');
+    } else if (text.length < 10) {
+      setState(() => _phoneError = 'Số điện thoại phải đủ 10 chữ số');
+    } else {
+      setState(() => _phoneError = null);
+      _triggerAvailabilityCheck();
+    }
+  }
+
+  void _onPasswordChanged() {
+    final text = _passwordController.text;
+    if (text.isNotEmpty && text.length < 6) {
+      setState(() => _passwordError = 'Mật khẩu phải từ 6 ký tự trở lên');
+    } else {
+      setState(() => _passwordError = null);
+    }
+    if (_confirmPasswordController.text.isNotEmpty) {
+      _onConfirmPasswordChanged();
+    }
+  }
+
+  void _onConfirmPasswordChanged() {
+    final text = _confirmPasswordController.text;
+    if (text.isNotEmpty && text != _passwordController.text) {
+      setState(() => _confirmPasswordError = 'Mật khẩu nhập lại không khớp');
+    } else {
+      setState(() => _confirmPasswordError = null);
+    }
+  }
+
+  void _triggerAvailabilityCheck() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 450), () async {
+      final email = _emailController.text.trim();
+      final phone = _phoneController.text.trim();
+
+      final emailValid = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+      final phoneValid = phone.startsWith('0') && phone.length >= 10;
+
+      if (!emailValid && !phoneValid) return;
+
+      final ds = ref.read(authRemoteDataSourceProvider);
+      final res = await ds.checkAvailability(
+        email: emailValid ? email : null,
+        phone: phoneValid ? phone : null,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        if (emailValid && res['emailExists'] == true) {
+          _emailError = 'Email này đã được sử dụng. Vui lòng thử email khác.';
+        }
+        if (phoneValid && res['phoneExists'] == true) {
+          _phoneError = 'Số điện thoại này đã được đăng ký.';
+        }
+      });
+    });
+  }
+
+  bool _validateAll() {
+    final name = _fullNameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    bool valid = true;
+
+    if (name.isEmpty) {
+      setState(() => _fullNameError = 'Vui lòng nhập họ và tên');
+      valid = false;
+    }
+    if (email.isEmpty) {
+      setState(() => _emailError = 'Vui lòng nhập email');
+      valid = false;
+    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      setState(() => _emailError = 'Email không hợp lệ (ví dụ: example@gmail.com)');
+      valid = false;
+    }
+
+    if (phone.isNotEmpty) {
+      if (!phone.startsWith('0') || phone.length < 10) {
+        setState(() => _phoneError = 'Số điện thoại phải gồm 10 chữ số, bắt đầu bằng số 0');
+        valid = false;
+      }
+    }
+
+    if (password.isEmpty) {
+      setState(() => _passwordError = 'Vui lòng nhập mật khẩu');
+      valid = false;
+    } else if (password.length < 6) {
+      setState(() => _passwordError = 'Mật khẩu phải từ 6 ký tự trở lên');
+      valid = false;
+    }
+
+    if (confirmPassword != password) {
+      setState(() => _confirmPasswordError = 'Mật khẩu nhập lại không khớp');
+      valid = false;
+    }
+
+    if (_emailError != null || _phoneError != null) {
+      valid = false;
+    }
+
+    return valid;
   }
 
   InputDecoration _inputDecoration({
     required String label,
     required IconData prefixIcon,
     Widget? suffixIcon,
+    String? errorText,
   }) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: Colors.grey.shade700, fontSize: 14),
       prefixIcon: Icon(prefixIcon, color: const Color(0xFF0056C6)),
       suffixIcon: suffixIcon,
+      errorText: errorText,
+      errorMaxLines: 2,
       filled: true,
       fillColor: Colors.grey.shade50,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -56,6 +219,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Color(0xFF0056C6), width: 1.8),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.8),
       ),
     );
   }
@@ -73,7 +244,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        context.go('/login');
+        final email = _emailController.text.trim();
+        context.go('/confirm-email?email=${Uri.encodeComponent(email)}');
       }
     });
 
@@ -121,6 +293,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 decoration: _inputDecoration(
                   label: 'Họ và tên',
                   prefixIcon: Icons.person_outline_rounded,
+                  errorText: _fullNameError,
                 ),
               ),
               const SizedBox(height: 14),
@@ -131,16 +304,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 decoration: _inputDecoration(
                   label: 'Email (bắt buộc)',
                   prefixIcon: Icons.email_outlined,
+                  errorText: _emailError,
                 ),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: _phoneController,
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 textInputAction: TextInputAction.next,
                 decoration: _inputDecoration(
                   label: 'Số điện thoại',
                   prefixIcon: Icons.phone_android_outlined,
+                  errorText: _phoneError,
                 ),
               ),
               const SizedBox(height: 6),
@@ -159,6 +335,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 decoration: _inputDecoration(
                   label: 'Mật khẩu',
                   prefixIcon: Icons.lock_outline_rounded,
+                  errorText: _passwordError,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -176,6 +353,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 decoration: _inputDecoration(
                   label: 'Nhập lại mật khẩu',
                   prefixIcon: Icons.lock_outline_rounded,
+                  errorText: _confirmPasswordError,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -212,15 +390,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 text: 'Đăng ký',
                 isLoading: state.isLoading,
                 onPressed: () {
-                  if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Mật khẩu nhập lại không khớp.'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                    return;
-                  }
+                  if (!_validateAll()) return;
                   ref.read(authNotifierProvider.notifier).register(
                         _fullNameController.text.trim(),
                         _emailController.text.trim(),

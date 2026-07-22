@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/quantity_selector.dart';
@@ -156,10 +157,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                           width: double.infinity,
                           height: 320,
                           color: AppColors.surface,
-                          child: product.imageUrl != null &&
-                                  product.imageUrl!.startsWith('http')
+                          child: ApiConstants.resolveImageUrl(product.imageUrl).isNotEmpty
                               ? CachedNetworkImage(
-                                  imageUrl: product.imageUrl!,
+                                  imageUrl: ApiConstants.resolveImageUrl(product.imageUrl),
                                   fit: BoxFit.cover,
                                   placeholder: (_, __) => Container(
                                     color: AppColors.primaryLight,

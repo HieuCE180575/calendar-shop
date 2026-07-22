@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../providers/product_provider.dart';
 
@@ -124,9 +125,9 @@ class AdminProductListPage extends ConsumerWidget {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.blue.shade50,
-                          child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                          child: ApiConstants.resolveImageUrl(product.imageUrl).isNotEmpty
                               ? Image.network(
-                                  product.imageUrl!,
+                                  ApiConstants.resolveImageUrl(product.imageUrl),
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) => const Icon(Icons.calendar_month, color: Colors.blueAccent),
                                 )

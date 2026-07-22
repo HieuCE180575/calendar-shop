@@ -24,6 +24,7 @@ public record ResetPasswordRequest(string ResetToken, string NewPassword);
 public record ConfirmEmailRequest(string Token);
 public record ResendEmailConfirmationRequest(string Email);
 public record MessageResponse(string Message);
+public record AvailabilityCheckResponse(bool EmailExists, bool PhoneExists);
 
 public record UserDto(
     int UserId,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/admin_dashboard_stats.dart';
 import 'admin_dashboard_formatters.dart';
@@ -113,9 +114,9 @@ class RecentOrdersCard extends StatelessWidget {
                                 border: Border.all(color: AppColors.border),
                               ),
                               clipBehavior: Clip.hardEdge,
-                              child: order.productImageUrl != null && order.productImageUrl!.isNotEmpty
+                              child: ApiConstants.resolveImageUrl(order.productImageUrl).isNotEmpty
                                   ? Image.network(
-                                      order.productImageUrl!,
+                                      ApiConstants.resolveImageUrl(order.productImageUrl),
                                       fit: BoxFit.cover,
                                       errorBuilder: (context, error, stackTrace) =>
                                           const Icon(Icons.image_outlined, size: 16, color: AppColors.textSecondary),
