@@ -157,6 +157,7 @@ try
     }
 
     app.UseMiddleware<RequestLoggingMiddleware>();
+    app.UseStaticFiles();
     app.UseCors("AllowMobile");
     app.UseAuthentication();
     app.UseAuthorization();

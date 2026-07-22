@@ -23,7 +23,7 @@ public class LocalLlmService : ILocalLlmService
     {
         if (!_settings.Enabled || string.IsNullOrWhiteSpace(_settings.BaseUrl) || string.IsNullOrWhiteSpace(_settings.Model))
         {
-            return null;
+            throw new InvalidOperationException("Local LLM chưa được cấu hình hoặc đang bị tắt.");
         }
 
         _httpClient.BaseAddress = new Uri(_settings.BaseUrl.TrimEnd('/') + "/");
@@ -44,7 +44,11 @@ public class LocalLlmService : ILocalLlmService
             temperature = 0.2,
             messages = new object[]
             {
-                new { role = "system", content = "Bạn là trợ lý sản phẩm của Calendar Shop. Luôn trả lời bằng tiếng Việt có dấu và copy chính xác tên sản phẩm từ dữ liệu được cung cấp, không tự dịch hoặc đổi tên sản phẩm." },
+                new
+                {
+                    role = "system",
+                    content = "Bạn là trợ lý sản phẩm của Calendar Shop. Luôn trả lời bằng tiếng Việt có dấu và copy chính xác tên sản phẩm từ dữ liệu được cung cấp, không tự dịch hoặc đổi tên sản phẩm."
+                },
                 new { role = "user", content = prompt }
             }
         };
@@ -61,12 +65,21 @@ public class LocalLlmService : ILocalLlmService
 
         if (!response.IsSuccessStatusCode)
         {
-            return null;
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new InvalidOperationException(
+                $"Local LLM trả về lỗi {(int)response.StatusCode} {response.ReasonPhrase}: {errorBody}");
         }
 
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         var completion = await JsonSerializer.DeserializeAsync<ChatCompletionResponse>(stream, JsonOptions, cancellationToken);
-        return completion?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
+        var answer = completion?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
+
+        if (string.IsNullOrWhiteSpace(answer))
+        {
+            throw new InvalidOperationException("Local LLM trả về phản hồi rỗng hoặc thiếu choices[0].message.content.");
+        }
+
+        return answer;
     }
 
     private sealed class ChatCompletionResponse
