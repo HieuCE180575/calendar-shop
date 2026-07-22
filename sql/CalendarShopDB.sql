@@ -84,6 +84,9 @@ CREATE TABLE dbo.PasswordResetTokens (
 );
 GO
 
+CREATE INDEX IX_PasswordResetTokens_Token ON dbo.PasswordResetTokens(Token);
+GO
+
 CREATE TABLE dbo.Categories (
     CategoryId INT IDENTITY(1,1) PRIMARY KEY,
     CategoryName NVARCHAR(100) NOT NULL UNIQUE,
