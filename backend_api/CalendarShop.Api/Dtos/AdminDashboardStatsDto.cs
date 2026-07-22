@@ -9,12 +9,22 @@ public class AdminDashboardStatsDto
     public decimal TotalRevenue { get; set; }
     public int TotalOrders { get; set; }
     public int TotalProductsSold { get; set; }
+    
+    // New fields for real data
+    public double TotalOrdersGrowth { get; set; }
+    public double TotalRevenueGrowth { get; set; }
+    public int NewProductsCount { get; set; }
+    public int TotalProducts { get; set; }
+
     public List<StatusCountDto> OrdersByStatus { get; set; } = new();
     public List<BestSellingProductDto> BestSelling { get; set; } = new();
     public List<RevenueByDayDto> RevenueByDay { get; set; } = new();
     public List<RevenueByMonthDto> RevenueByMonth { get; set; } = new();
     public List<RecentOrderDto> RecentOrders { get; set; } = new();
     public List<LowStockProductDto> LowStockProducts { get; set; } = new();
+
+    public int TotalOutOfStock { get; set; }
+    public int TotalLowStock { get; set; }
 }
 
 public class RecentOrderDto
@@ -24,6 +34,10 @@ public class RecentOrderDto
     public decimal TotalAmount { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    
+    // New fields
+    public string ProductName { get; set; } = string.Empty;
+    public string? ProductImageUrl { get; set; }
 }
 
 public class LowStockProductDto

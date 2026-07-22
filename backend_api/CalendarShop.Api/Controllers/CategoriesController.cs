@@ -46,4 +46,12 @@ public class CategoriesController : AppControllerBase
         await _categoryService.DeleteCategoryAsync(id);
         return NoContent();
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("stats")]
+    public async Task<ActionResult<CalendarShop.Api.Dtos.AdminStats.AdminCategoryStatsDto>> GetStats()
+    {
+        var stats = await _categoryService.GetAdminCategoryStatsAsync();
+        return Ok(stats);
+    }
 }

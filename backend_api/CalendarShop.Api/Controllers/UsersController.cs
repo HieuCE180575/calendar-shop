@@ -47,4 +47,11 @@ public class UsersController : AppControllerBase
         await _userService.UpdateUserRoleAsync(CurrentUserId, id, request);
         return NoContent();
     }
+
+    [HttpGet("stats")]
+    public async Task<ActionResult<CalendarShop.Api.Dtos.AdminStats.AdminCustomerStatsDto>> GetStats([FromQuery] int days = 7)
+    {
+        var stats = await _userService.GetAdminCustomerStatsAsync(days);
+        return Ok(stats);
+    }
 }

@@ -70,4 +70,11 @@ public class CouponsController : AppControllerBase
         await _couponService.UpdateCouponStatusAsync(id, request.Status);
         return NoContent();
     }
+
+    [HttpGet("stats")]
+    public async Task<ActionResult<CalendarShop.Api.Dtos.AdminStats.AdminCouponStatsDto>> GetStats([FromQuery] int days = 7)
+    {
+        var stats = await _couponService.GetAdminCouponStatsAsync(days);
+        return Ok(stats);
+    }
 }

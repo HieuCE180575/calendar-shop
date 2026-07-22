@@ -29,30 +29,52 @@ public class AdminDashboardService : IAdminDashboardService
         _productRepository = productRepository;
     }
 
-    public async Task<AdminDashboardStatsDto> GetDashboardStatsAsync()
+    public async Task<AdminDashboardStatsDto> GetDashboardStatsAsync(int days = 7)
     {
-        var deliveredOrders = _orderRepository.Entities.Where(x => x.Status == "Delivered");
-        var totalRevenue = await deliveredOrders.SumAsync(x => (decimal?)x.TotalAmount) ?? 0;
-        var totalOrders = await _orderRepository.Entities.CountAsync();
+        var now = DateTime.UtcNow;
+        var currentStartDate = now.AddDays(-days);
+        var prevStartDate = now.AddDays(-days * 2);
+
+        // --- CURRENT PERIOD ---
+        var currentOrders = _orderRepository.Entities.Where(x => x.CreatedAt >= currentStartDate);
+        var totalOrders = await currentOrders.CountAsync();
+        
+        var currentDeliveredOrders = currentOrders.Where(x => x.Status == "Delivered");
+        var totalRevenue = await currentDeliveredOrders.SumAsync(x => (decimal?)x.TotalAmount) ?? 0;
+
         var totalProductsSold = await _orderItemRepository.Entities
-            .Where(x => x.Order != null && x.Order.Status == "Delivered")
+            .Where(x => x.Order != null && x.Order.Status == "Delivered" && x.Order.CreatedAt >= currentStartDate)
             .SumAsync(x => (int?)x.Quantity) ?? 0;
 
-        var ordersByStatus = await _orderRepository.Entities
+        // --- PREVIOUS PERIOD (For Growth) ---
+        var prevOrders = _orderRepository.Entities.Where(x => x.CreatedAt >= prevStartDate && x.CreatedAt < currentStartDate);
+        var prevTotalOrders = await prevOrders.CountAsync();
+        
+        var prevDeliveredOrders = prevOrders.Where(x => x.Status == "Delivered");
+        var prevTotalRevenue = await prevDeliveredOrders.SumAsync(x => (decimal?)x.TotalAmount) ?? 0;
+
+        double totalOrdersGrowth = prevTotalOrders == 0 ? (totalOrders > 0 ? 100 : 0) : Math.Round(((double)(totalOrders - prevTotalOrders) / prevTotalOrders) * 100, 1);
+        double totalRevenueGrowth = prevTotalRevenue == 0 ? (totalRevenue > 0 ? 100 : 0) : Math.Round(((double)(totalRevenue - prevTotalRevenue) / (double)prevTotalRevenue) * 100, 1);
+
+        // --- NEW DATA ---
+        var newProductsCount = await _productRepository.Entities.CountAsync(x => x.CreatedAt >= currentStartDate && !x.IsDeleted);
+        var totalProducts = await _productRepository.Entities.CountAsync(x => !x.IsDeleted);
+
+        var ordersByStatus = await currentOrders
             .GroupBy(x => x.Status)
             .Select(x => new StatusCountDto { Status = x.Key, Total = x.Count() })
             .ToListAsync();
 
         var bestSelling = await _orderItemRepository.Entities
-            .Where(x => x.Order != null && x.Order.Status == "Delivered")
+            .Where(x => x.Order != null && x.Order.Status != "Cancelled")
             .GroupBy(x => new { x.ProductId, x.ProductName })
             .Select(x => new BestSellingProductDto { ProductId = x.Key.ProductId, ProductName = x.Key.ProductName, TotalSold = x.Sum(i => i.Quantity) })
             .OrderByDescending(x => x.TotalSold)
             .Take(5)
             .ToListAsync();
 
-        var revenueByDay = await _orderRepository.Entities
-            .Where(x => x.Status == "Delivered")
+        // Revenue by day - limit to the selected period
+        var revenueByDay = await currentDeliveredOrders
             .GroupBy(x => x.CreatedAt.Date)
             .Select(g => new RevenueByDayDto
             {
@@ -79,7 +101,7 @@ public class AdminDashboardService : IAdminDashboardService
         var totalUsers = await _userRepository.Entities.CountAsync(u => u.Role == "Customer");
 
         var lowStockProducts = await _productRepository.Entities
-            .Where(p => p.StockQuantity < 10 && !p.IsDeleted)
+            .Where(p => p.StockQuantity <= 10 && !p.IsDeleted) // Included 10
             .Select(p => new LowStockProductDto { ProductId = p.ProductId, ProductName = p.ProductName, StockQuantity = p.StockQuantity })
             .OrderBy(p => p.StockQuantity)
             .Take(10)
@@ -93,10 +115,15 @@ public class AdminDashboardService : IAdminDashboardService
                 CustomerName = o.CustomerName ?? string.Empty,
                 TotalAmount = o.TotalAmount,
                 Status = o.Status,
-                CreatedAt = o.CreatedAt
+                CreatedAt = o.CreatedAt,
+                ProductName = o.OrderItems.Select(oi => oi.Product != null ? oi.Product.ProductName : "Sản phẩm").FirstOrDefault() ?? "Không có",
+                ProductImageUrl = o.OrderItems.Select(oi => oi.Product != null ? oi.Product.ImageUrl : null).FirstOrDefault()
             })
             .Take(5)
             .ToListAsync();
+
+        var totalOutOfStock = await _productRepository.Entities.CountAsync(p => p.StockQuantity == 0 && !p.IsDeleted);
+        var totalLowStock = await _productRepository.Entities.CountAsync(p => p.StockQuantity > 0 && p.StockQuantity <= 10 && !p.IsDeleted);
 
         return new AdminDashboardStatsDto
         {
@@ -104,12 +131,18 @@ public class AdminDashboardService : IAdminDashboardService
             TotalRevenue = totalRevenue,
             TotalOrders = totalOrders,
             TotalProductsSold = totalProductsSold,
+            TotalOrdersGrowth = totalOrdersGrowth,
+            TotalRevenueGrowth = totalRevenueGrowth,
+            NewProductsCount = newProductsCount,
+            TotalProducts = totalProducts,
             OrdersByStatus = ordersByStatus,
             BestSelling = bestSelling,
             RevenueByDay = revenueByDay,
             RevenueByMonth = revenueByMonth,
             RecentOrders = recentOrders,
-            LowStockProducts = lowStockProducts
+            LowStockProducts = lowStockProducts,
+            TotalOutOfStock = totalOutOfStock,
+            TotalLowStock = totalLowStock
         };
     }
 

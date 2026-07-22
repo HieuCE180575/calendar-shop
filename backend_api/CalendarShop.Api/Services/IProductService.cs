@@ -11,4 +11,5 @@ public interface IProductService
     Task UpdateStockAsync(int id, int stockQuantity);
     Task UpdateStatusAsync(int id, string status);
     Task DeleteProductAsync(int id);
+    Task<CalendarShop.Api.Dtos.AdminStats.AdminProductStatsDto> GetAdminProductStatsAsync(int days = 7);
 }

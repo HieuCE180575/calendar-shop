@@ -8,4 +8,5 @@ public interface IUserService
     Task<UserDto> GetUserByIdAsync(int id);
     Task UpdateUserStatusAsync(int currentAdminId, int id, UpdateUserStatusRequest request);
     Task UpdateUserRoleAsync(int currentAdminId, int id, UpdateUserRoleRequest request);
+    Task<CalendarShop.Api.Dtos.AdminStats.AdminCustomerStatsDto> GetAdminCustomerStatsAsync(int days = 7);
 }

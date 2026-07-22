@@ -39,6 +39,14 @@ public class ProductsController : AppControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [HttpGet("stats")]
+    public async Task<ActionResult<CalendarShop.Api.Dtos.AdminStats.AdminProductStatsDto>> GetStats([FromQuery] int days = 7)
+    {
+        var stats = await _productService.GetAdminProductStatsAsync(days);
+        return Ok(stats);
+    }
+
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, ProductCreateUpdateDto request)
     {

@@ -68,4 +68,12 @@ public class OrdersController : AppControllerBase
         await _orderService.AdminUpdateOrderStatusAsync(id, request);
         return NoContent();
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("admin/stats")]
+    public async Task<ActionResult<CalendarShop.Api.Dtos.AdminStats.AdminOrderStatsDto>> AdminGetStats([FromQuery] int days = 7)
+    {
+        var stats = await _orderService.GetAdminOrderStatsAsync(days);
+        return Ok(stats);
+    }
 }

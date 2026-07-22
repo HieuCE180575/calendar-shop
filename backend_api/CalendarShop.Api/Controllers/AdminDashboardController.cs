@@ -15,9 +15,9 @@ public class AdminDashboardController : AppControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get()
+    public async Task<IActionResult> Get([FromQuery] int days = 7)
     {
-        var stats = await _dashboardService.GetDashboardStatsAsync();
+        var stats = await _dashboardService.GetDashboardStatsAsync(days);
         return Ok(stats);
     }
 

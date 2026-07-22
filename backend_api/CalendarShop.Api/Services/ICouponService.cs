@@ -10,4 +10,5 @@ public interface ICouponService
     Task UpdateCouponAsync(int id, CouponCreateUpdateDto request);
     Task UpdateCouponStatusAsync(int id, string status);
     Task<CouponDto> CheckCouponAsync(string code, decimal subTotal);
+    Task<CalendarShop.Api.Dtos.AdminStats.AdminCouponStatsDto> GetAdminCouponStatsAsync(int days = 7);
 }
