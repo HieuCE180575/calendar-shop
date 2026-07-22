@@ -14,6 +14,8 @@ namespace CalendarShop.Api.Services;
 
 public class OrderService : IOrderService
 {
+    private const int VNPayPendingOrderTimeoutMinutes = 15;
+
     private readonly IRepository<Order> _orderRepository;
     private readonly IRepository<CartItem> _cartItemRepository;
     private readonly IRepository<Product> _productRepository;
@@ -53,6 +55,8 @@ public class OrderService : IOrderService
     {
         var cartItems = await _cartItemRepository.Entities
             .Include(x => x.Product)
+                .ThenInclude(p => p.Category)
+            .Include(x => x.Product)
                 .ThenInclude(p => p.Discount)
             .Where(x => x.UserId == userId && x.IsSelected)
             .ToListAsync();
@@ -65,15 +69,19 @@ public class OrderService : IOrderService
         decimal subTotal = 0;
         foreach (var item in cartItems)
         {
-            if (item.Product == null || item.Product.Status != "Active" || item.Product.IsDeleted)
+            var product = item.Product;
+            if (product == null ||
+                product.Status != "Active" ||
+                product.IsDeleted ||
+                product.Category?.Status != "Active")
             {
                 throw new BadHttpRequestException($"Sản phẩm {item.ProductId} không khả dụng.");
             }
-            if (item.Product.StockQuantity < item.Quantity)
+            if (product.StockQuantity < item.Quantity)
             {
-                throw new BadHttpRequestException($"Sản phẩm {item.Product.ProductName} không đủ tồn kho.");
+                throw new BadHttpRequestException($"Sản phẩm {product.ProductName} không đủ tồn kho.");
             }
-            var discountedPrice = _discountService.GetDiscountedPrice(item.Product);
+            var discountedPrice = _discountService.GetDiscountedPrice(product);
             subTotal += discountedPrice * item.Quantity;
         }
         decimal discountAmount = 0;
@@ -81,7 +89,8 @@ public class OrderService : IOrderService
 
         if (!string.IsNullOrWhiteSpace(request.CouponCode))
         {
-            coupon = await _couponRepository.Entities.FirstOrDefaultAsync(x => x.Code == request.CouponCode && x.Status == "Active");
+            var normalizedCouponCode = request.CouponCode.Trim().ToUpperInvariant();
+            coupon = await _couponRepository.Entities.FirstOrDefaultAsync(x => x.Code == normalizedCouponCode && x.Status == "Active");
             if (coupon == null)
             {
                 throw new BadHttpRequestException("Mã giảm giá không hợp lệ.");
@@ -102,9 +111,11 @@ public class OrderService : IOrderService
             discountAmount = coupon.DiscountType == "Percent"
                 ? subTotal * coupon.DiscountValue / 100
                 : coupon.DiscountValue;
+            discountAmount = Math.Min(discountAmount, subTotal);
         }
 
         var shippingFee = subTotal >= 300000 ? 0 : 30000;
+        var payableAmount = Math.Max(0, subTotal - discountAmount);
         var order = new Order
         {
             UserId = userId,
@@ -115,7 +126,7 @@ public class OrderService : IOrderService
             SubTotal = subTotal,
             DiscountAmount = discountAmount,
             ShippingFee = shippingFee,
-            TotalAmount = subTotal - discountAmount + shippingFee,
+            TotalAmount = payableAmount + shippingFee,
             PaymentMethod = request.PaymentMethod,
             Status = "Pending",
             Note = request.Note
@@ -188,7 +199,7 @@ public class OrderService : IOrderService
         {
             throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
         }
-        if (order.Status != "Pending" && order.Status != "Confirmed")
+        if (order.Status != "Pending")
         {
             throw new BadHttpRequestException("Chỉ được hủy đơn khi chưa giao hàng.");
         }
@@ -200,13 +211,15 @@ public class OrderService : IOrderService
 
         foreach (var item in order.OrderItems)
         {
-            var product = await _productRepository.GetByIdAsync(item.ProductId);
+            var product = await _productRepository.Entities
+                .Include(x => x.Category)
+                .FirstOrDefaultAsync(x => x.ProductId == item.ProductId);
             if (product != null)
             {
                 product.StockQuantity += item.Quantity;
-                if (product.Status == "OutOfStock")
+                if (product.Status == "OutOfStock" && product.StockQuantity > 0)
                 {
-                    product.Status = "Active";
+                    product.Status = product.Category?.Status == "Active" ? "Active" : "Hidden";
                 }
                 _productRepository.Update(product);
             }
@@ -232,7 +245,9 @@ public class OrderService : IOrderService
 
     public async Task AdminUpdateOrderStatusAsync(int id, UpdateOrderStatusRequest request)
     {
-        var order = await _orderRepository.GetByIdAsync(id);
+        var order = await _orderRepository.Entities
+            .Include(x => x.OrderItems)
+            .FirstOrDefaultAsync(x => x.OrderId == id);
         if (order == null)
         {
             throw new KeyNotFoundException("Không tìm thấy đơn hàng.");
@@ -252,9 +267,17 @@ public class OrderService : IOrderService
             throw new BadHttpRequestException($"Không thể chuyển trạng thái từ {order.Status} sang {request.Status}.");
         }
 
-        order.Status = request.Status;
-        order.UpdatedAt = DateTime.UtcNow;
-        _orderRepository.Update(order);
+        if (request.Status == "Cancelled")
+        {
+            await CancelPendingOrderAndRestoreInventoryAsync(order, request.Note ?? "Cancelled by admin.");
+        }
+        else
+        {
+            order.Status = request.Status;
+            order.UpdatedAt = DateTime.UtcNow;
+            _orderRepository.Update(order);
+        }
+
         await _orderRepository.SaveChangesAsync();
 
         string title = "Cập nhật trạng thái đơn hàng";
@@ -341,6 +364,14 @@ public class OrderService : IOrderService
             return (true, false);
         }
 
+        if (IsExpiredPendingVNPayOrder(order))
+        {
+            _logger.LogWarning("VNPay callback rejected because OrderId {OrderId} has expired.", orderId);
+            await CancelPendingOrderAndRestoreInventoryAsync(order, "VNPay payment expired.");
+            await _orderRepository.SaveChangesAsync();
+            return (true, false);
+        }
+
         if (!IsVNPayAmountValid(vnp_Amount, order.TotalAmount))
         {
             _logger.LogWarning("VNPay callback amount mismatch for OrderId {OrderId}.", orderId);
@@ -350,7 +381,7 @@ public class OrderService : IOrderService
         if (order.Status != "Pending")
         {
             _logger.LogInformation("Order {OrderId} status is {Status}, no update needed.", orderId, order.Status);
-            return (true, isSuccess);
+            return (true, order.Status == "Confirmed" && isSuccess);
         }
 
 
@@ -361,22 +392,7 @@ public class OrderService : IOrderService
         }
         else
         {
-            order.Status = "Cancelled";
-
-            foreach (var item in order.OrderItems)
-            {
-                var product = await _productRepository.GetByIdAsync(item.ProductId);
-                if (product != null)
-                {
-                    product.StockQuantity += item.Quantity;
-                    if (product.Status == "OutOfStock" && product.StockQuantity > 0)
-                    {
-                        product.Status = "Active";
-                    }
-                    _productRepository.Update(product);
-                }
-            }
-            await RestoreCouponUsageIfNeededAsync(order);
+            await CancelPendingOrderAndRestoreInventoryAsync(order, "VNPay payment failed or cancelled.");
             _logger.LogInformation("Stock restored for OrderId {OrderId}.", orderId);
         }
 
@@ -426,6 +442,66 @@ public class OrderService : IOrderService
         _couponRepository.Update(coupon);
     }
 
+    public async Task<int> ExpirePendingVNPayOrdersAsync(CancellationToken cancellationToken = default)
+    {
+        var expiredBefore = DateTime.UtcNow.AddMinutes(-VNPayPendingOrderTimeoutMinutes);
+        var expiredOrders = await _orderRepository.Entities
+            .Include(x => x.OrderItems)
+            .Where(x =>
+                x.PaymentMethod == "VNPay" &&
+                x.Status == "Pending" &&
+                x.CreatedAt <= expiredBefore)
+            .ToListAsync(cancellationToken);
+
+        foreach (var order in expiredOrders)
+        {
+            await CancelPendingOrderAndRestoreInventoryAsync(order, "VNPay payment expired.");
+        }
+
+        if (expiredOrders.Count > 0)
+        {
+            await _orderRepository.SaveChangesAsync();
+        }
+
+        return expiredOrders.Count;
+    }
+
+    private bool IsExpiredPendingVNPayOrder(Order order)
+    {
+        return order.PaymentMethod == "VNPay" &&
+               order.Status == "Pending" &&
+               order.CreatedAt <= DateTime.UtcNow.AddMinutes(-VNPayPendingOrderTimeoutMinutes);
+    }
+
+    private async Task CancelPendingOrderAndRestoreInventoryAsync(Order order, string reason)
+    {
+        order.Status = "Cancelled";
+        order.CancelReason = reason;
+        order.UpdatedAt = DateTime.UtcNow;
+        _orderRepository.Update(order);
+
+        foreach (var item in order.OrderItems)
+        {
+            var product = await _productRepository.Entities
+                .Include(x => x.Category)
+                .FirstOrDefaultAsync(x => x.ProductId == item.ProductId);
+            if (product == null)
+            {
+                continue;
+            }
+
+            product.StockQuantity += item.Quantity;
+            if (product.Status == "OutOfStock" && product.StockQuantity > 0)
+            {
+                product.Status = product.Category?.Status == "Active" ? "Active" : "Hidden";
+            }
+
+            _productRepository.Update(product);
+        }
+
+        await RestoreCouponUsageIfNeededAsync(order);
+    }
+
     private static bool IsVNPayAmountValid(string amountText, decimal orderTotal)
     {
         if (!long.TryParse(amountText, out var callbackAmount))
@@ -452,9 +528,16 @@ public class OrderService : IOrderService
         // Add order items back to cart or update existing
         foreach (var item in order.OrderItems)
         {
-            var product = await _productRepository.GetByIdAsync(item.ProductId);
-            if (product == null || product.IsDeleted || product.Status != "Active")
+            var product = await _productRepository.Entities
+                .Include(x => x.Category)
+                .FirstOrDefaultAsync(x => x.ProductId == item.ProductId);
+            if (product == null ||
+                product.IsDeleted ||
+                product.Status != "Active" ||
+                product.Category?.Status != "Active")
+            {
                 continue;
+            }
 
             var existingItem = existingCart.FirstOrDefault(x => x.ProductId == item.ProductId);
             

@@ -102,6 +102,7 @@ try
     builder.Services.AddScoped<IDiscountService, DiscountService>();
     builder.Services.AddScoped<INotificationService, NotificationService>();
     builder.Services.AddHostedService<CalendarShop.Api.Infrastructure.NotificationBackgroundService>();
+    builder.Services.AddHostedService<CalendarShop.Api.Infrastructure.VNPayPendingOrderCleanupService>();
     builder.Services.AddScoped<IChatAssistantService, ChatAssistantService>();
     builder.Services.AddHttpClient<ILocalLlmService, LocalLlmService>();
     builder.Services.AddScoped<IAddressService, AddressService>();

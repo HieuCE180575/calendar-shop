@@ -110,7 +110,7 @@ public class DiscountService : IDiscountService
 
         discount.Products.Clear();
 
-        await AssignTargetsAsync(discount, request.Scope, request.TargetIds);
+        await AssignTargetsAsync(discount, request.Scope, request.TargetIds, discount.DiscountId);
 
         _discountRepository.Update(discount);
         await _discountRepository.SaveChangesAsync();
@@ -118,10 +118,39 @@ public class DiscountService : IDiscountService
 
     public async Task UpdateDiscountStatusAsync(int id, UpdateDiscountStatusRequest request)
     {
-        var discount = await _discountRepository.GetByIdAsync(id);
+        var discount = await _discountRepository.Entities
+            .Include(d => d.Products)
+            .FirstOrDefaultAsync(d => d.DiscountId == id);
         if (discount == null)
         {
             throw new KeyNotFoundException("Không tìm thấy mã giảm giá.");
+        }
+
+        if (request.Status == "Active")
+        {
+            var productIds = discount.Products
+                .Where(p => !p.IsDeleted && p.Status != "Hidden")
+                .Select(p => p.ProductId)
+                .ToList();
+
+            var overlappingProducts = await _productRepository.Entities
+                .Include(p => p.Discount)
+                .Where(p =>
+                    productIds.Contains(p.ProductId) &&
+                    p.DiscountId.HasValue &&
+                    p.DiscountId.Value != discount.DiscountId &&
+                    p.Discount != null &&
+                    p.Discount.Status == "Active" &&
+                    p.Discount.StartDate <= discount.EndDate &&
+                    p.Discount.EndDate >= discount.StartDate)
+                .Select(p => p.ProductName)
+                .ToListAsync();
+
+            if (overlappingProducts.Count > 0)
+            {
+                throw new BadHttpRequestException(
+                    $"Các sản phẩm đang có discount khác còn hiệu lực: {string.Join(", ", overlappingProducts)}.");
+            }
         }
 
         discount.Status = request.Status;
@@ -141,7 +170,7 @@ public class DiscountService : IDiscountService
         await _discountRepository.SaveChangesAsync();
     }
 
-    private async Task AssignTargetsAsync(Discount discount, string scope, List<int> targetIds)
+    private async Task AssignTargetsAsync(Discount discount, string scope, List<int> targetIds, int? currentDiscountId = null)
     {
         if (targetIds.Count == 0)
         {
@@ -152,10 +181,35 @@ public class DiscountService : IDiscountService
             ? _productRepository.Entities.Where(p => targetIds.Contains(p.ProductId))
             : _productRepository.Entities.Where(p => targetIds.Contains(p.CategoryId));
 
-        var products = await query.ToListAsync();
+        var products = await query
+            .Where(p => !p.IsDeleted && p.Status != "Hidden")
+            .ToListAsync();
         if (products.Count == 0)
         {
             throw new KeyNotFoundException("Không tìm thấy sản phẩm phù hợp với mã giảm giá.");
+        }
+
+        if (discount.Status == "Active")
+        {
+            var productIds = products.Select(p => p.ProductId).ToList();
+            var overlappingProducts = await _productRepository.Entities
+                .Include(p => p.Discount)
+                .Where(p =>
+                    productIds.Contains(p.ProductId) &&
+                    p.DiscountId.HasValue &&
+                    (!currentDiscountId.HasValue || p.DiscountId.Value != currentDiscountId.Value) &&
+                    p.Discount != null &&
+                    p.Discount.Status == "Active" &&
+                    p.Discount.StartDate <= discount.EndDate &&
+                    p.Discount.EndDate >= discount.StartDate)
+                .Select(p => p.ProductName)
+                .ToListAsync();
+
+            if (overlappingProducts.Count > 0)
+            {
+                throw new BadHttpRequestException(
+                    $"Các sản phẩm đang có discount khác còn hiệu lực: {string.Join(", ", overlappingProducts)}.");
+            }
         }
 
         foreach (var product in products)

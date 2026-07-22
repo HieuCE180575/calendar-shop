@@ -27,6 +27,7 @@ public class FavoriteService : IFavoriteService
     {
         // 1. Kiểm tra sản phẩm tồn tại và đang hoạt động
         var product = await _productRepository.Entities
+            .Include(x => x.Category)
             .FirstOrDefaultAsync(x => x.ProductId == request.ProductId && !x.IsDeleted);
 
         if (product == null)
@@ -34,7 +35,7 @@ public class FavoriteService : IFavoriteService
             throw new KeyNotFoundException("Không tìm thấy sản phẩm.");
         }
 
-        if (product.Status == "Hidden")
+        if (product.Status == "Hidden" || product.Category?.Status != "Active")
         {
             throw new BadHttpRequestException("Sản phẩm này hiện không khả dụng.");
         }

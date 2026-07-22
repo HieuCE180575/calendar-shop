@@ -12,4 +12,5 @@ public interface IOrderService
     Task AdminUpdateOrderStatusAsync(int id, UpdateOrderStatusRequest request);
     Task<(bool IsSignatureValid, bool IsSuccess)> HandlePaymentCallbackAsync(Dictionary<string, string> vnpayData);
     Task ReorderAsync(int userId, int orderId);
+    Task<int> ExpirePendingVNPayOrdersAsync(CancellationToken cancellationToken = default);
 }
