@@ -30,11 +30,28 @@ public class ChatAssistantService : IChatAssistantService
         ["treo tuong"] = "wall",
         ["de ban"] = "desk",
         ["con hang"] = "stock",
-        ["het hang"] = "outofstock"
+        ["het hang"] = "outofstock",
+        ["tam gia"] = "price_range",
+        ["khoang gia"] = "price_range",
+        ["gia bao nhieu"] = "price_range",
+        ["gia thap nhat"] = "min_price",
+        ["gia cao nhat"] = "max_price",
+        ["tam trung"] = "mid_range",
+        ["trung binh"] = "mid_range",
+        ["ban gan day"] = "recent_sales",
+        ["thoi gian ban"] = "recent_sales",
+        ["don gan nhat"] = "recent_sales",
+        ["gan nhat"] = "latest",
+        ["moi nhat"] = "latest",
+        ["re nhat"] = "min_price",
+        ["dat nhat"] = "max_price",
+        ["muc gia"] = "price_range",
+        ["gia tam trung"] = "mid_range"
     };
 
     private readonly IRepository<Product> _productRepository;
     private readonly IRepository<Coupon> _couponRepository;
+    private readonly IRepository<Order> _orderRepository;
     private readonly IDiscountService _discountService;
     private readonly ILocalLlmService _localLlmService;
     private readonly LocalLlmSettings _llmSettings;
@@ -42,12 +59,14 @@ public class ChatAssistantService : IChatAssistantService
     public ChatAssistantService(
         IRepository<Product> productRepository,
         IRepository<Coupon> couponRepository,
+        IRepository<Order> orderRepository,
         IDiscountService discountService,
         ILocalLlmService localLlmService,
         IOptions<LocalLlmSettings> llmSettings)
     {
         _productRepository = productRepository;
         _couponRepository = couponRepository;
+        _orderRepository = orderRepository;
         _discountService = discountService;
         _localLlmService = localLlmService;
         _llmSettings = llmSettings.Value;
@@ -63,12 +82,29 @@ public class ChatAssistantService : IChatAssistantService
 
         var normalizedQuery = NormalizeText(message);
         var queryTokens = ExtractTokens(normalizedQuery);
+
+        var allProducts = await _productRepository.Entities
+            .Include(x => x.Category)
+            .Include(x => x.Discount)
+            .Where(x => !x.IsDeleted && x.Status != "Hidden")
+            .ToListAsync(cancellationToken);
+
+        var aggregateAnswer = await TryBuildAggregateAnswerAsync(
+            normalizedQuery,
+            queryTokens,
+            allProducts,
+            cancellationToken);
+        if (aggregateAnswer != null)
+        {
+            return aggregateAnswer;
+        }
+
         if (queryTokens.Count == 0)
         {
             throw new BadHttpRequestException("Cau hoi chua du thong tin de tim san pham hoac coupon.");
         }
 
-        var productCandidates = await GetProductCandidatesAsync(normalizedQuery, queryTokens, cancellationToken);
+        var productCandidates = GetProductCandidates(normalizedQuery, queryTokens, allProducts);
         var couponCandidates = await GetCouponCandidatesAsync(normalizedQuery, queryTokens, cancellationToken);
 
         if (productCandidates.Count == 0 && couponCandidates.Count == 0)
@@ -92,7 +128,7 @@ public class ChatAssistantService : IChatAssistantService
                 true);
         }
 
-        var fallbackAnswer = BuildFallbackAnswer(productCandidates.FirstOrDefault(), couponCandidates.FirstOrDefault(), normalizedQuery);
+        var fallbackAnswer = BuildFallbackAnswer(productCandidates.FirstOrDefault(), couponCandidates.FirstOrDefault());
         var prompt = BuildPrompt(normalizedQuery, productCandidates, couponCandidates);
         var llmAnswer = await _localLlmService.GenerateAnswerAsync(prompt, cancellationToken);
         var finalAnswer = string.IsNullOrWhiteSpace(llmAnswer) ? fallbackAnswer : llmAnswer!;
@@ -105,17 +141,115 @@ public class ChatAssistantService : IChatAssistantService
             false);
     }
 
-    private async Task<List<ProductCandidate>> GetProductCandidatesAsync(
+    private async Task<ChatAnswerDto?> TryBuildAggregateAnswerAsync(
         string normalizedQuery,
-        IReadOnlyCollection<string> queryTokens,
+        IReadOnlyList<string> queryTokens,
+        IReadOnlyList<Product> allProducts,
         CancellationToken cancellationToken)
     {
-        var products = await _productRepository.Entities
-            .Include(x => x.Category)
-            .Include(x => x.Discount)
-            .Where(x => !x.IsDeleted && x.Status != "Hidden")
-            .ToListAsync(cancellationToken);
+        if (allProducts.Count == 0)
+        {
+            return null;
+        }
 
+        var filteredProducts = FilterProductsForAggregate(allProducts, queryTokens);
+        if (filteredProducts.Count == 0)
+        {
+            filteredProducts = allProducts.ToList();
+        }
+
+        var pricedProducts = filteredProducts
+            .Select(product => new
+            {
+                Product = product,
+                Price = _discountService.GetDiscountedPrice(product)
+            })
+            .OrderBy(x => x.Price)
+            .ToList();
+
+        if (pricedProducts.Count == 0)
+        {
+            return null;
+        }
+
+        if (IsMinMaxPriceIntent(normalizedQuery))
+        {
+            var min = pricedProducts.First();
+            var max = pricedProducts.Last();
+            return new ChatAnswerDto(
+                normalizedQuery,
+                $"Gia thap nhat hien tai la {FormatMoney(min.Price)} cho san pham {min.Product.ProductName}. Gia cao nhat la {FormatMoney(max.Price)} cho san pham {max.Product.ProductName}.",
+                [
+                    new ChatSourceDto("product", min.Product.ProductId, min.Product.ProductName, 100),
+                    new ChatSourceDto("product", max.Product.ProductId, max.Product.ProductName, 100)
+                ],
+                false,
+                false);
+        }
+
+        if (IsMidRangeIntent(normalizedQuery))
+        {
+            var averagePrice = pricedProducts.Average(x => x.Price);
+            var median = pricedProducts[pricedProducts.Count / 2];
+            return new ChatAnswerDto(
+                normalizedQuery,
+                $"Neu xet tam gia trung binh cho lich, muc pho bien de tham khao la khoang {FormatMoney(median.Price)}. Gia trung binh toan bo nhom nay dang o muc {FormatMoney(decimal.Round(averagePrice, 0))}. Mot san pham gan muc nay la {median.Product.ProductName}.",
+                [new ChatSourceDto("product", median.Product.ProductId, median.Product.ProductName, 100)],
+                false,
+                false);
+        }
+
+        if (IsPriceRangeIntent(normalizedQuery))
+        {
+            var min = pricedProducts.First();
+            var max = pricedProducts.Last();
+            var median = pricedProducts[pricedProducts.Count / 2];
+            var averagePrice = pricedProducts.Average(x => x.Price);
+            return new ChatAnswerDto(
+                normalizedQuery,
+                $"Gia lich hien tai dao dong tu {FormatMoney(min.Price)} den {FormatMoney(max.Price)}. Muc gia tham khao tam trung la khoang {FormatMoney(median.Price)}, con gia trung binh dang o muc {FormatMoney(decimal.Round(averagePrice, 0))}.",
+                [
+                    new ChatSourceDto("product", min.Product.ProductId, min.Product.ProductName, 100),
+                    new ChatSourceDto("product", max.Product.ProductId, max.Product.ProductName, 99),
+                    new ChatSourceDto("product", median.Product.ProductId, median.Product.ProductName, 98)
+                ],
+                false,
+                false);
+        }
+
+        if (IsLatestSalesIntent(normalizedQuery))
+        {
+            var latestOrder = await _orderRepository.Entities
+                .Where(x => x.Status != "Cancelled")
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (latestOrder == null)
+            {
+                return new ChatAnswerDto(
+                    normalizedQuery,
+                    "Hien tai toi chua tim thay du lieu don hang gan day.",
+                    [],
+                    false,
+                    false);
+            }
+
+            return new ChatAnswerDto(
+                normalizedQuery,
+                $"Don hang gan nhat trong he thong duoc ghi nhan vao {latestOrder.CreatedAt:dd/MM/yyyy HH:mm} voi trang thai {latestOrder.Status}.",
+                [new ChatSourceDto("order", latestOrder.OrderId, $"Don hang #{latestOrder.OrderId}", 100)],
+                false,
+                false);
+        }
+
+        return null;
+    }
+
+    private List<ProductCandidate> GetProductCandidates(
+        string normalizedQuery,
+        IReadOnlyCollection<string> queryTokens,
+        IReadOnlyList<Product> products)
+    {
         return products
             .Select(product => new ProductCandidate(product, ScoreProduct(product, normalizedQuery, queryTokens)))
             .Where(candidate => candidate.Score > 0)
@@ -214,7 +348,7 @@ public class ChatAssistantService : IChatAssistantService
         return $"Toi dang thay mot vai coupon gan dung: {couponSuggestions}. Ban muon hoi coupon nao?";
     }
 
-    private string BuildFallbackAnswer(ProductCandidate? productCandidate, CouponCandidate? couponCandidate, string normalizedQuery)
+    private string BuildFallbackAnswer(ProductCandidate? productCandidate, CouponCandidate? couponCandidate)
     {
         if (productCandidate != null)
         {
@@ -249,10 +383,8 @@ public class ChatAssistantService : IChatAssistantService
         IReadOnlyList<CouponCandidate> coupons)
     {
         var sources = new List<ChatSourceDto>();
-
         sources.AddRange(products.Select(x => new ChatSourceDto("product", x.Product.ProductId, x.Product.ProductName, x.Score)));
         sources.AddRange(coupons.Select(x => new ChatSourceDto("coupon", x.Coupon.CouponId, x.Coupon.Code, x.Score)));
-
         return sources;
     }
 
@@ -354,6 +486,84 @@ CAU HOI:
             .Where(token => token.Length > 1 && !StopWords.Contains(token))
             .Distinct()
             .ToList();
+    }
+
+    private static List<Product> FilterProductsForAggregate(IReadOnlyList<Product> products, IReadOnlyList<string> queryTokens)
+    {
+        var controlTokens = new HashSet<string>
+        {
+            "price", "range", "min", "max", "mid", "recent", "sales", "thap", "cao",
+            "nhat", "tam", "trung", "binh", "gia", "ban", "gan", "day", "thoi", "gian",
+            "latest", "moi", "re", "dat", "muc"
+        };
+
+        var filterTokens = queryTokens.Where(token => !controlTokens.Contains(token)).ToList();
+        if (filterTokens.Count == 0)
+        {
+            return products.ToList();
+        }
+
+        return products.Where(product =>
+        {
+            var name = NormalizeText(product.ProductName);
+            var description = NormalizeText(product.Description);
+            var category = NormalizeText(product.Category?.CategoryName);
+            var type = NormalizeText(product.CalendarType);
+
+            return filterTokens.All(token =>
+                name.Contains(token, StringComparison.Ordinal) ||
+                description.Contains(token, StringComparison.Ordinal) ||
+                category.Contains(token, StringComparison.Ordinal) ||
+                type.Contains(token, StringComparison.Ordinal));
+        }).ToList();
+    }
+
+    private static bool IsPriceRangeIntent(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("price_range", StringComparison.Ordinal) ||
+               ((normalizedQuery.Contains("gia", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("lich", StringComparison.Ordinal)) &&
+                (normalizedQuery.Contains("bao nhieu", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("khoang", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("tam", StringComparison.Ordinal)));
+    }
+
+    private static bool IsMidRangeIntent(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("mid_range", StringComparison.Ordinal) ||
+               ((normalizedQuery.Contains("gia", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("price_range", StringComparison.Ordinal)) &&
+                (normalizedQuery.Contains("trung binh", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("tam trung", StringComparison.Ordinal)));
+    }
+
+    private static bool IsMinMaxPriceIntent(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("min_price", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("max_price", StringComparison.Ordinal) ||
+               ((normalizedQuery.Contains("gia", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("price_range", StringComparison.Ordinal)) &&
+                (normalizedQuery.Contains("thap nhat", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("cao nhat", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("re nhat", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("dat nhat", StringComparison.Ordinal))) ||
+               (normalizedQuery.Contains("thap nhat", StringComparison.Ordinal) &&
+                normalizedQuery.Contains("cao nhat", StringComparison.Ordinal));
+    }
+
+    private static bool IsLatestSalesIntent(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("recent_sales", StringComparison.Ordinal) ||
+               ((normalizedQuery.Contains("ban", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("don", StringComparison.Ordinal)) &&
+                (normalizedQuery.Contains("latest", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("gan day", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("moi nhat", StringComparison.Ordinal)));
+    }
+
+    private static string FormatMoney(decimal amount)
+    {
+        return $"{amount:N0} VND";
     }
 
     private sealed record ProductCandidate(Product Product, int Score);
