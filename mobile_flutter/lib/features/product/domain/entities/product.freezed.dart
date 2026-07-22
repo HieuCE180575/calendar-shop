@@ -22,6 +22,7 @@ mixin _$Product {
   String get productName => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   double get price => throw _privateConstructorUsedError;
+  double? get originalPrice => throw _privateConstructorUsedError;
   int get stockQuantity => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
   String get calendarType => throw _privateConstructorUsedError;
@@ -44,6 +45,7 @@ abstract class $ProductCopyWith<$Res> {
       String productName,
       String? description,
       double price,
+      double? originalPrice,
       int stockQuantity,
       String? imageUrl,
       String calendarType,
@@ -70,6 +72,7 @@ class _$ProductCopyWithImpl<$Res, $Val extends Product>
     Object? productName = null,
     Object? description = freezed,
     Object? price = null,
+    Object? originalPrice = freezed,
     Object? stockQuantity = null,
     Object? imageUrl = freezed,
     Object? calendarType = null,
@@ -101,6 +104,10 @@ class _$ProductCopyWithImpl<$Res, $Val extends Product>
           ? _value.price
           : price // ignore: cast_nullable_to_non_nullable
               as double,
+      originalPrice: freezed == originalPrice
+          ? _value.originalPrice
+          : originalPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
       stockQuantity: null == stockQuantity
           ? _value.stockQuantity
           : stockQuantity // ignore: cast_nullable_to_non_nullable
@@ -139,6 +146,7 @@ abstract class _$$ProductImplCopyWith<$Res> implements $ProductCopyWith<$Res> {
       String productName,
       String? description,
       double price,
+      double? originalPrice,
       int stockQuantity,
       String? imageUrl,
       String calendarType,
@@ -163,6 +171,7 @@ class __$$ProductImplCopyWithImpl<$Res>
     Object? productName = null,
     Object? description = freezed,
     Object? price = null,
+    Object? originalPrice = freezed,
     Object? stockQuantity = null,
     Object? imageUrl = freezed,
     Object? calendarType = null,
@@ -194,6 +203,10 @@ class __$$ProductImplCopyWithImpl<$Res>
           ? _value.price
           : price // ignore: cast_nullable_to_non_nullable
               as double,
+      originalPrice: freezed == originalPrice
+          ? _value.originalPrice
+          : originalPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
       stockQuantity: null == stockQuantity
           ? _value.stockQuantity
           : stockQuantity // ignore: cast_nullable_to_non_nullable
@@ -228,6 +241,7 @@ class _$ProductImpl implements _Product {
       required this.productName,
       this.description,
       required this.price,
+      this.originalPrice,
       required this.stockQuantity,
       this.imageUrl,
       required this.calendarType,
@@ -247,6 +261,8 @@ class _$ProductImpl implements _Product {
   @override
   final double price;
   @override
+  final double? originalPrice;
+  @override
   final int stockQuantity;
   @override
   final String? imageUrl;
@@ -259,7 +275,7 @@ class _$ProductImpl implements _Product {
 
   @override
   String toString() {
-    return 'Product(productId: $productId, categoryId: $categoryId, categoryName: $categoryName, productName: $productName, description: $description, price: $price, stockQuantity: $stockQuantity, imageUrl: $imageUrl, calendarType: $calendarType, status: $status, createdAt: $createdAt)';
+    return 'Product(productId: $productId, categoryId: $categoryId, categoryName: $categoryName, productName: $productName, description: $description, price: $price, originalPrice: $originalPrice, stockQuantity: $stockQuantity, imageUrl: $imageUrl, calendarType: $calendarType, status: $status, createdAt: $createdAt)';
   }
 
   @override
@@ -278,6 +294,8 @@ class _$ProductImpl implements _Product {
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.price, price) || other.price == price) &&
+            (identical(other.originalPrice, originalPrice) ||
+                other.originalPrice == originalPrice) &&
             (identical(other.stockQuantity, stockQuantity) ||
                 other.stockQuantity == stockQuantity) &&
             (identical(other.imageUrl, imageUrl) ||
@@ -298,6 +316,7 @@ class _$ProductImpl implements _Product {
       productName,
       description,
       price,
+      originalPrice,
       stockQuantity,
       imageUrl,
       calendarType,
@@ -319,6 +338,7 @@ abstract class _Product implements Product {
       required final String productName,
       final String? description,
       required final double price,
+      final double? originalPrice,
       required final int stockQuantity,
       final String? imageUrl,
       required final String calendarType,
@@ -337,6 +357,8 @@ abstract class _Product implements Product {
   String? get description;
   @override
   double get price;
+  @override
+  double? get originalPrice;
   @override
   int get stockQuantity;
   @override

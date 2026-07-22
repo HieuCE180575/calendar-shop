@@ -139,6 +139,21 @@ final getVNPayUrlUseCaseProvider =
 );
 
 typedef GetVNPayUrlUseCaseRef = AutoDisposeProviderRef<GetVNPayUrlUseCase>;
+String _$reorderUseCaseHash() => r'd7e8d7056e7d0aa9bed42dfaed84f8466c35f031';
+
+/// See also [reorderUseCase].
+@ProviderFor(reorderUseCase)
+final reorderUseCaseProvider = AutoDisposeProvider<ReorderUseCase>.internal(
+  reorderUseCase,
+  name: r'reorderUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$reorderUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef ReorderUseCaseRef = AutoDisposeProviderRef<ReorderUseCase>;
 String _$myOrdersHash() => r'd627e2bfb5b07a475893e1f1c7e824724f3bf272';
 
 /// Notifier quản lý danh sách đơn hàng bất đồng bộ
@@ -332,5 +347,22 @@ class _OrderDetailProviderElement
   @override
   int get orderId => (origin as OrderDetailProvider).orderId;
 }
+
+String _$reorderActionHash() => r'3288d04b3da86d206a283c6ef49a09425f036a37';
+
+/// See also [ReorderAction].
+@ProviderFor(ReorderAction)
+final reorderActionProvider =
+    AutoDisposeNotifierProvider<ReorderAction, void>.internal(
+  ReorderAction.new,
+  name: r'reorderActionProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$reorderActionHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ReorderAction = AutoDisposeNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

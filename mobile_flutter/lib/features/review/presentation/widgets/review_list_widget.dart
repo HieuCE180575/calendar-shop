@@ -57,6 +57,7 @@ class ReviewListWidget extends ConsumerWidget {
                   const SizedBox(width: 24),
                   Expanded(
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildProgressBar(5, summary.star5, summary.totalReviews),
                         _buildProgressBar(4, summary.star4, summary.totalReviews),

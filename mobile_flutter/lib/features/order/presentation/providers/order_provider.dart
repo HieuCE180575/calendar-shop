@@ -8,6 +8,7 @@ import '../../domain/usecases/get_order_detail_usecase.dart';
 import '../../domain/usecases/cancel_order_usecase.dart';
 import '../../domain/usecases/create_order_usecase.dart';
 import '../../domain/usecases/get_vnpay_url_usecase.dart';
+import '../../domain/usecases/reorder_usecase.dart';
 import '../../domain/entities/order.dart';
 
 part 'order_provider.g.dart';
@@ -82,3 +83,19 @@ class OrderDetail extends _$OrderDetail {
     return ref.watch(getOrderDetailUseCaseProvider)(orderId);
   }
 }
+
+@riverpod
+ReorderUseCase reorderUseCase(ReorderUseCaseRef ref) {
+  return ReorderUseCase(ref.watch(orderRepositoryProvider));
+}
+
+@riverpod
+class ReorderAction extends _$ReorderAction {
+  @override
+  void build() {}
+
+  Future<void> reorder(int orderId) async {
+    await ref.read(reorderUseCaseProvider)(orderId);
+  }
+}
+

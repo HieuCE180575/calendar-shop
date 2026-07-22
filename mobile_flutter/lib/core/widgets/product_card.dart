@@ -95,6 +95,25 @@ class ProductCard extends ConsumerWidget {
                       ),
                     ),
 
+                  // Sale Badge
+                  if (product.originalPrice != null && product.originalPrice! > product.price)
+                    Positioned(
+                      top: 8,
+                      left: badgeText.isNotEmpty ? null : 8,
+                      right: badgeText.isNotEmpty ? 44 : null, // 44 to avoid favorite icon
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.danger,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Sale',
+                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+
                   // Heart Favorite Icon
                   Positioned(
                     top: 6,
@@ -154,13 +173,27 @@ class ProductCard extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    formattedPrice,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (product.originalPrice != null && product.originalPrice! > product.price)
+                        Text(
+                          currencyFormatter.format(product.originalPrice),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textMuted,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                      Text(
+                        formattedPrice,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Row(

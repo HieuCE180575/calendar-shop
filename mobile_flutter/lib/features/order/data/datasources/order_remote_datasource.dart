@@ -70,4 +70,13 @@ class OrderRemoteDataSource {
       throw apiClient.handleError(e);
     }
   }
+
+  /// Mua lại đơn hàng
+  Future<void> reorder(int orderId) async {
+    try {
+      await apiClient.dio.post('${ApiConstants.orders}/$orderId/reorder');
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
 }

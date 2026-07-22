@@ -98,6 +98,7 @@ try
     builder.Services.AddScoped<ICouponService, CouponService>();
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IVNPayService, VNPayService>();
+    builder.Services.AddScoped<IDiscountService, DiscountService>();
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -174,5 +175,7 @@ static Microsoft.OData.Edm.IEdmModel GetEdmModel()
     builder.EntitySet<OrderDto>("Orders").EntityType.HasKey(x => x.OrderId);
     builder.EntitySet<CartItemDto>("Cart").EntityType.HasKey(x => x.CartItemId);
     builder.EntitySet<CouponDto>("Coupons").EntityType.HasKey(x => x.CouponId);
+    builder.EntitySet<DiscountDto>("Discounts").EntityType.HasKey(x => x.DiscountId);
     return builder.GetEdmModel();
 }
+

@@ -241,6 +241,7 @@ class _CartPageState extends ConsumerState<CartPage> {
                       const SizedBox(width: 12),
                       const Expanded(
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Địa chỉ giao hàng', style: TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
@@ -271,6 +272,7 @@ class _CartPageState extends ConsumerState<CartPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('Phương thức thanh toán', style: TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
@@ -314,9 +316,7 @@ class _CartPageState extends ConsumerState<CartPage> {
           ),
           onPressed: cartTotal > 0
               ? () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Đặt hàng thành công!'), backgroundColor: AppColors.success),
-                  );
+                  context.push('/checkout');
                 }
               : null,
           child: const Text('Thanh toán', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -357,6 +357,7 @@ class _CartPageState extends ConsumerState<CartPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(

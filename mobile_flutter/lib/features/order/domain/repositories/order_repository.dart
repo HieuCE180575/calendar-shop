@@ -18,4 +18,7 @@ abstract class OrderRepository {
 
   /// Lấy VNPay Payment URL
   Future<String> getVNPayUrl(int orderId);
+
+  /// Mua lại đơn hàng
+  Future<void> reorder(int orderId);
 }

@@ -255,6 +255,44 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                           ),
                           const SizedBox(height: 10),
 
+                          // Giá
+                          Row(
+                            children: [
+                              Text(
+                                CurrencyFormatter.vnd(product.price),
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              if (product.originalPrice != null && product.originalPrice! > product.price) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  CurrencyFormatter.vnd(product.originalPrice!),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.textMuted,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.danger,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'Sale',
+                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+
                           // Rating ⭐ & Stock Row
                           Row(
                             children: [
@@ -284,18 +322,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 14),
 
-                          // Price Banner
-                          Text(
-                            CurrencyFormatter.vnd(product.price),
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
 
                           // Description
                           Text(

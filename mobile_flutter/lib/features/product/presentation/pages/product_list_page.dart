@@ -105,6 +105,7 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
                   final cat = categoriesAsync.value!.firstWhere((c) => c.categoryName == name);
                   ref.read(productFilterProvider.notifier).setCategory(cat.categoryId);
                 }
+
               },
             ),
 

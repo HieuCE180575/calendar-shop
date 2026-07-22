@@ -71,6 +71,7 @@ class _AdminDashboardHeaderState extends ConsumerState<AdminDashboardHeader> {
           const SizedBox(width: 16),
           Expanded(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(

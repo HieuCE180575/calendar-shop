@@ -14,20 +14,41 @@ public class CartService : ICartService
     private readonly IRepository<CartItem> _cartItemRepository;
     private readonly IRepository<Product> _productRepository;
     private readonly IMapper _mapper;
+    private readonly IDiscountService _discountService;
+    private readonly IRepository<Discount> _discountRepository;
 
-    public CartService(IRepository<CartItem> cartItemRepository, IRepository<Product> productRepository, IMapper mapper)
+    public CartService(IRepository<CartItem> cartItemRepository, IRepository<Product> productRepository, IMapper mapper, IDiscountService discountService, IRepository<Discount> discountRepository)
     {
         _cartItemRepository = cartItemRepository;
         _productRepository = productRepository;
         _mapper = mapper;
+        _discountService = discountService;
+        _discountRepository = discountRepository;
     }
 
     public IQueryable<CartItemDto> GetCartQuery(int userId)
     {
-        return _cartItemRepository.Entities
+        var cartItems = _cartItemRepository.Entities
+            .Include(x => x.Product)
+                .ThenInclude(p => p.Discount)
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
-            .ProjectTo<CartItemDto>(_mapper.ConfigurationProvider);
+            .ToList();
+
+        var dtos = _mapper.Map<List<CartItemDto>>(cartItems);
+        
+        foreach (var dto in dtos)
+        {
+            var cartItem = cartItems.First(x => x.CartItemId == dto.CartItemId);
+            if (cartItem.Product != null)
+            {
+                var discountedPrice = _discountService.GetDiscountedPrice(cartItem.Product);
+                dto.Price = discountedPrice;
+                dto.LineTotal = discountedPrice * dto.Quantity;
+            }
+        }
+
+        return dtos.AsQueryable();
     }
 
     public async Task AddToCartAsync(int userId, AddToCartRequest request)

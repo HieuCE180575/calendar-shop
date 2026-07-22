@@ -12,8 +12,14 @@ import '../../../review/presentation/widgets/write_review_dialog.dart';
 
 final myOrdersProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.dio.get('/orders/mine');
-  return response.data as List<dynamic>;
+  final response = await apiClient.dio.get('/orders/mine', queryParameters: {'\$orderby': 'CreatedAt desc'});
+  
+  if (response.data is Map && (response.data as Map).containsKey('value')) {
+    return response.data['value'] as List<dynamic>;
+  } else if (response.data is List) {
+    return response.data as List<dynamic>;
+  }
+  return [];
 });
 
 class MyOrdersPage extends ConsumerStatefulWidget {
@@ -62,20 +68,33 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/products');
+            }
+          },
+        ),
+        title: const Text(
+          'Đơn hàng của tôi',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textMuted,
+          indicatorColor: AppColors.primary,
+          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+          onTap: (_) => setState(() {}),
+        ),
+      ),
       body: Column(
         children: [
-          Material(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textMuted,
-              indicatorColor: AppColors.primary,
-              tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
-              onTap: (_) => setState(() {}),
-            ),
-          ),
           Expanded(
             child: ordersAsync.when(
         data: (allOrders) {
@@ -160,6 +179,7 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
+                                  mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
@@ -261,24 +281,19 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> with SingleTickerPr
                               elevation: 0,
                             ),
                             onPressed: () async {
-                              final cartState = ref.read(cartProvider);
-                              if (cartState.hasValue) {
-                                for (var existing in cartState.value!) {
-                                  try {
-                                    await ref.read(cartProvider.notifier).removeItem(existing.cartItemId);
-                                  } catch (_) {}
+                              final apiClient = ref.read(apiClientProvider);
+                              try {
+                                await apiClient.dio.post('/orders/${order['orderId']}/reorder');
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Đã thêm sản phẩm vào giỏ hàng!')),
+                                  );
+                                  context.push('/cart');
                                 }
-                              }
-                              for (var item in items) {
-                                try {
-                                  await ref.read(cartProvider.notifier).addItem(
-                                        item['productId'],
-                                        item['quantity'] ?? 1,
-                                      );
-                                } catch (_) {}
-                              }
-                              if (context.mounted) {
-                                context.go('/cart');
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+                                }
                               }
                             },
                             icon: const Icon(Icons.replay, size: 16),
