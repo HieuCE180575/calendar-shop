@@ -2,7 +2,7 @@ namespace CalendarShop.Api.Options;
 
 public class LocalLlmSettings
 {
-    public bool Enabled { get; set; } = false;
+    public bool Enabled { get; set; } = true;
     public string BaseUrl { get; set; } = "http://localhost:1234/v1";
     public string ChatCompletionsPath { get; set; } = "/chat/completions";
     public string? ApiKey { get; set; } = "ollama";

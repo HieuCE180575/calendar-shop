@@ -53,7 +53,6 @@ public class ChatAssistantService : IChatAssistantService
 
     private readonly IRepository<Product> _productRepository;
     private readonly IRepository<Coupon> _couponRepository;
-    private readonly IRepository<Order> _orderRepository;
     private readonly IDiscountService _discountService;
     private readonly ILocalLlmService _localLlmService;
     private readonly LocalLlmSettings _llmSettings;
@@ -61,14 +60,12 @@ public class ChatAssistantService : IChatAssistantService
     public ChatAssistantService(
         IRepository<Product> productRepository,
         IRepository<Coupon> couponRepository,
-        IRepository<Order> orderRepository,
         IDiscountService discountService,
         ILocalLlmService localLlmService,
         IOptions<LocalLlmSettings> llmSettings)
     {
         _productRepository = productRepository;
         _couponRepository = couponRepository;
-        _orderRepository = orderRepository;
         _discountService = discountService;
         _localLlmService = localLlmService;
         _llmSettings = llmSettings.Value;
@@ -88,7 +85,7 @@ public class ChatAssistantService : IChatAssistantService
         var allProducts = await _productRepository.Entities
             .Include(x => x.Category)
             .Include(x => x.Discount)
-            .Where(x => !x.IsDeleted && x.Status != "Hidden")
+            .Where(x => !x.IsDeleted && x.Category != null && x.Category.Status == "Active")
             .ToListAsync(cancellationToken);
 
         var aggregateAnswer = await TryBuildAggregateAnswerAsync(
@@ -150,6 +147,11 @@ public class ChatAssistantService : IChatAssistantService
             .OrderByDescending(x => x.StockQuantity)
             .ToList();
 
+        var outOfStockProducts = filteredProducts
+            .Where(x => x.Status == "OutOfStock" || x.StockQuantity <= 0)
+            .OrderBy(x => x.ProductName)
+            .ToList();
+
         var pricedProducts = filteredProducts
             .Select(product => new
             {
@@ -161,16 +163,32 @@ public class ChatAssistantService : IChatAssistantService
 
         if (IsProductListIntent(normalizedQuery))
         {
-            var examples = filteredProducts.Take(4).ToList();
+            var sellableProducts = filteredProducts
+                .Where(x => x.Status == "Active" && x.StockQuantity > 0)
+                .ToList();
+            var examples = sellableProducts.Take(4).ToList();
             var names = string.Join(", ", examples.Select(x => x.ProductName));
-            var answer = filteredProducts.Count switch
+            var answer = sellableProducts.Count switch
             {
                 0 => "Hiện tôi chưa thấy sản phẩm nào phù hợp với mô tả này.",
-                <= 4 => $"Hiện cửa hàng có {filteredProducts.Count} sản phẩm phù hợp: {names}.",
-                _ => $"Hiện cửa hàng có {filteredProducts.Count} sản phẩm phù hợp. Một vài sản phẩm tiêu biểu là: {names}."
+                <= 4 => $"Hiện cửa hàng có {sellableProducts.Count} sản phẩm phù hợp: {names}.",
+                _ => $"Hiện cửa hàng có {sellableProducts.Count} sản phẩm phù hợp. Một vài sản phẩm tiêu biểu là: {names}."
             };
 
             return new ChatAnswerDto(answer);
+        }
+
+        if (IsOutOfStockIntent(normalizedQuery))
+        {
+            if (outOfStockProducts.Count == 0)
+            {
+                return new ChatAnswerDto("Hiện tôi chưa thấy sản phẩm nào hết hàng trong nhóm bạn đang hỏi.");
+            }
+
+            var examples = outOfStockProducts.Take(3).ToList();
+            var exampleText = string.Join(", ", examples.Select(x => x.ProductName));
+            return new ChatAnswerDto(
+                $"Hiện có {outOfStockProducts.Count} sản phẩm hết hàng trong nhóm này. Ví dụ: {exampleText}.");
         }
 
         if (IsInventoryIntent(normalizedQuery))
@@ -222,18 +240,8 @@ public class ChatAssistantService : IChatAssistantService
 
         if (IsLatestSalesIntent(normalizedQuery))
         {
-            var latestOrder = await _orderRepository.Entities
-                .Where(x => x.Status != "Cancelled")
-                .OrderByDescending(x => x.CreatedAt)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (latestOrder == null)
-            {
-                return new ChatAnswerDto("Hiện tại tôi chưa tìm thấy dữ liệu đơn hàng gần đây.");
-            }
-
             return new ChatAnswerDto(
-                $"Đơn hàng gần nhất trong hệ thống được ghi nhận vào {latestOrder.CreatedAt:dd/MM/yyyy HH:mm} với trạng thái {latestOrder.Status}.");
+                "Tôi không thể cung cấp thông tin đơn hàng gần đây trong khung chat công khai. Bạn có thể xem đơn hàng của mình trong mục Đơn hàng, hoặc xem báo cáo trong trang quản trị nếu là admin.");
         }
 
         return null;
@@ -525,8 +533,15 @@ CÂU HỎI:
     {
         return normalizedQuery.Contains("inventory", StringComparison.Ordinal) ||
                normalizedQuery.Contains("stock_available", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("stock_unavailable", StringComparison.Ordinal) ||
                normalizedQuery.Contains("ton kho", StringComparison.Ordinal) ||
                normalizedQuery.Contains("con hang", StringComparison.Ordinal);
+    }
+
+    private static bool IsOutOfStockIntent(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("stock_unavailable", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("het hang", StringComparison.Ordinal);
     }
 
     private static bool IsGenericInventoryQuestion(string normalizedQuery)
