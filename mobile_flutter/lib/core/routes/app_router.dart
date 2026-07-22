@@ -34,6 +34,7 @@ import '../../features/product/domain/entities/product.dart';
 import '../../features/product/presentation/pages/admin_product_form_page.dart';
 import '../../features/product/presentation/pages/admin_product_list_page.dart';
 import '../../features/product/presentation/pages/product_detail_page.dart';
+import '../../features/product/presentation/pages/ar_preview_page.dart';
 import '../../features/admin/domain/entities/admin_discount.dart';
 import '../../features/admin/presentation/pages/orders/admin_order_detail_page.dart';
 import '../../features/admin/domain/entities/admin_order.dart';
@@ -84,6 +85,13 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
         return ProductDetailPage(productId: id);
+      },
+    ),
+    GoRoute(
+      path: '/products/:id/ar-preview',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return ARPreviewPage(productId: id);
       },
     ),
     GoRoute(path: '/checkout', builder: (context, state) => const CheckoutPage()),
