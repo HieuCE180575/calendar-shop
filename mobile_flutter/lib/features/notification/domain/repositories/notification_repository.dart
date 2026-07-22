@@ -6,4 +6,5 @@ abstract class NotificationRepository {
   Future<void> markAllAsRead();
   Future<void> registerFcmToken(String token);
   Future<void> triggerHolidayReminders();
+  Future<void> deleteNotification(int id);
 }

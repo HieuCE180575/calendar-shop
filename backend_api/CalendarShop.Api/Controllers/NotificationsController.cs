@@ -52,4 +52,11 @@ public class NotificationsController : AppControllerBase
         await _notificationService.SendDailyHolidayRemindersAsync();
         return Ok(new { Message = "Đã chạy kiểm tra nhắc nhở ngày lễ thành công." });
     }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteNotification(int id)
+    {
+        await _notificationService.DeleteNotificationAsync(id, CurrentUserId);
+        return NoContent();
+    }
 }

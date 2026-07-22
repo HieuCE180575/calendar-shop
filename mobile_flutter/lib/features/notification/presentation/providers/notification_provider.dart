@@ -78,6 +78,23 @@ class NotificationNotifier extends _$NotificationNotifier {
     await ref.read(notificationRepositoryProvider).triggerHolidayReminders();
     await refresh();
   }
+
+  /// Xóa thông báo
+  Future<void> deleteNotification(int notificationId) async {
+    if (!state.hasValue) return;
+
+    final currentList = state.value!;
+    final updatedList = currentList.where((item) => item.notificationId != notificationId).toList();
+
+    state = AsyncValue.data(updatedList);
+
+    try {
+      await ref.read(notificationRepositoryProvider).deleteNotification(notificationId);
+    } catch (e) {
+      state = AsyncValue.data(currentList);
+      rethrow;
+    }
+  }
 }
 
 /// Provider tính số lượng thông báo chưa đọc hiển thị ở badge.

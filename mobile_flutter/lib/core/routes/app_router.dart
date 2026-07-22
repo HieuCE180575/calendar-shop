@@ -134,9 +134,6 @@ final appRouter = GoRouter(
     ),
     GoRoute(path: '/admin', builder: (context, state) => const AdminHomePage()),
     GoRoute(
-        path: '/admin/orders',
-        builder: (context, state) => const AdminOrderListPage()),
-    GoRoute(
         path: '/admin/users',
         builder: (context, state) => const AdminUserListPage()),
     GoRoute(

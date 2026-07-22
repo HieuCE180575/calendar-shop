@@ -33,4 +33,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<void> triggerHolidayReminders() async {
     await remoteDataSource.triggerHolidayReminders();
   }
+
+  @override
+  Future<void> deleteNotification(int id) async {
+    await remoteDataSource.deleteNotification(id);
+  }
 }

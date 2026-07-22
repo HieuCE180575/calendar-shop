@@ -123,7 +123,6 @@ class AdminHomePage extends ConsumerWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
@@ -134,7 +133,11 @@ class AdminHomePage extends ConsumerWidget {
           ),
         ],
       ),
-      child: ListTile(
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 8,
@@ -168,6 +171,7 @@ class AdminHomePage extends ConsumerWidget {
           color: AppColors.textMuted,
         ),
         onTap: () => context.push(route),
+        ),
       ),
     );
   }

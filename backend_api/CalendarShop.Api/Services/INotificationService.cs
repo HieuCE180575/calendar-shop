@@ -11,4 +11,5 @@ public interface INotificationService
     Task<NotificationDto> CreateNotificationAsync(int userId, string title, string content, string type);
     Task RegisterFcmTokenAsync(int userId, string fcmToken);
     Task SendDailyHolidayRemindersAsync();
+    Task DeleteNotificationAsync(int notificationId, int userId);
 }

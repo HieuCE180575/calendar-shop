@@ -51,4 +51,12 @@ class NotificationRemoteDataSource {
       throw apiClient.handleError(e);
     }
   }
+
+  Future<void> deleteNotification(int id) async {
+    try {
+      await apiClient.dio.delete('${ApiConstants.notifications}/$id');
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
 }
