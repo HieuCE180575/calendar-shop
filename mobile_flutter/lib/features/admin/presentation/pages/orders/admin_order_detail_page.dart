@@ -6,33 +6,62 @@ import '../../../domain/entities/admin_order.dart';
 import '../../providers/admin_order_provider.dart';
 
 class AdminOrderDetailPage extends ConsumerStatefulWidget {
-  final AdminOrder order;
-  const AdminOrderDetailPage({super.key, required this.order});
+  final AdminOrder? order;
+  final int? orderId;
+  const AdminOrderDetailPage({super.key, this.order, this.orderId});
 
   @override
   ConsumerState<AdminOrderDetailPage> createState() => _AdminOrderDetailPageState();
 }
 
 class _AdminOrderDetailPageState extends ConsumerState<AdminOrderDetailPage> {
-  late AdminOrder _order;
+  AdminOrder? _order;
   bool _isLoading = false;
+  bool _isFetching = false;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _order = widget.order;
+    if (_order == null && widget.orderId != null) {
+      _fetchOrder();
+    }
+  }
+
+  Future<void> _fetchOrder() async {
+    setState(() {
+      _isFetching = true;
+      _errorMessage = null;
+    });
+    try {
+      final fetchedOrder = await ref.read(getAdminOrderByIdUseCaseProvider)(widget.orderId!);
+      setState(() {
+        _order = fetchedOrder;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isFetching = false;
+        });
+      }
+    }
   }
 
   Future<void> _updateStatus(String newStatus) async {
     setState(() => _isLoading = true);
     try {
-      final success = await ref.read(adminOrderActionProvider.notifier).updateStatus(_order.orderId, newStatus);
+      final success = await ref.read(adminOrderActionProvider.notifier).updateStatus(_order!.orderId, newStatus);
       if (!success) {
         throw Exception('Cập nhật trạng thái thất bại');
       }
       // Update local state
       setState(() {
-        _order = _order.copyWith(status: newStatus);
+        _order = _order!.copyWith(status: newStatus);
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -54,12 +83,29 @@ class _AdminOrderDetailPageState extends ConsumerState<AdminOrderDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isFetching) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (_errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết đơn hàng')),
+        body: Center(child: Text('Lỗi: $_errorMessage')),
+      );
+    }
+    if (_order == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết đơn hàng')),
+        body: const Center(child: Text('Không tìm thấy đơn hàng')),
+      );
+    }
+
     final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
+    final order = _order!;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: Text('Đơn #${_order.orderId}'),
+        title: Text('Đơn #${order.orderId}'),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -80,30 +126,30 @@ class _AdminOrderDetailPageState extends ConsumerState<AdminOrderDetailPage> {
                   _buildCard(
                     children: [
                       _buildSectionTitle('Thông tin giao hàng'),
-                      _buildInfoRow('Tên khách hàng:', _order.customerName),
-                      _buildInfoRow('Số điện thoại:', _order.customerPhone),
-                      _buildInfoRow('Địa chỉ giao:', _order.shippingAddress),
+                      _buildInfoRow('Tên khách hàng:', order.customerName),
+                      _buildInfoRow('Số điện thoại:', order.customerPhone),
+                      _buildInfoRow('Địa chỉ giao:', order.shippingAddress),
                     ],
                   ),
                   const SizedBox(height: 16),
                   _buildCard(
                     children: [
                       _buildSectionTitle('Thông tin thanh toán'),
-                      _buildInfoRow('Tạm tính:', formatCurrency.format(_order.subTotal)),
-                      _buildInfoRow('Giảm giá:', '- ${formatCurrency.format(_order.discountAmount)}', color: Colors.green),
-                      _buildInfoRow('Phí vận chuyển:', formatCurrency.format(_order.shippingFee)),
+                      _buildInfoRow('Tạm tính:', formatCurrency.format(order.subTotal)),
+                      _buildInfoRow('Giảm giá:', '- ${formatCurrency.format(order.discountAmount)}', color: Colors.green),
+                      _buildInfoRow('Phí vận chuyển:', formatCurrency.format(order.shippingFee)),
                       const Divider(height: 24),
-                      _buildInfoRow('Tổng thanh toán:', formatCurrency.format(_order.totalAmount), isBold: true, color: Colors.blue.shade700, size: 18),
+                      _buildInfoRow('Tổng thanh toán:', formatCurrency.format(order.totalAmount), isBold: true, color: Colors.blue.shade700, size: 18),
                       const SizedBox(height: 8),
-                      _buildInfoRow('Phương thức:', _order.paymentMethod),
-                      _buildInfoRow('Trạng thái:', _order.status, isBold: true, color: Colors.orange),
+                      _buildInfoRow('Phương thức:', order.paymentMethod),
+                      _buildInfoRow('Trạng thái:', order.status, isBold: true, color: Colors.orange),
                     ],
                   ),
                   const SizedBox(height: 16),
                   _buildCard(
                     children: [
-                      _buildSectionTitle('Sản phẩm (${_order.items.length})'),
-                      ..._order.items.map((item) {
+                      _buildSectionTitle('Sản phẩm (${order.items.length})'),
+                      ...order.items.map((item) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Row(
@@ -128,7 +174,7 @@ class _AdminOrderDetailPageState extends ConsumerState<AdminOrderDetailPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  _buildActionButtons(),
+                  _buildActionButtons(order),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -190,7 +236,7 @@ class _AdminOrderDetailPageState extends ConsumerState<AdminOrderDetailPage> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(AdminOrder order) {
     List<Widget> buttons = [];
     final buttonStyle = ElevatedButton.styleFrom(
       backgroundColor: Colors.blue.shade700,
@@ -200,7 +246,7 @@ class _AdminOrderDetailPageState extends ConsumerState<AdminOrderDetailPage> {
       elevation: 0,
     );
 
-    if (_order.status == 'Pending') {
+    if (order.status == 'Pending') {
       buttons.add(Expanded(
         child: ElevatedButton(
           style: buttonStyle,
@@ -222,15 +268,15 @@ class _AdminOrderDetailPageState extends ConsumerState<AdminOrderDetailPage> {
           child: const Text('Hủy Đơn', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ),
       ));
-    } else if (_order.status == 'Confirmed') {
+    } else if (order.status == 'Confirmed') {
       buttons.add(Expanded(
         child: ElevatedButton(
-          style: buttonStyle,
+          style: buttonStyle.copyWith(backgroundColor: WidgetStateProperty.all(Colors.orange)),
           onPressed: () => _updateStatus('Shipping'),
-          child: const Text('Bắt đầu Giao hàng', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          child: const Text('Giao hàng', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ));
-    } else if (_order.status == 'Shipping') {
+    } else if (order.status == 'Shipping') {
       buttons.add(Expanded(
         child: ElevatedButton(
           style: buttonStyle,

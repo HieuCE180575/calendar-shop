@@ -10,6 +10,7 @@ import '../../domain/usecases/create_order_usecase.dart';
 import '../../domain/usecases/get_vnpay_url_usecase.dart';
 import '../../domain/usecases/reorder_usecase.dart';
 import '../../domain/entities/order.dart';
+import '../../../../features/cart/presentation/providers/cart_provider.dart';
 
 part 'order_provider.g.dart';
 
@@ -96,6 +97,7 @@ class ReorderAction extends _$ReorderAction {
 
   Future<void> reorder(int orderId) async {
     await ref.read(reorderUseCaseProvider)(orderId);
+    await ref.refresh(cartProvider.future);
   }
 }
 

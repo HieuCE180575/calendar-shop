@@ -9,9 +9,7 @@ part of 'notification_provider.dart';
 String _$notificationRemoteDataSourceHash() =>
     r'b4ecfabe042804706b00c22d998757fed13ac21f';
 
-/// Provider cho NotificationRemoteDataSource
-///
-/// Copied from [notificationRemoteDataSource].
+/// See also [notificationRemoteDataSource].
 @ProviderFor(notificationRemoteDataSource)
 final notificationRemoteDataSourceProvider =
     AutoDisposeProvider<NotificationRemoteDataSource>.internal(
@@ -29,9 +27,7 @@ typedef NotificationRemoteDataSourceRef
 String _$notificationRepositoryHash() =>
     r'35360102a5296871af20127eb69efc8f7b2ba49a';
 
-/// Provider cho NotificationRepository
-///
-/// Copied from [notificationRepository].
+/// See also [notificationRepository].
 @ProviderFor(notificationRepository)
 final notificationRepositoryProvider =
     AutoDisposeProvider<NotificationRepository>.internal(
@@ -49,7 +45,7 @@ typedef NotificationRepositoryRef
 String _$unreadNotificationsCountHash() =>
     r'297370acd96bd00df35e5d75fc878bdbd04cd568';
 
-/// Provider tính toán số lượng thông báo chưa đọc hiển thị ở badge
+/// Provider tính số lượng thông báo chưa đọc hiển thị ở badge.
 ///
 /// Copied from [unreadNotificationsCount].
 @ProviderFor(unreadNotificationsCount)
@@ -65,9 +61,9 @@ final unreadNotificationsCountProvider = AutoDisposeProvider<int>.internal(
 
 typedef UnreadNotificationsCountRef = AutoDisposeProviderRef<int>;
 String _$notificationNotifierHash() =>
-    r'788aa2c5da5f7b1c5b351892c3e3cd068ad43359';
+    r'bca6741e5c9996ed3f5bde60496fdbd5fd611824';
 
-/// Notifier quản lý danh sách thông báo của người dùng
+/// Notifier quản lý danh sách thông báo của người dùng.
 ///
 /// Copied from [NotificationNotifier].
 @ProviderFor(NotificationNotifier)

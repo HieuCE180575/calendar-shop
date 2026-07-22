@@ -27,6 +27,16 @@ class AdminOrderRepositoryImpl implements AdminOrderRepository {
   }
 
   @override
+  Future<AdminOrder> getOrderById(int id) async {
+    try {
+      final model = await remoteDataSource.getOrderById(id);
+      return model.toEntity();
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
+
+  @override
   Future<void> updateOrderStatus(int id, String status, {String? note}) async {
     try {
       await remoteDataSource.updateOrderStatus(id, status, note: note);

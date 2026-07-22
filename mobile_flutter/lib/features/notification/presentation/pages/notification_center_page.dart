@@ -222,10 +222,7 @@ class NotificationCenterPage extends ConsumerWidget {
                                 if (orderIdStr != null) {
                                   // If admin, go to admin order detail, otherwise user order detail
                                   if (isAdmin) {
-                                    // Notice: we need admin order entity to pass, or use id path
-                                    // Current route expects state.extra as AdminOrder which we don't have.
-                                    // It's safer to let them stay or handle admin routing differently.
-                                    // But user side:
+                                    context.push('/admin/orders/$orderIdStr');
                                   } else {
                                     context.push('/orders/$orderIdStr');
                                   }

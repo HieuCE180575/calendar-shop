@@ -59,6 +59,24 @@ final getAdminOrdersUseCaseProvider =
 
 typedef GetAdminOrdersUseCaseRef
     = AutoDisposeProviderRef<GetAdminOrdersUseCase>;
+String _$getAdminOrderByIdUseCaseHash() =>
+    r'3b6f039ce5e1d7a596651395c80790996385bbf8';
+
+/// See also [getAdminOrderByIdUseCase].
+@ProviderFor(getAdminOrderByIdUseCase)
+final getAdminOrderByIdUseCaseProvider =
+    AutoDisposeProvider<GetAdminOrderByIdUseCase>.internal(
+  getAdminOrderByIdUseCase,
+  name: r'getAdminOrderByIdUseCaseProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$getAdminOrderByIdUseCaseHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef GetAdminOrderByIdUseCaseRef
+    = AutoDisposeProviderRef<GetAdminOrderByIdUseCase>;
 String _$updateAdminOrderStatusUseCaseHash() =>
     r'5950308d3f8b28a641dffe87a85f89c187a9ec08';
 

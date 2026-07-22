@@ -26,6 +26,7 @@ public class OrderService : IOrderService
     private readonly IConfiguration _configuration;
     private readonly ILogger<OrderService> _logger;
     private readonly INotificationService _notificationService;
+    private readonly IRepository<User> _userRepository;
 
     public OrderService(
         IRepository<Order> orderRepository,
@@ -37,7 +38,8 @@ public class OrderService : IOrderService
         ILogger<OrderService> logger,
         IDiscountService discountService,
         IRepository<Discount> discountRepository,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IRepository<User> userRepository)
     {
         _orderRepository = orderRepository;
         _cartItemRepository = cartItemRepository;
@@ -49,6 +51,7 @@ public class OrderService : IOrderService
         _configuration = configuration;
         _logger = logger;
         _notificationService = notificationService;
+        _userRepository = userRepository;
     }
 
     public async Task<OrderDto> CreateOrderAsync(int userId, CreateOrderRequest request)
@@ -163,6 +166,27 @@ public class OrderService : IOrderService
         await _orderRepository.AddAsync(order);
         _cartItemRepository.RemoveRange(cartItems);
         await _orderRepository.SaveChangesAsync();
+
+        if (request.PaymentMethod != "VNPay")
+        {
+            await _notificationService.CreateNotificationAsync(
+                userId,
+                "Đặt hàng thành công",
+                $"Đơn hàng #{order.OrderId} của bạn đã được đặt thành công. Chúng tôi sẽ sớm xử lý.",
+                "OrderUpdate"
+            );
+
+            var adminUsers = await _userRepository.Entities.Where(u => u.Role == "Admin").ToListAsync();
+            foreach (var admin in adminUsers)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    admin.UserId,
+                    "Đơn hàng mới",
+                    $"Khách hàng {order.CustomerName} vừa đặt đơn hàng mới #{order.OrderId}.",
+                    "OrderUpdate"
+                );
+            }
+        }
 
         return await GetOrderByIdAsync(userId, order.OrderId);
     }
@@ -414,6 +438,20 @@ public class OrderService : IOrderService
                 cbContent,
                 "OrderUpdate"
             );
+
+            if (isSuccess)
+            {
+                var adminUsers = await _userRepository.Entities.Where(u => u.Role == "Admin").ToListAsync();
+                foreach (var admin in adminUsers)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        admin.UserId,
+                        "Đơn hàng mới",
+                        $"Khách hàng {order.CustomerName} vừa thanh toán thành công VNPay cho đơn hàng mới #{order.OrderId}.",
+                        "OrderUpdate"
+                    );
+                }
+            }
         }
         catch (Exception ex)
         {

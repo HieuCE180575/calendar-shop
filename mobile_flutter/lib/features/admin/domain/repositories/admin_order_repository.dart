@@ -6,5 +6,7 @@ abstract class AdminOrderRepository {
     String? status,
   });
 
+  Future<AdminOrder> getOrderById(int id);
+
   Future<void> updateOrderStatus(int id, String status, {String? note});
 }

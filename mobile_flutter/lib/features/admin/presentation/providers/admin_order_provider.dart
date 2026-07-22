@@ -5,6 +5,7 @@ import '../../domain/repositories/admin_order_repository.dart';
 import '../../data/datasources/admin_order_remote_datasource.dart';
 import '../../data/repositories/admin_order_repository_impl.dart';
 import '../../domain/usecases/get_admin_orders_usecase.dart';
+import '../../domain/usecases/get_admin_order_by_id_usecase.dart';
 import '../../domain/usecases/update_admin_order_status_usecase.dart';
 
 part 'admin_order_provider.g.dart';
@@ -28,6 +29,11 @@ AdminOrderRepository adminOrderRepository(AdminOrderRepositoryRef ref) {
 @riverpod
 GetAdminOrdersUseCase getAdminOrdersUseCase(GetAdminOrdersUseCaseRef ref) {
   return GetAdminOrdersUseCase(ref.watch(adminOrderRepositoryProvider));
+}
+
+@riverpod
+GetAdminOrderByIdUseCase getAdminOrderByIdUseCase(GetAdminOrderByIdUseCaseRef ref) {
+  return GetAdminOrderByIdUseCase(ref.watch(adminOrderRepositoryProvider));
 }
 
 @riverpod
