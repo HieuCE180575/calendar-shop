@@ -45,4 +45,24 @@ class AdminOrderRemoteDataSource {
       'note': note,
     });
   }
+
+  Future<AdminOrderModel> getOrderById(int id) async {
+    final response = await apiClient.dio.get('${ApiConstants.orders}/admin', queryParameters: {
+      '\$filter': 'OrderId eq $id',
+    });
+
+    final List dataList;
+    if (response.data is Map && (response.data as Map).containsKey('value')) {
+      dataList = response.data['value'] as List;
+    } else if (response.data is List) {
+      dataList = response.data as List;
+    } else {
+      dataList = [];
+    }
+
+    if (dataList.isEmpty) {
+      throw Exception('Không tìm thấy đơn hàng');
+    }
+    return AdminOrderModel.fromJson(dataList.first);
+  }
 }
