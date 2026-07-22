@@ -1,5 +1,6 @@
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
+import '../models/checked_coupon_model.dart';
 import '../models/cart_item_model.dart';
 
 /// Lớp chịu trách nhiệm gọi các API thô liên quan đến giỏ hàng từ Server.
@@ -60,6 +61,22 @@ class CartRemoteDataSource {
   Future<void> deleteCartItem(int cartItemId) async {
     try {
       await apiClient.dio.delete('${ApiConstants.cart}/$cartItemId');
+    } catch (e) {
+      throw apiClient.handleError(e);
+    }
+  }
+
+  Future<CheckedCouponModel> checkCoupon(String code, double subTotal) async {
+    try {
+      final response = await apiClient.dio.get(
+        '${ApiConstants.coupons}/check',
+        queryParameters: {
+          'code': code,
+          'subTotal': subTotal,
+        },
+      );
+
+      return CheckedCouponModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       throw apiClient.handleError(e);
     }

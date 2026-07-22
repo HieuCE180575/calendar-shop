@@ -96,6 +96,11 @@ public class CouponService : ICouponService
 
     public async Task<CouponDto> CheckCouponAsync(string code, decimal subTotal)
     {
+        if (subTotal <= 0)
+        {
+            throw new InvalidOperationException("Giá trị đơn hàng phải lớn hơn 0.");
+        }
+
         var normalizedCode = NormalizeCode(code);
         var coupon = await _couponRepository.Entities
             .FirstOrDefaultAsync(x => x.Code == normalizedCode && x.Status == "Active");

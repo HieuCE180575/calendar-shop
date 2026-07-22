@@ -25,8 +25,20 @@ public class PaymentController : AppControllerBase
     [HttpGet("vnpay/{orderId}")]
     public async Task<IActionResult> GenerateVNPayUrl(int orderId)
     {
+        await _orderService.ExpirePendingVNPayOrdersAsync(HttpContext.RequestAborted);
+
         var order = await _orderService.GetOrderByIdAsync(CurrentUserId, orderId);
         if (order == null) return NotFound();
+
+        if (order.PaymentMethod != "VNPay")
+        {
+            return BadRequest("Order does not use VNPay payment method.");
+        }
+
+        if (order.Status != "Pending")
+        {
+            return BadRequest("Only pending orders can be paid through VNPay.");
+        }
 
         var paymentUrl = _vnpayService.CreatePaymentUrl(order, HttpContext);
         return Ok(new { Url = paymentUrl });

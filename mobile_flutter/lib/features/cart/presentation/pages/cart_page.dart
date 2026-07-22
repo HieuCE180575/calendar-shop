@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
-import '../../../../core/providers/core_providers.dart';
 import '../../../../core/widgets/quantity_selector.dart';
 import '../../domain/entities/cart_item.dart';
 import '../providers/cart_provider.dart';
@@ -26,21 +24,8 @@ class _CartPageState extends ConsumerState<CartPage> {
 
   Future<void> _checkCoupon(String code, double cartTotal) async {
     try {
-      final apiClient = ref.read(apiClientProvider);
-      final response = await apiClient.dio.get('/coupons/check', queryParameters: {
-        'code': code,
-        'subTotal': cartTotal,
-      });
-      final data = response.data;
-      final type = data['discountType'];
-      final value = data['discountValue'] as num;
-
-      double discount = 0;
-      if (type == 'Percent') {
-        discount = cartTotal * (value / 100);
-      } else {
-        discount = value.toDouble();
-      }
+      final coupon = await ref.read(cartProvider.notifier).checkCoupon(code, cartTotal);
+      final discount = coupon.calculateDiscount(cartTotal);
 
       setState(() {
         _couponCode = code;
@@ -56,12 +41,7 @@ class _CartPageState extends ConsumerState<CartPage> {
     } catch (e) {
       if (mounted) {
         String errorMessage = 'Có lỗi xảy ra khi kiểm tra mã';
-        if (e is DioException && e.response?.data != null) {
-          final data = e.response!.data;
-          errorMessage = data is String ? data : data.toString();
-        } else {
-          errorMessage = e.toString();
-        }
+        errorMessage = e.toString();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMessage), backgroundColor: AppColors.danger),
@@ -134,7 +114,6 @@ class _CartPageState extends ConsumerState<CartPage> {
     final cartTotal = ref.watch(cartTotalProvider);
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
 
-    final itemCount = cartState.value?.length ?? 0;
     final finalTotal = (cartTotal - _discountAmount) > 0 ? (cartTotal - _discountAmount) : 0.0;
 
     return Scaffold(
@@ -329,7 +308,7 @@ class _CartPageState extends ConsumerState<CartPage> {
                         onSelected: (val) => setState(() => _paymentMethod = val),
                         itemBuilder: (ctx) => [
                           const PopupMenuItem<String>(value: 'COD', child: Text('Thanh toán COD')),
-                          const PopupMenuItem<String>(value: 'VNPAY', child: Text('Ví VNPay')),
+                          const PopupMenuItem<String>(value: 'VNPay', child: Text('Ví VNPay')),
                         ],
                         child: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
                       ),

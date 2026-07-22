@@ -11,11 +11,16 @@ namespace CalendarShop.Api.Services;
 public class CategoryService : ICategoryService
 {
     private readonly IRepository<Category> _categoryRepository;
+    private readonly IRepository<Product> _productRepository;
     private readonly IMapper _mapper;
 
-    public CategoryService(IRepository<Category> categoryRepository, IMapper mapper)
+    public CategoryService(
+        IRepository<Category> categoryRepository,
+        IRepository<Product> productRepository,
+        IMapper mapper)
     {
         _categoryRepository = categoryRepository;
+        _productRepository = productRepository;
         _mapper = mapper;
     }
 
@@ -45,6 +50,12 @@ public class CategoryService : ICategoryService
         _mapper.Map(request, category);
         category.UpdatedAt = DateTime.UtcNow;
         _categoryRepository.Update(category);
+
+        if (category.Status == "Hidden")
+        {
+            await HideActiveProductsInCategoryAsync(id);
+        }
+
         await _categoryRepository.SaveChangesAsync();
     }
 
@@ -58,6 +69,23 @@ public class CategoryService : ICategoryService
         category.Status = "Hidden";
         category.UpdatedAt = DateTime.UtcNow;
         _categoryRepository.Update(category);
+
+        await HideActiveProductsInCategoryAsync(id);
+
         await _categoryRepository.SaveChangesAsync();
+    }
+
+    private async Task HideActiveProductsInCategoryAsync(int categoryId)
+    {
+        var activeProducts = await _productRepository.Entities
+            .Where(x => x.CategoryId == categoryId && !x.IsDeleted && x.Status == "Active")
+            .ToListAsync();
+
+        foreach (var product in activeProducts)
+        {
+            product.Status = "Hidden";
+            product.UpdatedAt = DateTime.UtcNow;
+            _productRepository.Update(product);
+        }
     }
 }

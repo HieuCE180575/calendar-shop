@@ -1,4 +1,5 @@
 import '../entities/cart_item.dart';
+import '../entities/checked_coupon.dart';
 
 /// Hợp đồng nghiệp vụ giỏ hàng ở tầng Domain.
 /// Định nghĩa các hành vi nghiệp vụ mà Frontend cần sử dụng.
@@ -14,4 +15,6 @@ abstract class CartRepository {
 
   /// Xóa bỏ hoàn toàn một sản phẩm ra khỏi giỏ hàng
   Future<void> deleteCartItem(int cartItemId);
+
+  Future<CheckedCoupon> checkCoupon(String code, double subTotal);
 }

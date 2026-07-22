@@ -7,7 +7,9 @@ import '../../domain/usecases/get_cart_usecase.dart';
 import '../../domain/usecases/add_to_cart_usecase.dart';
 import '../../domain/usecases/update_cart_item_usecase.dart';
 import '../../domain/usecases/delete_cart_item_usecase.dart';
+import '../../domain/usecases/check_coupon_usecase.dart';
 import '../../domain/entities/cart_item.dart';
+import '../../domain/entities/checked_coupon.dart';
 
 part 'cart_provider.g.dart';
 
@@ -138,6 +140,11 @@ class Cart extends _$Cart {
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
+  }
+
+  Future<CheckedCoupon> checkCoupon(String code, double subTotal) {
+    final useCase = CheckCouponUseCase(ref.read(cartRepositoryProvider));
+    return useCase(code, subTotal);
   }
 }
 
