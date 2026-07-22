@@ -25,6 +25,12 @@ mixin _$AdminDashboardStatsModel {
   double get totalRevenue => throw _privateConstructorUsedError;
   int get totalOrders => throw _privateConstructorUsedError;
   int get totalProductsSold => throw _privateConstructorUsedError;
+  double get totalOrdersGrowth => throw _privateConstructorUsedError;
+  double get totalRevenueGrowth => throw _privateConstructorUsedError;
+  int get newProductsCount => throw _privateConstructorUsedError;
+  int get totalProducts => throw _privateConstructorUsedError;
+  int get totalOutOfStock => throw _privateConstructorUsedError;
+  int get totalLowStock => throw _privateConstructorUsedError;
   List<StatusCountModel> get ordersByStatus =>
       throw _privateConstructorUsedError;
   List<BestSellingProductModel> get bestSelling =>
@@ -54,6 +60,12 @@ abstract class $AdminDashboardStatsModelCopyWith<$Res> {
       double totalRevenue,
       int totalOrders,
       int totalProductsSold,
+      double totalOrdersGrowth,
+      double totalRevenueGrowth,
+      int newProductsCount,
+      int totalProducts,
+      int totalOutOfStock,
+      int totalLowStock,
       List<StatusCountModel> ordersByStatus,
       List<BestSellingProductModel> bestSelling,
       List<RevenueByDayModel> revenueByDay,
@@ -80,6 +92,12 @@ class _$AdminDashboardStatsModelCopyWithImpl<$Res,
     Object? totalRevenue = null,
     Object? totalOrders = null,
     Object? totalProductsSold = null,
+    Object? totalOrdersGrowth = null,
+    Object? totalRevenueGrowth = null,
+    Object? newProductsCount = null,
+    Object? totalProducts = null,
+    Object? totalOutOfStock = null,
+    Object? totalLowStock = null,
     Object? ordersByStatus = null,
     Object? bestSelling = null,
     Object? revenueByDay = null,
@@ -103,6 +121,30 @@ class _$AdminDashboardStatsModelCopyWithImpl<$Res,
       totalProductsSold: null == totalProductsSold
           ? _value.totalProductsSold
           : totalProductsSold // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalOrdersGrowth: null == totalOrdersGrowth
+          ? _value.totalOrdersGrowth
+          : totalOrdersGrowth // ignore: cast_nullable_to_non_nullable
+              as double,
+      totalRevenueGrowth: null == totalRevenueGrowth
+          ? _value.totalRevenueGrowth
+          : totalRevenueGrowth // ignore: cast_nullable_to_non_nullable
+              as double,
+      newProductsCount: null == newProductsCount
+          ? _value.newProductsCount
+          : newProductsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalProducts: null == totalProducts
+          ? _value.totalProducts
+          : totalProducts // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalOutOfStock: null == totalOutOfStock
+          ? _value.totalOutOfStock
+          : totalOutOfStock // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalLowStock: null == totalLowStock
+          ? _value.totalLowStock
+          : totalLowStock // ignore: cast_nullable_to_non_nullable
               as int,
       ordersByStatus: null == ordersByStatus
           ? _value.ordersByStatus
@@ -146,6 +188,12 @@ abstract class _$$AdminDashboardStatsModelImplCopyWith<$Res>
       double totalRevenue,
       int totalOrders,
       int totalProductsSold,
+      double totalOrdersGrowth,
+      double totalRevenueGrowth,
+      int newProductsCount,
+      int totalProducts,
+      int totalOutOfStock,
+      int totalLowStock,
       List<StatusCountModel> ordersByStatus,
       List<BestSellingProductModel> bestSelling,
       List<RevenueByDayModel> revenueByDay,
@@ -171,6 +219,12 @@ class __$$AdminDashboardStatsModelImplCopyWithImpl<$Res>
     Object? totalRevenue = null,
     Object? totalOrders = null,
     Object? totalProductsSold = null,
+    Object? totalOrdersGrowth = null,
+    Object? totalRevenueGrowth = null,
+    Object? newProductsCount = null,
+    Object? totalProducts = null,
+    Object? totalOutOfStock = null,
+    Object? totalLowStock = null,
     Object? ordersByStatus = null,
     Object? bestSelling = null,
     Object? revenueByDay = null,
@@ -194,6 +248,30 @@ class __$$AdminDashboardStatsModelImplCopyWithImpl<$Res>
       totalProductsSold: null == totalProductsSold
           ? _value.totalProductsSold
           : totalProductsSold // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalOrdersGrowth: null == totalOrdersGrowth
+          ? _value.totalOrdersGrowth
+          : totalOrdersGrowth // ignore: cast_nullable_to_non_nullable
+              as double,
+      totalRevenueGrowth: null == totalRevenueGrowth
+          ? _value.totalRevenueGrowth
+          : totalRevenueGrowth // ignore: cast_nullable_to_non_nullable
+              as double,
+      newProductsCount: null == newProductsCount
+          ? _value.newProductsCount
+          : newProductsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalProducts: null == totalProducts
+          ? _value.totalProducts
+          : totalProducts // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalOutOfStock: null == totalOutOfStock
+          ? _value.totalOutOfStock
+          : totalOutOfStock // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalLowStock: null == totalLowStock
+          ? _value.totalLowStock
+          : totalLowStock // ignore: cast_nullable_to_non_nullable
               as int,
       ordersByStatus: null == ordersByStatus
           ? _value._ordersByStatus
@@ -231,6 +309,12 @@ class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
       required this.totalRevenue,
       required this.totalOrders,
       required this.totalProductsSold,
+      required this.totalOrdersGrowth,
+      required this.totalRevenueGrowth,
+      required this.newProductsCount,
+      required this.totalProducts,
+      required this.totalOutOfStock,
+      required this.totalLowStock,
       required final List<StatusCountModel> ordersByStatus,
       required final List<BestSellingProductModel> bestSelling,
       required final List<RevenueByDayModel> revenueByDay,
@@ -255,6 +339,18 @@ class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
   final int totalOrders;
   @override
   final int totalProductsSold;
+  @override
+  final double totalOrdersGrowth;
+  @override
+  final double totalRevenueGrowth;
+  @override
+  final int newProductsCount;
+  @override
+  final int totalProducts;
+  @override
+  final int totalOutOfStock;
+  @override
+  final int totalLowStock;
   final List<StatusCountModel> _ordersByStatus;
   @override
   List<StatusCountModel> get ordersByStatus {
@@ -306,7 +402,7 @@ class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
 
   @override
   String toString() {
-    return 'AdminDashboardStatsModel(totalUsers: $totalUsers, totalRevenue: $totalRevenue, totalOrders: $totalOrders, totalProductsSold: $totalProductsSold, ordersByStatus: $ordersByStatus, bestSelling: $bestSelling, revenueByDay: $revenueByDay, revenueByMonth: $revenueByMonth, recentOrders: $recentOrders, lowStockProducts: $lowStockProducts)';
+    return 'AdminDashboardStatsModel(totalUsers: $totalUsers, totalRevenue: $totalRevenue, totalOrders: $totalOrders, totalProductsSold: $totalProductsSold, totalOrdersGrowth: $totalOrdersGrowth, totalRevenueGrowth: $totalRevenueGrowth, newProductsCount: $newProductsCount, totalProducts: $totalProducts, totalOutOfStock: $totalOutOfStock, totalLowStock: $totalLowStock, ordersByStatus: $ordersByStatus, bestSelling: $bestSelling, revenueByDay: $revenueByDay, revenueByMonth: $revenueByMonth, recentOrders: $recentOrders, lowStockProducts: $lowStockProducts)';
   }
 
   @override
@@ -322,6 +418,18 @@ class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
                 other.totalOrders == totalOrders) &&
             (identical(other.totalProductsSold, totalProductsSold) ||
                 other.totalProductsSold == totalProductsSold) &&
+            (identical(other.totalOrdersGrowth, totalOrdersGrowth) ||
+                other.totalOrdersGrowth == totalOrdersGrowth) &&
+            (identical(other.totalRevenueGrowth, totalRevenueGrowth) ||
+                other.totalRevenueGrowth == totalRevenueGrowth) &&
+            (identical(other.newProductsCount, newProductsCount) ||
+                other.newProductsCount == newProductsCount) &&
+            (identical(other.totalProducts, totalProducts) ||
+                other.totalProducts == totalProducts) &&
+            (identical(other.totalOutOfStock, totalOutOfStock) ||
+                other.totalOutOfStock == totalOutOfStock) &&
+            (identical(other.totalLowStock, totalLowStock) ||
+                other.totalLowStock == totalLowStock) &&
             const DeepCollectionEquality()
                 .equals(other._ordersByStatus, _ordersByStatus) &&
             const DeepCollectionEquality()
@@ -344,6 +452,12 @@ class _$AdminDashboardStatsModelImpl implements _AdminDashboardStatsModel {
       totalRevenue,
       totalOrders,
       totalProductsSold,
+      totalOrdersGrowth,
+      totalRevenueGrowth,
+      newProductsCount,
+      totalProducts,
+      totalOutOfStock,
+      totalLowStock,
       const DeepCollectionEquality().hash(_ordersByStatus),
       const DeepCollectionEquality().hash(_bestSelling),
       const DeepCollectionEquality().hash(_revenueByDay),
@@ -372,6 +486,12 @@ abstract class _AdminDashboardStatsModel implements AdminDashboardStatsModel {
           required final double totalRevenue,
           required final int totalOrders,
           required final int totalProductsSold,
+          required final double totalOrdersGrowth,
+          required final double totalRevenueGrowth,
+          required final int newProductsCount,
+          required final int totalProducts,
+          required final int totalOutOfStock,
+          required final int totalLowStock,
           required final List<StatusCountModel> ordersByStatus,
           required final List<BestSellingProductModel> bestSelling,
           required final List<RevenueByDayModel> revenueByDay,
@@ -391,6 +511,18 @@ abstract class _AdminDashboardStatsModel implements AdminDashboardStatsModel {
   int get totalOrders;
   @override
   int get totalProductsSold;
+  @override
+  double get totalOrdersGrowth;
+  @override
+  double get totalRevenueGrowth;
+  @override
+  int get newProductsCount;
+  @override
+  int get totalProducts;
+  @override
+  int get totalOutOfStock;
+  @override
+  int get totalLowStock;
   @override
   List<StatusCountModel> get ordersByStatus;
   @override
@@ -1128,6 +1260,8 @@ mixin _$RecentOrderModel {
   double get totalAmount => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
+  String get productName => throw _privateConstructorUsedError;
+  String? get productImageUrl => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -1146,7 +1280,9 @@ abstract class $RecentOrderModelCopyWith<$Res> {
       String customerName,
       double totalAmount,
       String status,
-      DateTime createdAt});
+      DateTime createdAt,
+      String productName,
+      String? productImageUrl});
 }
 
 /// @nodoc
@@ -1167,6 +1303,8 @@ class _$RecentOrderModelCopyWithImpl<$Res, $Val extends RecentOrderModel>
     Object? totalAmount = null,
     Object? status = null,
     Object? createdAt = null,
+    Object? productName = null,
+    Object? productImageUrl = freezed,
   }) {
     return _then(_value.copyWith(
       orderId: null == orderId
@@ -1189,6 +1327,14 @@ class _$RecentOrderModelCopyWithImpl<$Res, $Val extends RecentOrderModel>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      productImageUrl: freezed == productImageUrl
+          ? _value.productImageUrl
+          : productImageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -1206,7 +1352,9 @@ abstract class _$$RecentOrderModelImplCopyWith<$Res>
       String customerName,
       double totalAmount,
       String status,
-      DateTime createdAt});
+      DateTime createdAt,
+      String productName,
+      String? productImageUrl});
 }
 
 /// @nodoc
@@ -1225,6 +1373,8 @@ class __$$RecentOrderModelImplCopyWithImpl<$Res>
     Object? totalAmount = null,
     Object? status = null,
     Object? createdAt = null,
+    Object? productName = null,
+    Object? productImageUrl = freezed,
   }) {
     return _then(_$RecentOrderModelImpl(
       orderId: null == orderId
@@ -1247,6 +1397,14 @@ class __$$RecentOrderModelImplCopyWithImpl<$Res>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      productImageUrl: freezed == productImageUrl
+          ? _value.productImageUrl
+          : productImageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1259,7 +1417,9 @@ class _$RecentOrderModelImpl implements _RecentOrderModel {
       required this.customerName,
       required this.totalAmount,
       required this.status,
-      required this.createdAt});
+      required this.createdAt,
+      required this.productName,
+      this.productImageUrl});
 
   factory _$RecentOrderModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$RecentOrderModelImplFromJson(json);
@@ -1274,10 +1434,14 @@ class _$RecentOrderModelImpl implements _RecentOrderModel {
   final String status;
   @override
   final DateTime createdAt;
+  @override
+  final String productName;
+  @override
+  final String? productImageUrl;
 
   @override
   String toString() {
-    return 'RecentOrderModel(orderId: $orderId, customerName: $customerName, totalAmount: $totalAmount, status: $status, createdAt: $createdAt)';
+    return 'RecentOrderModel(orderId: $orderId, customerName: $customerName, totalAmount: $totalAmount, status: $status, createdAt: $createdAt, productName: $productName, productImageUrl: $productImageUrl)';
   }
 
   @override
@@ -1292,13 +1456,17 @@ class _$RecentOrderModelImpl implements _RecentOrderModel {
                 other.totalAmount == totalAmount) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.productName, productName) ||
+                other.productName == productName) &&
+            (identical(other.productImageUrl, productImageUrl) ||
+                other.productImageUrl == productImageUrl));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, orderId, customerName, totalAmount, status, createdAt);
+  int get hashCode => Object.hash(runtimeType, orderId, customerName,
+      totalAmount, status, createdAt, productName, productImageUrl);
 
   @JsonKey(ignore: true)
   @override
@@ -1321,7 +1489,9 @@ abstract class _RecentOrderModel implements RecentOrderModel {
       required final String customerName,
       required final double totalAmount,
       required final String status,
-      required final DateTime createdAt}) = _$RecentOrderModelImpl;
+      required final DateTime createdAt,
+      required final String productName,
+      final String? productImageUrl}) = _$RecentOrderModelImpl;
 
   factory _RecentOrderModel.fromJson(Map<String, dynamic> json) =
       _$RecentOrderModelImpl.fromJson;
@@ -1336,6 +1506,10 @@ abstract class _RecentOrderModel implements RecentOrderModel {
   String get status;
   @override
   DateTime get createdAt;
+  @override
+  String get productName;
+  @override
+  String? get productImageUrl;
   @override
   @JsonKey(ignore: true)
   _$$RecentOrderModelImplCopyWith<_$RecentOrderModelImpl> get copyWith =>

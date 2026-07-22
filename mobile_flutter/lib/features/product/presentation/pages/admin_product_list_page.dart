@@ -5,6 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../providers/product_provider.dart';
 
+import '../../../admin/presentation/widgets/admin_page_layout.dart';
+import '../../../admin/presentation/widgets/admin_product_stats_section.dart';
+import '../../../admin/presentation/providers/admin_stats_provider.dart';
+
 class AdminProductListPage extends ConsumerWidget {
   const AdminProductListPage({super.key});
 
@@ -46,58 +50,75 @@ class AdminProductListPage extends ConsumerWidget {
     final productsAsync = ref.watch(adminProductListProvider);
     final actionState = ref.watch(adminProductActionNotifierProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quản lý sản phẩm (Admin)'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_box_outlined, size: 28),
-            onPressed: () => context.push('/admin/products/new'),
-            tooltip: 'Thêm sản phẩm mới',
-          ),
-        ],
-      ),
-      body: Stack(
+    return AdminPageLayout(
+      title: 'Quản lý sản phẩm',
+      currentRoute: '/admin/products',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.add_box_outlined, size: 28, color: Colors.blue),
+          onPressed: () => context.push('/admin/products/new'),
+          tooltip: 'Thêm sản phẩm mới',
+        ),
+      ],
+      child: Stack(
         children: [
-          productsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, __) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Lỗi: $err', style: const TextStyle(color: Colors.red)),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => ref.invalidate(adminProductListProvider),
-                    child: const Text('Thử lại'),
+          RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(adminProductStatsProvider);
+              ref.invalidate(adminProductListProvider);
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: AdminProductStatsSection(),
                   ),
-                ],
-              ),
-            ),
-            data: (products) {
-              if (products.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Chưa có sản phẩm nào trong cửa hàng.'),
-                      const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        onPressed: () => context.push('/admin/products/new'),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Thêm sản phẩm đầu tiên'),
+                ),
+                productsAsync.when(
+                  loading: () => const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (err, __) => SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Lỗi: $err', style: const TextStyle(color: Colors.red)),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: () => ref.invalidate(adminProductListProvider),
+                            child: const Text('Thử lại'),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                );
-              }
-              return RefreshIndicator(
-                onRefresh: () async => ref.invalidate(adminProductListProvider),
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: products.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
+                  data: (products) {
+                    if (products.isEmpty) {
+                      return SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Chưa có sản phẩm nào trong cửa hàng.'),
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                onPressed: () => context.push('/admin/products/new'),
+                                icon: const Icon(Icons.add),
+                                label: const Text('Thêm sản phẩm đầu tiên'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return SliverPadding(
+                      padding: const EdgeInsets.all(12),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
                     final product = products[index];
                     return Card(
                       child: ListTile(
@@ -152,10 +173,16 @@ class AdminProductListPage extends ConsumerWidget {
                       ),
                     );
                   },
+                  childCount: products.length,
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  ),
+
           if (actionState.isLoading)
             Container(
               color: Colors.black.withValues(alpha: 0.3),

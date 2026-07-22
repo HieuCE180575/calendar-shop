@@ -43,7 +43,7 @@ final adminDashboardRepositoryProvider =
 typedef AdminDashboardRepositoryRef
     = AutoDisposeProviderRef<AdminDashboardRepository>;
 String _$adminDashboardStatsHash() =>
-    r'df9a8e316f40fe489a1aeed67cf8f5d3dccc236c';
+    r'fcb97e689844e60cf75854a12c516888fd4b31e3';
 
 /// See also [adminDashboardStats].
 @ProviderFor(adminDashboardStats)
@@ -60,5 +60,22 @@ final adminDashboardStatsProvider =
 
 typedef AdminDashboardStatsRef
     = AutoDisposeFutureProviderRef<AdminDashboardStats>;
+String _$dashboardDaysFilterHash() =>
+    r'3b03c7ec940097e1f62a04bc60c9d9a144e24f7c';
+
+/// See also [DashboardDaysFilter].
+@ProviderFor(DashboardDaysFilter)
+final dashboardDaysFilterProvider =
+    AutoDisposeNotifierProvider<DashboardDaysFilter, int>.internal(
+  DashboardDaysFilter.new,
+  name: r'dashboardDaysFilterProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$dashboardDaysFilterHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$DashboardDaysFilter = AutoDisposeNotifier<int>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

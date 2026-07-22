@@ -4,175 +4,96 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/admin_dashboard_provider.dart';
+import '../widgets/overview_metrics_section.dart';
+import '../widgets/revenue_chart_card.dart';
+import '../widgets/recent_orders_card.dart';
+import '../widgets/dashboard_product_management_section.dart';
+import '../widgets/best_selling_products_card.dart';
+import '../widgets/low_stock_products_card.dart';
+import '../widgets/admin_dashboard_header.dart';
+import '../widgets/admin_page_layout.dart';
 
 class AdminHomePage extends ConsumerWidget {
   const AdminHomePage({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text(
-          'Bảng quản trị Admin',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.storefront_outlined,
-              color: AppColors.primary,
+    final statsAsync = ref.watch(adminDashboardStatsProvider);
+    
+    return AdminPageLayout(
+        title: 'Bảng quản trị Admin',
+        currentRoute: '/admin',
+        child: statsAsync.when(
+        data: (stats) => RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(adminDashboardStatsProvider);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const AdminDashboardHeader(),
+                const SizedBox(height: 16),
+                OverviewMetricsSection(stats: stats),
+                const SizedBox(height: 16),
+                MonthlyRevenueChartCard(data: stats.revenueByMonth),
+                const SizedBox(height: 16),
+                RecentOrdersCard(orders: stats.recentOrders),
+                const SizedBox(height: 16),
+                const DashboardProductManagementSection(),
+                const SizedBox(height: 16),
+                BestSellingProductsCard(products: stats.bestSelling),
+                const SizedBox(height: 16),
+                LowStockProductsCard(stats: stats),
+                const SizedBox(height: 32),
+              ],
             ),
-            tooltip: 'Trang bán hàng',
-            onPressed: () => context.go('/products'),
           ),
-          IconButton(
-            onPressed: () => context.push('/profile'),
-            icon: const Icon(Icons.account_circle_outlined),
-            tooltip: 'Hồ sơ',
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Lỗi tải dữ liệu: $error', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(adminDashboardStatsProvider),
+                child: const Text('Thử lại'),
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: () async {
-              await ref.read(authNotifierProvider.notifier).logout();
-              if (context.mounted) {
-                context.go('/login');
-              }
-            },
-            icon: const Icon(Icons.logout),
-            tooltip: 'Đăng xuất',
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildAdminTile(
-            context,
-            icon: Icons.inventory_2_outlined,
-            title: 'Quản lý sản phẩm',
-            subtitle: 'Thêm, sửa, xóa, tồn kho và trạng thái',
-            route: '/admin/products',
-            color: const Color(0xFF2563EB),
-          ),
-          const SizedBox(height: 12),
-          _buildAdminTile(
-            context,
-            icon: Icons.category_outlined,
-            title: 'Quản lý danh mục',
-            subtitle: 'Phân loại các dòng lịch',
-            route: '/admin/categories',
-            color: const Color(0xFF0284C7),
-          ),
-          const SizedBox(height: 12),
-          _buildAdminTile(
-            context,
-            icon: Icons.receipt_long_outlined,
-            title: 'Quản lý đơn hàng',
-            subtitle: 'Duyệt đơn, giao hàng, cập nhật trạng thái',
-            route: '/admin/orders',
-            color: const Color(0xFF10B981),
-          ),
-          const SizedBox(height: 12),
-          _buildAdminTile(
-            context,
-            icon: Icons.people_alt_outlined,
-            title: 'Quản lý người dùng',
-            subtitle: 'Xem danh sách, tìm kiếm, khóa/mở khóa, phân quyền',
-            route: '/admin/users',
-            color: const Color(0xFFEC4899),
-          ),
-          const SizedBox(height: 12),
-          _buildAdminTile(
-            context,
-            icon: Icons.discount_outlined,
-            title: 'Quản lý mã giảm giá',
-            subtitle: 'Bật/tắt coupon, giá trị giảm, hạn sử dụng',
-            route: '/admin/coupons',
-            color: const Color(0xFFF59E0B),
-          ),
-          const SizedBox(height: 12),
-          _buildAdminTile(
-            context,
-            icon: Icons.flash_on_outlined,
-            title: 'Quản lý Flash Sale',
-            subtitle: 'Giảm giá trực tiếp lên sản phẩm',
-            route: '/admin/discounts',
-            color: const Color(0xFFEF4444),
-          ),
-          const SizedBox(height: 12),
-          _buildAdminTile(
-            context,
-            icon: Icons.bar_chart_outlined,
-            title: 'Báo cáo & Thống kê',
-            subtitle: 'Tổng doanh thu, số lượng bán, biểu đồ',
-            route: '/admin/statistics',
-            color: const Color(0xFF8B5CF6),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildAdminTile(
+  Widget _buildDrawerItem(
     BuildContext context, {
     required IconData icon,
     required String title,
-    required String subtitle,
     required String route,
-    required Color color,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.cardShadow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        clipBehavior: Clip.antiAlias,
-        child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: color, size: 24),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          size: 14,
-          color: AppColors.textMuted,
-        ),
-        onTap: () => context.push(route),
+    final bool isActive = GoRouterState.of(context).uri.toString() == route;
+    return ListTile(
+      leading: Icon(icon, color: isActive ? AppColors.primary : AppColors.textPrimary),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isActive ? FontWeight.bold : FontWeight.w600, 
+          color: isActive ? AppColors.primary : AppColors.textPrimary,
         ),
       ),
+      selected: isActive,
+      selectedTileColor: AppColors.primary.withOpacity(0.1),
+      onTap: () {
+        Navigator.pop(context); // Close drawer
+        if (!isActive) {
+          context.push(route);
+        }
+      },
     );
   }
 }

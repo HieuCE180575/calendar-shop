@@ -37,6 +37,17 @@ final exportRevenueExcelUseCaseProvider =
 );
 
 @riverpod
+class DashboardDaysFilter extends _$DashboardDaysFilter {
+  @override
+  int build() => 7;
+
+  void setDays(int days) {
+    state = days;
+  }
+}
+
+@riverpod
 Future<AdminDashboardStats> adminDashboardStats(AdminDashboardStatsRef ref) {
-  return ref.watch(getAdminDashboardStatsUseCaseProvider)();
+  final days = ref.watch(dashboardDaysFilterProvider);
+  return ref.watch(getAdminDashboardStatsUseCaseProvider)(days);
 }

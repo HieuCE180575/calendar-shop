@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 
 import '../../providers/admin_order_provider.dart';
 
+import '../../widgets/admin_page_layout.dart';
+import '../../widgets/admin_order_stats_section.dart';
+
 class AdminOrderListPage extends ConsumerWidget {
   const AdminOrderListPage({super.key});
 
@@ -13,88 +16,94 @@ class AdminOrderListPage extends ConsumerWidget {
     final ordersAsync = ref.watch(adminOrdersProvider);
     final currentStatus = ref.watch(adminOrderStatusFilterProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: const Text('Quản lý Đơn hàng'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        titleTextStyle: const TextStyle(
-          color: Colors.black, 
-          fontSize: 18, 
-          fontWeight: FontWeight.bold,
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Tìm khách hàng / SĐT...',
-                      hintStyle: TextStyle(color: Colors.grey.shade500),
-                      prefixIcon: Icon(Icons.search, color: Colors.blue.shade700),
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+    return AdminPageLayout(
+      title: 'Quản lý Đơn hàng',
+      currentRoute: '/admin/orders',
+      child: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(adminOrdersProvider);
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: AdminOrderStatsSection(),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Tìm khách hàng / SĐT...',
+                          hintStyle: TextStyle(color: Colors.grey.shade500),
+                          prefixIcon: Icon(Icons.search, color: Colors.blue.shade700),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        onChanged: (val) {
+                          ref.read(adminOrderSearchQueryProvider.notifier).setQuery(val);
+                        },
                       ),
                     ),
-                    onChanged: (val) {
-                      ref.read(adminOrderSearchQueryProvider.notifier).setQuery(val);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: currentStatus,
-                      icon: Icon(Icons.filter_list, color: Colors.blue.shade700),
-                      style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
-                      items: const [
-                        DropdownMenuItem(value: 'All', child: Text('Tất cả')),
-                        DropdownMenuItem(value: 'Pending', child: Text('Chờ xử lý')),
-                        DropdownMenuItem(value: 'Confirmed', child: Text('Đã xác nhận')),
-                        DropdownMenuItem(value: 'Shipping', child: Text('Đang giao')),
-                        DropdownMenuItem(value: 'Delivered', child: Text('Đã giao')),
-                        DropdownMenuItem(value: 'Cancelled', child: Text('Đã hủy')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          ref.read(adminOrderStatusFilterProvider.notifier).setStatus(val);
-                        }
-                      },
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: currentStatus,
+                          icon: Icon(Icons.filter_list, color: Colors.blue.shade700),
+                          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
+                          items: const [
+                            DropdownMenuItem(value: 'All', child: Text('Tất cả')),
+                            DropdownMenuItem(value: 'Pending', child: Text('Chờ xử lý')),
+                            DropdownMenuItem(value: 'Confirmed', child: Text('Đã xác nhận')),
+                            DropdownMenuItem(value: 'Shipping', child: Text('Đang giao')),
+                            DropdownMenuItem(value: 'Delivered', child: Text('Đã giao')),
+                            DropdownMenuItem(value: 'Cancelled', child: Text('Đã hủy')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              ref.read(adminOrderStatusFilterProvider.notifier).setStatus(val);
+                            }
+                          },
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ordersAsync.when(
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            ordersAsync.when(
               data: (orders) {
                 if (orders.isEmpty) {
-                  return const Center(child: Text('Không tìm thấy đơn hàng nào.', style: TextStyle(color: Colors.grey)));
+                  return const SliverFillRemaining(
+                    child: Center(
+                      child: Text('Không tìm thấy đơn hàng nào.', style: TextStyle(color: Colors.grey))
+                    )
+                  );
                 }
-                return ListView.builder(
+                return SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) {
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
                     final order = orders[index];
                     final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
                     
@@ -257,14 +266,21 @@ class AdminOrderListPage extends ConsumerWidget {
                       ),
                     );
                   },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Lỗi: $err')),
-            ),
+                  childCount: orders.length,
+                ),
+              ),
+            );
+          },
+          loading: () => const SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
           ),
-        ],
-      ),
-    );
-  }
+          error: (err, stack) => SliverFillRemaining(
+            child: Center(child: Text('Lỗi: $err')),
+          ),
+        ),
+      ],
+    ),
+  ),
+);
+}
 }

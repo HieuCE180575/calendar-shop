@@ -54,60 +54,61 @@ class _AdminDashboardHeaderState extends ConsumerState<AdminDashboardHeader> {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardSectionCard(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: AppColors.primaryLight,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.analytics_rounded,
-              color: AppColors.primary,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Thống kê tổng quan',
+                  'Bảng điều khiển',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Dữ liệu thực tế cập nhật lúc ${DateFormat('HH:mm dd/MM/yyyy').format(DateTime.now().toLocal())}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                const Text(
+                  'Chào mừng bạn trở lại! Hôm nay là một ngày tuyệt vời để quản lý cửa hàng.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
           ),
-          ElevatedButton.icon(
-            onPressed: _isExporting ? null : _exportRevenue,
-            icon: _isExporting
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.download),
-            label: const Text('Export Doanh Thu'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              minimumSize: const Size(0, 48), 
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: ref.watch(dashboardDaysFilterProvider),
+                icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textSecondary),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+                onChanged: (int? newValue) {
+                  if (newValue != null) {
+                    ref.read(dashboardDaysFilterProvider.notifier).setDays(newValue);
+                  }
+                },
+                items: const [
+                  DropdownMenuItem(value: 1, child: Text('1 ngày qua')),
+                  DropdownMenuItem(value: 3, child: Text('3 ngày qua')),
+                  DropdownMenuItem(value: 7, child: Text('7 ngày qua')),
+                  DropdownMenuItem(value: 30, child: Text('30 ngày qua')),
+                  DropdownMenuItem(value: 90, child: Text('90 ngày qua')),
+                ],
+              ),
             ),
           ),
         ],

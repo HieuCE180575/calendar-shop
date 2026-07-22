@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/admin_user_provider.dart';
-
+import '../providers/admin_stats_provider.dart';
+import '../widgets/admin_page_layout.dart';
+import '../widgets/admin_customer_stats_section.dart';
 class AdminUserListPage extends ConsumerStatefulWidget {
   const AdminUserListPage({super.key});
 
@@ -87,26 +89,26 @@ class _AdminUserListPageState extends ConsumerState<AdminUserListPage> {
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(adminUsersProvider(_filter));
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: const Text(
-          'Quản lý người dùng',
-          style: TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.black87, size: 20),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Filter & Search Header
-          Container(
+    return AdminPageLayout(
+      title: 'Quản lý người dùng',
+      currentRoute: '/admin/users',
+      child: RefreshIndicator(
+        color: const Color(0xFF0056C6),
+        onRefresh: () async {
+          ref.invalidate(adminCustomerStatsProvider);
+          ref.invalidate(adminUsersProvider(_filter));
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: AdminCustomerStatsSection(),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
             padding: const EdgeInsets.all(16),
             color: Colors.white,
             child: Column(
@@ -208,50 +210,46 @@ class _AdminUserListPageState extends ConsumerState<AdminUserListPage> {
                 ),
               ],
             ),
+            ),
           ),
-          const SizedBox(height: 8),
-
-          // User list section
-          Expanded(
-            child: usersAsync.when(
-              loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF0056C6))),
-              error: (err, __) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text('Lỗi: $err',
-                      style: const TextStyle(color: Colors.red)),
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            usersAsync.when(
+              loading: () => const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator(color: Color(0xFF0056C6))),
+              ),
+              error: (err, __) => SliverFillRemaining(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('Lỗi: $err', style: const TextStyle(color: Colors.red)),
+                  ),
                 ),
               ),
               data: (users) {
                 if (users.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.person_search_outlined,
-                            size: 56, color: Colors.grey.shade400),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Không tìm thấy người dùng phù hợp.',
-                          style: TextStyle(
-                              color: Colors.grey.shade600, fontSize: 15),
-                        ),
-                      ],
+                  return SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.person_search_outlined, size: 56, color: Colors.grey.shade400),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Không tìm thấy người dùng phù hợp.',
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
-                return RefreshIndicator(
-                  color: const Color(0xFF0056C6),
-                  onRefresh: () async =>
-                      ref.invalidate(adminUsersProvider(_filter)),
-                  child: ListView.builder(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: users.length,
-                    itemBuilder: (context, index) {
-                      final user = users[index];
-                      return Container(
+                return SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final user = users[index];
+                        return Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -336,12 +334,14 @@ class _AdminUserListPageState extends ConsumerState<AdminUserListPage> {
                         ),
                       );
                     },
+                    childCount: users.length,
                   ),
-                );
+                ),
+              );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

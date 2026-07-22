@@ -9,9 +9,9 @@ class AdminDashboardRemoteDataSource {
 
   AdminDashboardRemoteDataSource(this.apiClient);
 
-  Future<AdminDashboardStatsModel> getDashboardStats() async {
+  Future<AdminDashboardStatsModel> getDashboardStats([int days = 7]) async {
     try {
-      final response = await apiClient.dio.get(ApiConstants.adminDashboard);
+      final response = await apiClient.dio.get('${ApiConstants.adminDashboard}?days=$days');
       return AdminDashboardStatsModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       throw apiClient.handleError(e);

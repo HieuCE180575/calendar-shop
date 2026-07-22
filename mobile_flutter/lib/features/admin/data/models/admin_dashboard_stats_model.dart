@@ -11,6 +11,12 @@ class AdminDashboardStatsModel with _$AdminDashboardStatsModel {
     required double totalRevenue,
     required int totalOrders,
     required int totalProductsSold,
+    required double totalOrdersGrowth,
+    required double totalRevenueGrowth,
+    required int newProductsCount,
+    required int totalProducts,
+    required int totalOutOfStock,
+    required int totalLowStock,
     required List<StatusCountModel> ordersByStatus,
     required List<BestSellingProductModel> bestSelling,
     required List<RevenueByDayModel> revenueByDay,
@@ -79,6 +85,8 @@ class RecentOrderModel with _$RecentOrderModel {
     required double totalAmount,
     required String status,
     required DateTime createdAt,
+    required String productName,
+    String? productImageUrl,
   }) = _RecentOrderModel;
 
   factory RecentOrderModel.fromJson(Map<String, dynamic> json) =>
@@ -103,6 +111,12 @@ extension AdminDashboardStatsModelMapper on AdminDashboardStatsModel {
         totalRevenue: totalRevenue,
         totalOrders: totalOrders,
         totalProductsSold: totalProductsSold,
+        totalOrdersGrowth: totalOrdersGrowth,
+        totalRevenueGrowth: totalRevenueGrowth,
+        newProductsCount: newProductsCount,
+        totalProducts: totalProducts,
+        totalOutOfStock: totalOutOfStock,
+        totalLowStock: totalLowStock,
         ordersByStatus: ordersByStatus.map((e) => e.toEntity()).toList(),
         bestSelling: bestSelling.map((e) => e.toEntity()).toList(),
         revenueByDay: revenueByDay.map((e) => e.toEntity()).toList(),
@@ -151,6 +165,8 @@ extension RecentOrderModelMapper on RecentOrderModel {
         totalAmount: totalAmount,
         status: status,
         createdAt: createdAt,
+        productName: productName,
+        productImageUrl: productImageUrl,
       );
 }
 
