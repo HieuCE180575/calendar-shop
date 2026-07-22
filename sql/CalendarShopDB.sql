@@ -246,15 +246,15 @@ CREATE TABLE dbo.OrderStatusHistories (
 );
 GO
 
-CREATE TABLE dbo.CouponUsages (
-    CouponUsageId INT IDENTITY(1,1) PRIMARY KEY,
-    CouponId INT NOT NULL,
+CREATE TABLE dbo.Notifications (
+    NotificationId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
-    OrderId INT NOT NULL,
-    UsedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
-    CONSTRAINT FK_CouponUsages_Coupons FOREIGN KEY (CouponId) REFERENCES dbo.Coupons(CouponId),
-    CONSTRAINT FK_CouponUsages_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId),
-    CONSTRAINT FK_CouponUsages_Orders FOREIGN KEY (OrderId) REFERENCES dbo.Orders(OrderId)
+    Title NVARCHAR(200) NOT NULL,
+    Content NVARCHAR(1000) NOT NULL,
+    Type NVARCHAR(50) NOT NULL,
+    IsRead BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT FK_Notifications_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId) ON DELETE CASCADE
 );
 GO
 
@@ -285,6 +285,8 @@ CREATE INDEX IX_Products_Price ON dbo.Products(Price);
 CREATE INDEX IX_Orders_UserId ON dbo.Orders(UserId);
 CREATE INDEX IX_Orders_Status ON dbo.Orders(Status);
 CREATE INDEX IX_Orders_CreatedAt ON dbo.Orders(CreatedAt);
+CREATE INDEX IX_Notifications_UserId ON dbo.Notifications(UserId);
+CREATE INDEX IX_Notifications_CreatedAt ON dbo.Notifications(CreatedAt);
 GO
 
 CREATE OR ALTER VIEW dbo.v_RevenueByDay
