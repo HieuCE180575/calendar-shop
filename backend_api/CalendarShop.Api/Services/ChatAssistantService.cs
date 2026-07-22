@@ -112,22 +112,12 @@ public class ChatAssistantService : IChatAssistantService
         if (productCandidates.Count == 0 && couponCandidates.Count == 0)
         {
             return new ChatAnswerDto(
-                normalizedQuery,
-                "Tôi chưa tìm thấy dữ liệu phù hợp trong cửa hàng. Bạn có thể nhập rõ tên sản phẩm, danh mục hoặc mã coupon được không?",
-                [],
-                false,
-                true);
+                "Tôi chưa tìm thấy dữ liệu phù hợp trong cửa hàng. Bạn có thể nhập rõ tên sản phẩm, danh mục hoặc mã coupon được không?");
         }
 
-        var requiresClarification = NeedsClarification(normalizedQuery, productCandidates, couponCandidates);
-        if (requiresClarification)
+        if (NeedsClarification(normalizedQuery, productCandidates, couponCandidates))
         {
-            return new ChatAnswerDto(
-                normalizedQuery,
-                BuildClarificationAnswer(productCandidates, couponCandidates),
-                BuildSources(productCandidates, couponCandidates),
-                false,
-                true);
+            return new ChatAnswerDto(BuildClarificationAnswer(productCandidates, couponCandidates));
         }
 
         var fallbackAnswer = BuildFallbackAnswer(productCandidates.FirstOrDefault(), couponCandidates.FirstOrDefault());
@@ -135,12 +125,7 @@ public class ChatAssistantService : IChatAssistantService
         var llmAnswer = await _localLlmService.GenerateAnswerAsync(prompt, cancellationToken);
         var finalAnswer = string.IsNullOrWhiteSpace(llmAnswer) ? fallbackAnswer : llmAnswer!;
 
-        return new ChatAnswerDto(
-            normalizedQuery,
-            finalAnswer,
-            BuildSources(productCandidates, couponCandidates),
-            !string.IsNullOrWhiteSpace(llmAnswer),
-            false);
+        return new ChatAnswerDto(finalAnswer);
     }
 
     private async Task<ChatAnswerDto?> TryBuildAggregateAnswerAsync(
@@ -185,24 +170,14 @@ public class ChatAssistantService : IChatAssistantService
                 _ => $"Hiện cửa hàng có {filteredProducts.Count} sản phẩm phù hợp. Một vài sản phẩm tiêu biểu là: {names}."
             };
 
-            return new ChatAnswerDto(
-                normalizedQuery,
-                answer,
-                examples.Select((x, index) => new ChatSourceDto("product", x.ProductId, x.ProductName, 100 - index)).ToList(),
-                false,
-                false);
+            return new ChatAnswerDto(answer);
         }
 
         if (IsInventoryIntent(normalizedQuery))
         {
             if (inStockProducts.Count == 0)
             {
-                return new ChatAnswerDto(
-                    normalizedQuery,
-                    "Hiện chưa có sản phẩm nào còn hàng trong nhóm bạn đang hỏi.",
-                    [],
-                    false,
-                    false);
+                return new ChatAnswerDto("Hiện chưa có sản phẩm nào còn hàng trong nhóm bạn đang hỏi.");
             }
 
             var examples = inStockProducts.Take(3).ToList();
@@ -211,11 +186,7 @@ public class ChatAssistantService : IChatAssistantService
                 examples.Select(x => $"{x.ProductName}: còn {x.StockQuantity}"));
 
             return new ChatAnswerDto(
-                normalizedQuery,
-                $"Hiện có {inStockProducts.Count} sản phẩm còn hàng. Một vài sản phẩm có tồn kho là: {exampleText}.",
-                examples.Select((x, index) => new ChatSourceDto("product", x.ProductId, x.ProductName, 100 - index)).ToList(),
-                false,
-                false);
+                $"Hiện có {inStockProducts.Count} sản phẩm còn hàng. Một vài sản phẩm có tồn kho là: {exampleText}.");
         }
 
         if (pricedProducts.Count == 0)
@@ -228,14 +199,7 @@ public class ChatAssistantService : IChatAssistantService
             var min = pricedProducts.First();
             var max = pricedProducts.Last();
             return new ChatAnswerDto(
-                normalizedQuery,
-                $"Giá thấp nhất hiện tại là {FormatMoney(min.Price)} cho sản phẩm {min.Product.ProductName}. Giá cao nhất là {FormatMoney(max.Price)} cho sản phẩm {max.Product.ProductName}.",
-                [
-                    new ChatSourceDto("product", min.Product.ProductId, min.Product.ProductName, 100),
-                    new ChatSourceDto("product", max.Product.ProductId, max.Product.ProductName, 99)
-                ],
-                false,
-                false);
+                $"Giá thấp nhất hiện tại là {FormatMoney(min.Price)} cho sản phẩm {min.Product.ProductName}. Giá cao nhất là {FormatMoney(max.Price)} cho sản phẩm {max.Product.ProductName}.");
         }
 
         if (IsMidRangeIntent(normalizedQuery))
@@ -243,11 +207,7 @@ public class ChatAssistantService : IChatAssistantService
             var averagePrice = pricedProducts.Average(x => x.Price);
             var median = pricedProducts[pricedProducts.Count / 2];
             return new ChatAnswerDto(
-                normalizedQuery,
-                $"Nếu xét tầm giá trung bình cho lịch, mức tham khảo phổ biến là khoảng {FormatMoney(median.Price)}. Giá trung bình toàn bộ nhóm này đang ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.",
-                [new ChatSourceDto("product", median.Product.ProductId, median.Product.ProductName, 100)],
-                false,
-                false);
+                $"Nếu xét tầm giá trung bình cho lịch, mức tham khảo phổ biến là khoảng {FormatMoney(median.Price)}. Giá trung bình toàn bộ nhóm này đang ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.");
         }
 
         if (IsPriceRangeIntent(normalizedQuery))
@@ -257,15 +217,7 @@ public class ChatAssistantService : IChatAssistantService
             var median = pricedProducts[pricedProducts.Count / 2];
             var averagePrice = pricedProducts.Average(x => x.Price);
             return new ChatAnswerDto(
-                normalizedQuery,
-                $"Giá lịch hiện tại dao động từ {FormatMoney(min.Price)} đến {FormatMoney(max.Price)}. Mức giá tham khảo tầm trung là khoảng {FormatMoney(median.Price)}, còn giá trung bình ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.",
-                [
-                    new ChatSourceDto("product", min.Product.ProductId, min.Product.ProductName, 100),
-                    new ChatSourceDto("product", max.Product.ProductId, max.Product.ProductName, 99),
-                    new ChatSourceDto("product", median.Product.ProductId, median.Product.ProductName, 98)
-                ],
-                false,
-                false);
+                $"Giá lịch hiện tại dao động từ {FormatMoney(min.Price)} đến {FormatMoney(max.Price)}. Mức giá tham khảo tầm trung là khoảng {FormatMoney(median.Price)}, còn giá trung bình ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.");
         }
 
         if (IsLatestSalesIntent(normalizedQuery))
@@ -277,20 +229,11 @@ public class ChatAssistantService : IChatAssistantService
 
             if (latestOrder == null)
             {
-                return new ChatAnswerDto(
-                    normalizedQuery,
-                    "Hiện tại tôi chưa tìm thấy dữ liệu đơn hàng gần đây.",
-                    [],
-                    false,
-                    false);
+                return new ChatAnswerDto("Hiện tại tôi chưa tìm thấy dữ liệu đơn hàng gần đây.");
             }
 
             return new ChatAnswerDto(
-                normalizedQuery,
-                $"Đơn hàng gần nhất trong hệ thống được ghi nhận vào {latestOrder.CreatedAt:dd/MM/yyyy HH:mm} với trạng thái {latestOrder.Status}.",
-                [new ChatSourceDto("order", latestOrder.OrderId, $"Đơn hàng #{latestOrder.OrderId}", 100)],
-                false,
-                false);
+                $"Đơn hàng gần nhất trong hệ thống được ghi nhận vào {latestOrder.CreatedAt:dd/MM/yyyy HH:mm} với trạng thái {latestOrder.Status}.");
         }
 
         return null;
@@ -435,16 +378,6 @@ public class ChatAssistantService : IChatAssistantService
         }
 
         return "Tôi chưa tìm thấy dữ liệu phù hợp để trả lời câu hỏi này.";
-    }
-
-    private static IReadOnlyList<ChatSourceDto> BuildSources(
-        IReadOnlyList<ProductCandidate> products,
-        IReadOnlyList<CouponCandidate> coupons)
-    {
-        var sources = new List<ChatSourceDto>();
-        sources.AddRange(products.Select(x => new ChatSourceDto("product", x.Product.ProductId, x.Product.ProductName, x.Score)));
-        sources.AddRange(coupons.Select(x => new ChatSourceDto("coupon", x.Coupon.CouponId, x.Coupon.Code, x.Score)));
-        return sources;
     }
 
     private string BuildPrompt(

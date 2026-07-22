@@ -191,29 +191,6 @@ class _MessageBubble extends StatelessWidget {
                   height: 1.45,
                 ),
               ),
-              if (!message.isUser && message.answer != null && message.answer!.sources.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: message.answer!.sources.take(3).map((source) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3F5F8),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        source.name,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
             ],
           ),
         ),
