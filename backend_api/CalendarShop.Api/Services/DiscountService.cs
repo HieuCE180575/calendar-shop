@@ -217,4 +217,50 @@ public class DiscountService : IDiscountService
             discount.Products.Add(product);
         }
     }
+
+    public async Task<CalendarShop.Api.Dtos.AdminStats.AdminDiscountStatsDto> GetAdminDiscountStatsAsync()
+    {
+        var totalDiscounts = await _discountRepository.Entities.CountAsync();
+        var activeDiscounts = await _discountRepository.Entities.CountAsync(d => d.Status == "Active");
+        var expiredDiscounts = await _discountRepository.Entities.CountAsync(d => d.Status == "Expired" || d.EndDate < DateTime.UtcNow);
+
+        var discounts = await _discountRepository.Entities
+            .Select(d => new
+            {
+                d.DiscountType,
+                d.DiscountId,
+                d.Name,
+                UsageCount = 0 // Mock value since Discount doesn't have it
+            })
+            .ToListAsync();
+
+        var typeDistribution = discounts
+            .GroupBy(d => d.DiscountType)
+            .Select(g => new CalendarShop.Api.Dtos.AdminStats.DiscountTypeDistributionDto
+            {
+                Type = g.Key,
+                Total = g.Count(),
+                Percentage = discounts.Count > 0 ? Math.Round((double)g.Count() / discounts.Count * 100, 1) : 0
+            })
+            .ToList();
+
+        var topDiscounts = discounts
+            .Take(5)
+            .Select(d => new CalendarShop.Api.Dtos.AdminStats.TopDiscountDto
+            {
+                DiscountId = d.DiscountId,
+                Code = d.Name,
+                UsageCount = d.UsageCount
+            })
+            .ToList();
+
+        return new CalendarShop.Api.Dtos.AdminStats.AdminDiscountStatsDto
+        {
+            TotalDiscounts = totalDiscounts,
+            ActiveDiscounts = activeDiscounts,
+            ExpiredDiscounts = expiredDiscounts,
+            TypeDistribution = typeDistribution,
+            TopDiscounts = topDiscounts
+        };
+    }
 }

@@ -58,4 +58,11 @@ public class DiscountsController : AppControllerBase
         await _discountService.DeleteDiscountAsync(id);
         return NoContent();
     }
+
+    [HttpGet("stats")]
+    public async Task<ActionResult<CalendarShop.Api.Dtos.AdminStats.AdminDiscountStatsDto>> GetStats()
+    {
+        var stats = await _discountService.GetAdminDiscountStatsAsync();
+        return Ok(stats);
+    }
 }

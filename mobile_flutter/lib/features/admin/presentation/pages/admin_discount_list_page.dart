@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../providers/admin_discount_provider.dart';
+import '../providers/admin_stats_provider.dart';
+import '../widgets/admin_page_layout.dart';
+import '../widgets/admin_discount_stats_section.dart';
 
 class AdminDiscountListPage extends ConsumerStatefulWidget {
   const AdminDiscountListPage({super.key});
@@ -172,82 +175,89 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
     final discountsAsync = ref.watch(adminDiscountListProvider);
     final actionState = ref.watch(adminDiscountActionNotifierProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: const Text('Quản lý Giảm giá'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        titleTextStyle: const TextStyle(
-          color: Colors.black, 
-          fontSize: 18, 
-          fontWeight: FontWeight.bold,
+    return AdminPageLayout(
+      title: 'Quản lý Giảm giá',
+      currentRoute: '/admin/discounts',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.sort),
+          onPressed: _showFilterAndSortDialog,
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.sort),
-            onPressed: _showFilterAndSortDialog,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => context.push('/admin/discounts/add'),
-          )
-        ],
-      ),
-      body: Stack(
+        IconButton(
+          icon: const Icon(Icons.add_box_outlined, size: 28, color: Colors.blue),
+          onPressed: () => context.push('/admin/discounts/add'),
+          tooltip: 'Thêm khuyến mãi mới',
+        ),
+      ],
+      child: Stack(
         children: [
-          Column(
-            children: [
-              Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Tìm kiếm giảm giá...',
-                    hintStyle: TextStyle(color: Colors.grey.shade500),
-                    prefixIcon: Icon(Icons.search, color: Colors.blue.shade700),
-                    filled: true,
-                    fillColor: Colors.grey.shade100,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    suffixIcon: filter.searchQuery?.isNotEmpty == true
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              ref.read(adminDiscountFilterProvider.notifier).updateSearchQuery(null);
-                            },
-                          )
-                        : null,
+          RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(adminDiscountStatsProvider);
+              ref.invalidate(adminDiscountListProvider);
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: AdminDiscountStatsSection(),
                   ),
-                  onChanged: (val) {
-                    if (_debounce?.isActive ?? false) _debounce?.cancel();
-                    _debounce = Timer(const Duration(milliseconds: 500), () {
-                      ref.read(adminDiscountFilterProvider.notifier).updateSearchQuery(val.trim());
-                    });
-                  },
                 ),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: discountsAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, __) => Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('Lỗi: $err', style: const TextStyle(color: Colors.red)),
-                        ElevatedButton(
-                          onPressed: () => ref.invalidate(adminDiscountListProvider),
-                          child: const Text('Thử lại'),
+                SliverToBoxAdapter(
+                  child: Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Tìm kiếm giảm giá...',
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
+                        prefixIcon: Icon(Icons.search, color: Colors.blue.shade700),
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
-                      ],
+                        suffixIcon: filter.searchQuery?.isNotEmpty == true
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  ref.read(adminDiscountFilterProvider.notifier).updateSearchQuery(null);
+                                },
+                              )
+                            : null,
+                      ),
+                      onChanged: (val) {
+                        if (_debounce?.isActive ?? false) _debounce?.cancel();
+                        _debounce = Timer(const Duration(milliseconds: 500), () {
+                          ref.read(adminDiscountFilterProvider.notifier).updateSearchQuery(val.trim());
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                discountsAsync.when(
+                  loading: () => const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (err, __) => SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Lỗi: $err', style: const TextStyle(color: Colors.red)),
+                          ElevatedButton(
+                            onPressed: () => ref.invalidate(adminDiscountListProvider),
+                            child: const Text('Thử lại'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   data: (data) {
@@ -256,182 +266,185 @@ class _AdminDiscountListPageState extends ConsumerState<AdminDiscountListPage> {
                     final totalPages = (totalCount / filter.pageSize).ceil();
 
                     if (discounts.isEmpty) {
-                      return const Center(child: Text('Chưa có chương trình giảm giá nào.', style: TextStyle(color: Colors.grey)));
+                      return const SliverFillRemaining(
+                        child: Center(child: Text('Chưa có chương trình giảm giá nào.', style: TextStyle(color: Colors.grey))),
+                      );
                     }
 
-                    return Column(
-                      children: [
-                        Expanded(
-                          child: RefreshIndicator(
-                            onRefresh: () async => ref.invalidate(adminDiscountListProvider),
-                            child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              itemCount: discounts.length,
-                              itemBuilder: (context, index) {
-                                final discount = discounts[index];
-                                final isPercent = discount.discountType == 'Percent';
-                                
-                                Color statusColor = discount.status == 'Active' ? Colors.green : Colors.grey;
-
-                                return Card(
-                                  color: Colors.white,
-                                  elevation: 1,
-                                  shadowColor: Colors.black.withValues(alpha: 0.05),
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(16),
-                                    onTap: () {
-                                      context.push('/admin/discounts/detail', extra: discount);
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                    return SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            if (index == discounts.length) {
+                                // Pagination
+                                if (totalPages > 1) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    color: Colors.transparent,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Expanded(
-                                          flex: 3,
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                discount.name,
-                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                isPercent
-                                                    ? 'Giảm: ${discount.discountValue}%'
-                                                    : 'Giảm: ${CurrencyFormatter.vnd(discount.discountValue)}',
-                                                style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.bold, fontSize: 15),
-                                              ),
-                                            ],
-                                          ),
+                                        IconButton(
+                                          icon: const Icon(Icons.chevron_left),
+                                          onPressed: filter.page > 1
+                                              ? () => ref.read(adminDiscountFilterProvider.notifier).updatePage(filter.page - 1)
+                                              : null,
                                         ),
-                                        Expanded(
-                                          flex: 3,
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Icon(Icons.category_outlined, size: 16, color: Colors.grey.shade600),
-                                                  const SizedBox(width: 4),
-                                                  Expanded(child: Text(discount.productIds.isNotEmpty ? 'Phạm vi: ${discount.productIds.length} Sản phẩm' : 'Phạm vi: ${discount.categoryIds.length} Danh mục', style: TextStyle(color: Colors.grey.shade800, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Row(
-                                                children: [
-                                                  Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey.shade600),
-                                                  const SizedBox(width: 4),
-                                                  Expanded(child: Text('${DateFormat('dd/MM').format(discount.startDate.toLocal())} - ${DateFormat('dd/MM/yyyy').format(discount.endDate.toLocal())}', style: TextStyle(color: Colors.grey.shade800, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 2,
-                                          child: Align(
-                                            alignment: Alignment.centerRight,
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: statusColor.withValues(alpha: 0.1),
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: Text(
-                                                discount.status,
-                                                style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: Icon(Icons.edit, color: Colors.blue.shade700),
-                                              onPressed: () => context.push('/admin/discounts/edit', extra: discount),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.delete, color: Colors.redAccent),
-                                              onPressed: () {
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (ctx) => AlertDialog(
-                                                    title: const Text('Xác nhận xóa'),
-                                                    content: const Text('Bạn có chắc chắn muốn xóa giảm giá này?'),
-                                                    actions: [
-                                                      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
-                                                      ElevatedButton(
-                                                        style: ElevatedButton.styleFrom(
-                                                          backgroundColor: Colors.red,
-                                                          minimumSize: const Size(80, 48),
-                                                        ),
-                                                        onPressed: () async {
-                                                          Navigator.pop(ctx);
-                                                          final success = await ref
-                                                              .read(adminDiscountActionNotifierProvider.notifier)
-                                                              .deleteDiscount(discount.discountId);
-                                                          if (success && context.mounted) {
-                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                                const SnackBar(content: Text('Đã xóa discount')));
-                                                          }
-                                                        },
-                                                        child: const Text('Xóa'),
-                                                      )
-                                                    ],
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ],
+                                        Text('Trang ${filter.page} / $totalPages'),
+                                        IconButton(
+                                          icon: const Icon(Icons.chevron_right),
+                                          onPressed: filter.page < totalPages
+                                              ? () => ref.read(adminDiscountFilterProvider.notifier).updatePage(filter.page + 1)
+                                              : null,
                                         ),
                                       ],
                                     ),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                            }
+                            
+                            final discount = discounts[index];
+                            final isPercent = discount.discountType == 'Percent';
+                            
+                            Color statusColor = discount.status == 'Active' ? Colors.green : Colors.grey;
+
+                            return Card(
+                              color: Colors.white,
+                              elevation: 1,
+                              shadowColor: Colors.black.withValues(alpha: 0.05),
+                              margin: const EdgeInsets.only(bottom: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  context.push('/admin/discounts/detail', extra: discount);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 3,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              discount.name,
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              isPercent
+                                                  ? 'Giảm: ${discount.discountValue}%'
+                                                  : 'Giảm: ${CurrencyFormatter.vnd(discount.discountValue)}',
+                                              style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.bold, fontSize: 15),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 3,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(Icons.category_outlined, size: 16, color: Colors.grey.shade600),
+                                                const SizedBox(width: 4),
+                                                Expanded(child: Text(discount.productIds.isNotEmpty ? 'Phạm vi: ${discount.productIds.length} Sản phẩm' : 'Phạm vi: ${discount.categoryIds.length} Danh mục', style: TextStyle(color: Colors.grey.shade800, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey.shade600),
+                                                const SizedBox(width: 4),
+                                                Expanded(child: Text('${DateFormat('dd/MM').format(discount.startDate.toLocal())} - ${DateFormat('dd/MM/yyyy').format(discount.endDate.toLocal())}', style: TextStyle(color: Colors.grey.shade800, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: statusColor.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              discount.status,
+                                              style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.edit, color: Colors.blue.shade700),
+                                            onPressed: () => context.push('/admin/discounts/edit', extra: discount),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                            onPressed: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (ctx) => AlertDialog(
+                                                  title: const Text('Xác nhận xóa'),
+                                                  content: const Text('Bạn có chắc chắn muốn xóa giảm giá này?'),
+                                                  actions: [
+                                                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
+                                                    ElevatedButton(
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: Colors.red,
+                                                        minimumSize: const Size(80, 48),
+                                                      ),
+                                                      onPressed: () async {
+                                                        Navigator.pop(ctx);
+                                                        final success = await ref
+                                                            .read(adminDiscountActionNotifierProvider.notifier)
+                                                            .deleteDiscount(discount.discountId);
+                                                        if (success && context.mounted) {
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                              const SnackBar(content: Text('Đã xóa discount')));
+                                                        }
+                                                      },
+                                                      child: const Text('Xóa'),
+                                                    )
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
+                                ),
+                              ),
+                            );
+                          },
+                          childCount: discounts.length + 1, // +1 for pagination
                         ),
-                        if (totalPages > 1)
-                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            color: Colors.grey.shade100,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.chevron_left),
-                                  onPressed: filter.page > 1
-                                      ? () => ref.read(adminDiscountFilterProvider.notifier).updatePage(filter.page - 1)
-                                      : null,
-                                ),
-                                Text('Trang ${filter.page} / $totalPages'),
-                                IconButton(
-                                  icon: const Icon(Icons.chevron_right),
-                                  onPressed: filter.page < totalPages
-                                      ? () => ref.read(adminDiscountFilterProvider.notifier).updatePage(filter.page + 1)
-                                      : null,
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
+                      ),
                     );
                   },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           if (actionState)
             Container(

@@ -17,6 +17,8 @@ _$CartItemModelImpl _$$CartItemModelImplFromJson(Map<String, dynamic> json) =>
       stockQuantity: (json['stockQuantity'] as num).toInt(),
       isSelected: json['isSelected'] as bool,
       lineTotal: (json['lineTotal'] as num).toDouble(),
+      productStatus: json['productStatus'] as String? ?? 'Active',
+      isAvailable: json['isAvailable'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$$CartItemModelImplToJson(_$CartItemModelImpl instance) =>
@@ -30,4 +32,6 @@ Map<String, dynamic> _$$CartItemModelImplToJson(_$CartItemModelImpl instance) =>
       'stockQuantity': instance.stockQuantity,
       'isSelected': instance.isSelected,
       'lineTotal': instance.lineTotal,
+      'productStatus': instance.productStatus,
+      'isAvailable': instance.isAvailable,
     };

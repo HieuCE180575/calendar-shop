@@ -88,4 +88,36 @@ public class CategoryService : ICategoryService
             _productRepository.Update(product);
         }
     }
+
+    public async Task<CalendarShop.Api.Dtos.AdminStats.AdminCategoryStatsDto> GetAdminCategoryStatsAsync()
+    {
+        var totalCategories = await _categoryRepository.Entities.CountAsync();
+        var activeCategories = await _categoryRepository.Entities.CountAsync(c => c.Status == "Active");
+        var hiddenCategories = await _categoryRepository.Entities.CountAsync(c => c.Status == "Hidden");
+
+        var distribution = await _categoryRepository.Entities
+            .Select(c => new
+            {
+                c.CategoryName,
+                ProductCount = c.Products.Count(p => !p.IsDeleted)
+            })
+            .ToListAsync();
+
+        var totalProducts = distribution.Sum(d => d.ProductCount);
+
+        var productDistribution = distribution.Select(d => new CalendarShop.Api.Dtos.AdminStats.CategoryProductDistributionDto
+        {
+            CategoryName = d.CategoryName,
+            ProductCount = d.ProductCount,
+            Percentage = totalProducts > 0 ? Math.Round((double)d.ProductCount / totalProducts * 100, 1) : 0
+        }).ToList();
+
+        return new CalendarShop.Api.Dtos.AdminStats.AdminCategoryStatsDto
+        {
+            TotalCategories = totalCategories,
+            ActiveCategories = activeCategories,
+            HiddenCategories = hiddenCategories,
+            ProductDistribution = productDistribution
+        };
+    }
 }

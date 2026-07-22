@@ -9,6 +9,8 @@ import '../widgets/revenue_chart_card.dart';
 import '../widgets/status_breakdown_card.dart';
 import '../widgets/recent_orders_card.dart';
 import '../widgets/low_stock_products_card.dart';
+import '../widgets/admin_page_layout.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class AdminStatisticsPage extends ConsumerWidget {
   const AdminStatisticsPage({super.key});
@@ -17,25 +19,17 @@ class AdminStatisticsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(adminDashboardStatsProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F9FC),
-      appBar: AppBar(
-        title: const Text(
-          'Báo cáo thống kê',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+    return AdminPageLayout(
+      title: 'Báo cáo thống kê',
+      currentRoute: '/admin/statistics',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh, color: AppColors.primary),
+          onPressed: () => ref.invalidate(adminDashboardStatsProvider),
+          tooltip: 'Làm mới dữ liệu',
         ),
-        backgroundColor: Colors.indigo.shade800,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () => ref.invalidate(adminDashboardStatsProvider),
-            tooltip: 'Làm mới dữ liệu',
-          ),
-        ],
-      ),
-      body: statsAsync.when(
+      ],
+      child: statsAsync.when(
         data: (stats) => RefreshIndicator(
           onRefresh: () async => ref.invalidate(adminDashboardStatsProvider),
           child: SingleChildScrollView(
@@ -49,7 +43,7 @@ class AdminStatisticsPage extends ConsumerWidget {
                 OverviewMetricsSection(stats: stats),
                 if (stats.lowStockProducts.isNotEmpty) ...[
                   const SizedBox(height: 24),
-                  LowStockProductsCard(products: stats.lowStockProducts),
+                  LowStockProductsCard(stats: stats),
                 ],
                 const SizedBox(height: 24),
                 StatusBreakdownCard(stats: stats),

@@ -9,8 +9,8 @@ class AdminDashboardRepositoryImpl implements AdminDashboardRepository {
   AdminDashboardRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<AdminDashboardStats> getDashboardStats() async {
-    final model = await remoteDataSource.getDashboardStats();
+  Future<AdminDashboardStats> getDashboardStats([int days = 7]) async {
+    final model = await remoteDataSource.getDashboardStats(days);
     return model.toEntity();
   }
 

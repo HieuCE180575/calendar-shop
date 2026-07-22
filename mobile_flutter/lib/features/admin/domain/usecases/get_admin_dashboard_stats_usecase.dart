@@ -6,7 +6,7 @@ class GetAdminDashboardStatsUseCase {
 
   GetAdminDashboardStatsUseCase(this.repository);
 
-  Future<AdminDashboardStats> call() {
-    return repository.getDashboardStats();
+  Future<AdminDashboardStats> call([int days = 7]) {
+    return repository.getDashboardStats(days);
   }
 }

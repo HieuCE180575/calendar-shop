@@ -143,4 +143,43 @@ public class CouponService : ICouponService
     {
         return code.Trim().ToUpperInvariant();
     }
+
+    public async Task<CalendarShop.Api.Dtos.AdminStats.AdminCouponStatsDto> GetAdminCouponStatsAsync(int days = 7)
+    {
+        var now = DateTime.UtcNow;
+        var currentStartDate = now.AddDays(-days);
+        var prevStartDate = now.AddDays(-days * 2);
+
+        var coupons = await _couponRepository.Entities.ToListAsync();
+
+        var totalCoupons = coupons.Count(c => c.CreatedAt <= now);
+        var prevTotalCoupons = coupons.Count(c => c.CreatedAt <= currentStartDate);
+        double totalCouponsGrowth = prevTotalCoupons == 0 ? (totalCoupons > 0 ? 100 : 0) : Math.Round(((double)(totalCoupons - prevTotalCoupons) / prevTotalCoupons) * 100, 1);
+
+        var activeCoupons = coupons.Count(c => 
+            c.Status == "Active" && 
+            c.StartDate <= now && 
+            c.EndDate >= now &&
+            (c.UsageLimit == null || c.UsedCount < c.UsageLimit) &&
+            c.CreatedAt <= now);
+            
+        // Technically, "active" growth is hard to pinpoint exactly for past without event sourcing, 
+        // but we can approximate by those created before prev period that would have been active.
+        // For simplicity, we just use the created date of active coupons as a proxy for growth.
+        var prevActiveCoupons = coupons.Count(c => 
+            c.Status == "Active" && 
+            c.StartDate <= currentStartDate && 
+            c.EndDate >= currentStartDate &&
+            c.CreatedAt <= currentStartDate);
+
+        double activeCouponsGrowth = prevActiveCoupons == 0 ? (activeCoupons > 0 ? 100 : 0) : Math.Round(((double)(activeCoupons - prevActiveCoupons) / prevActiveCoupons) * 100, 1);
+
+        return new CalendarShop.Api.Dtos.AdminStats.AdminCouponStatsDto
+        {
+            TotalCoupons = totalCoupons,
+            TotalCouponsGrowth = totalCouponsGrowth,
+            ActiveCoupons = activeCoupons,
+            ActiveCouponsGrowth = activeCouponsGrowth
+        };
+    }
 }

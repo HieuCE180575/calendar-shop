@@ -132,7 +132,7 @@ final cartTotalProvider = AutoDisposeProvider<double>.internal(
 );
 
 typedef CartTotalRef = AutoDisposeProviderRef<double>;
-String _$cartHash() => r'6751723060ef2391d04f9cd104d9506b8b4d3c21';
+String _$cartHash() => r'35376aca319d4a51a3e29381ccd06d4835218eed';
 
 /// Notifier quản lý danh sách giỏ hàng bất đồng bộ
 ///

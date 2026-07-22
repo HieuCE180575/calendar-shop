@@ -205,4 +205,82 @@ public class ProductService : IProductService
             throw new BadHttpRequestException("Sản phẩm còn tồn kho nên không thể đặt trạng thái OutOfStock.");
         }
     }
+
+    public async Task<CalendarShop.Api.Dtos.AdminStats.AdminProductStatsDto> GetAdminProductStatsAsync(int days = 7)
+    {
+        var now = DateTime.UtcNow;
+        var currentStartDate = now.AddDays(-days);
+        var prevStartDate = now.AddDays(-days * 2);
+
+        var productsQuery = _productRepository.Entities
+            .Include(p => p.Category)
+            .Where(p => !p.IsDeleted)
+            .AsNoTracking();
+
+        var totalProducts = await productsQuery.CountAsync(p => p.CreatedAt <= now);
+        var prevTotalProducts = await productsQuery.CountAsync(p => p.CreatedAt <= currentStartDate);
+        double totalProductsGrowth = prevTotalProducts == 0 ? (totalProducts > 0 ? 100 : 0) : Math.Round(((double)(totalProducts - prevTotalProducts) / prevTotalProducts) * 100, 1);
+
+        var inBusiness = await productsQuery.CountAsync(p => p.Status != "Hidden" && p.CreatedAt <= now);
+        var prevInBusiness = await productsQuery.CountAsync(p => p.Status != "Hidden" && p.CreatedAt <= currentStartDate);
+        double inBusinessGrowth = prevInBusiness == 0 ? (inBusiness > 0 ? 100 : 0) : Math.Round(((double)(inBusiness - prevInBusiness) / prevInBusiness) * 100, 1);
+
+        var lowStock = await productsQuery.CountAsync(p => p.StockQuantity <= 10);
+        var totalCategories = await _categoryRepository.Entities.CountAsync();
+
+        // Best Selling (Mocked here since no OrderItems nav property, AdminDashboardService handles real logic)
+        var bestSelling = await _productRepository.Entities
+            .Where(p => !p.IsDeleted)
+            .Take(5)
+            .Select(p => new CalendarShop.Api.Dtos.BestSellingProductDto
+            {
+                ProductId = p.ProductId,
+                ProductName = p.ProductName,
+                TotalSold = 0
+            })
+            .ToListAsync();
+
+        // Stock By Category
+        var stockByCategory = await productsQuery
+            .Where(p => p.Category != null)
+            .GroupBy(p => p.Category!.CategoryName)
+            .Select(g => new CalendarShop.Api.Dtos.AdminStats.CategoryStockDistributionDto
+            {
+                CategoryName = g.Key,
+                TotalStock = g.Sum(p => p.StockQuantity)
+            })
+            .ToListAsync();
+
+        var totalStockAll = stockByCategory.Sum(c => c.TotalStock);
+        foreach (var item in stockByCategory)
+        {
+            item.Percentage = totalStockAll > 0 ? Math.Round((double)item.TotalStock / totalStockAll * 100, 1) : 0;
+        }
+
+        // Low Stock Products
+        var lowStockProductsList = await productsQuery
+            .Where(p => p.StockQuantity <= 10)
+            .Select(p => new CalendarShop.Api.Dtos.LowStockProductDto
+            {
+                ProductId = p.ProductId,
+                ProductName = p.ProductName,
+                StockQuantity = p.StockQuantity
+            })
+            .OrderBy(p => p.StockQuantity)
+            .Take(10)
+            .ToListAsync();
+
+        return new CalendarShop.Api.Dtos.AdminStats.AdminProductStatsDto
+        {
+            TotalProducts = totalProducts,
+            TotalProductsGrowth = totalProductsGrowth,
+            InBusiness = inBusiness,
+            InBusinessGrowth = inBusinessGrowth,
+            LowStock = lowStock,
+            TotalCategories = totalCategories,
+            BestSelling = bestSelling,
+            StockByCategory = stockByCategory,
+            LowStockProducts = lowStockProductsList
+        };
+    }
 }

@@ -13,4 +13,5 @@ public interface IDiscountService
     Task UpdateDiscountAsync(int id, DiscountCreateUpdateDto request);
     Task UpdateDiscountStatusAsync(int id, UpdateDiscountStatusRequest request);
     Task DeleteDiscountAsync(int id);
+    Task<CalendarShop.Api.Dtos.AdminStats.AdminDiscountStatsDto> GetAdminDiscountStatsAsync();
 }

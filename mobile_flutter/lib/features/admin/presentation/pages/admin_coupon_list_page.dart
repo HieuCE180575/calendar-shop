@@ -6,6 +6,10 @@ import 'package:intl/intl.dart';
 import '../../domain/entities/admin_coupon.dart';
 import '../providers/admin_coupon_provider.dart';
 
+import '../widgets/admin_page_layout.dart';
+import '../widgets/admin_coupon_stats_section.dart';
+import '../providers/admin_stats_provider.dart';
+
 class AdminCouponListPage extends ConsumerWidget {
   const AdminCouponListPage({super.key});
 
@@ -13,45 +17,70 @@ class AdminCouponListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final couponsAsync = ref.watch(adminCouponListProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quản lý mã giảm giá'),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/admin/coupons/new'),
-        icon: const Icon(Icons.add),
-        label: const Text('Tạo mã'),
-      ),
-      body: couponsAsync.when(
-        data: (coupons) {
-          if (coupons.isEmpty) {
-            return const Center(
-              child: Text('Chưa có mã giảm giá nào.'),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(adminCouponListProvider);
-              await ref.read(adminCouponListProvider.future);
-            },
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: coupons.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final coupon = coupons[index];
-                return _CouponCard(coupon: coupon);
-              },
-            ),
-          );
+    return AdminPageLayout(
+      title: 'Quản lý mã giảm giá',
+      currentRoute: '/admin/coupons',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.add_box_outlined, size: 28, color: Colors.blue),
+          onPressed: () => context.push('/admin/coupons/new'),
+          tooltip: 'Tạo mã mới',
+        ),
+      ],
+      child: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(adminCouponStatsProvider);
+          ref.invalidate(adminCouponListProvider);
+          await ref.read(adminCouponListProvider.future);
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text('Không tải được danh sách mã giảm giá.\n$error'),
-          ),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: AdminCouponStatsSection(),
+              ),
+            ),
+            couponsAsync.when(
+              data: (coupons) {
+                if (coupons.isEmpty) {
+                  return const SliverFillRemaining(
+                    child: Center(
+                      child: Text('Chưa có mã giảm giá nào.'),
+                    ),
+                  );
+                }
+
+                return SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final coupon = coupons[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: _CouponCard(coupon: coupon),
+                        );
+                      },
+                      childCount: coupons.length,
+                    ),
+                  ),
+                );
+              },
+              loading: () => const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, _) => SliverFillRemaining(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text('Không tải được danh sách mã giảm giá.\n$error'),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

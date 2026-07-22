@@ -3,6 +3,12 @@ class AdminDashboardStats {
   final double totalRevenue;
   final int totalOrders;
   final int totalProductsSold;
+  final double totalOrdersGrowth;
+  final double totalRevenueGrowth;
+  final int newProductsCount;
+  final int totalProducts;
+  final int totalOutOfStock;
+  final int totalLowStock;
   final List<StatusCount> ordersByStatus;
   final List<BestSellingProduct> bestSelling;
   final List<RevenueByDay> revenueByDay;
@@ -15,6 +21,12 @@ class AdminDashboardStats {
     required this.totalRevenue,
     required this.totalOrders,
     required this.totalProductsSold,
+    required this.totalOrdersGrowth,
+    required this.totalRevenueGrowth,
+    required this.newProductsCount,
+    required this.totalProducts,
+    required this.totalOutOfStock,
+    required this.totalLowStock,
     required this.ordersByStatus,
     required this.bestSelling,
     required this.revenueByDay,
@@ -78,6 +90,8 @@ class RecentOrder {
   final double totalAmount;
   final String status;
   final DateTime createdAt;
+  final String productName;
+  final String? productImageUrl;
 
   const RecentOrder({
     required this.orderId,
@@ -85,6 +99,8 @@ class RecentOrder {
     required this.totalAmount,
     required this.status,
     required this.createdAt,
+    required this.productName,
+    this.productImageUrl,
   });
 }
 

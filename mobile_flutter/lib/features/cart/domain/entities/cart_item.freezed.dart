@@ -25,6 +25,8 @@ mixin _$CartItemEntity {
   int get stockQuantity => throw _privateConstructorUsedError;
   bool get isSelected => throw _privateConstructorUsedError;
   double get lineTotal => throw _privateConstructorUsedError;
+  String get productStatus => throw _privateConstructorUsedError;
+  bool get isAvailable => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $CartItemEntityCopyWith<CartItemEntity> get copyWith =>
@@ -46,7 +48,9 @@ abstract class $CartItemEntityCopyWith<$Res> {
       int quantity,
       int stockQuantity,
       bool isSelected,
-      double lineTotal});
+      double lineTotal,
+      String productStatus,
+      bool isAvailable});
 }
 
 /// @nodoc
@@ -71,6 +75,8 @@ class _$CartItemEntityCopyWithImpl<$Res, $Val extends CartItemEntity>
     Object? stockQuantity = null,
     Object? isSelected = null,
     Object? lineTotal = null,
+    Object? productStatus = null,
+    Object? isAvailable = null,
   }) {
     return _then(_value.copyWith(
       cartItemId: null == cartItemId
@@ -109,6 +115,14 @@ class _$CartItemEntityCopyWithImpl<$Res, $Val extends CartItemEntity>
           ? _value.lineTotal
           : lineTotal // ignore: cast_nullable_to_non_nullable
               as double,
+      productStatus: null == productStatus
+          ? _value.productStatus
+          : productStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      isAvailable: null == isAvailable
+          ? _value.isAvailable
+          : isAvailable // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -130,7 +144,9 @@ abstract class _$$CartItemEntityImplCopyWith<$Res>
       int quantity,
       int stockQuantity,
       bool isSelected,
-      double lineTotal});
+      double lineTotal,
+      String productStatus,
+      bool isAvailable});
 }
 
 /// @nodoc
@@ -153,6 +169,8 @@ class __$$CartItemEntityImplCopyWithImpl<$Res>
     Object? stockQuantity = null,
     Object? isSelected = null,
     Object? lineTotal = null,
+    Object? productStatus = null,
+    Object? isAvailable = null,
   }) {
     return _then(_$CartItemEntityImpl(
       cartItemId: null == cartItemId
@@ -191,6 +209,14 @@ class __$$CartItemEntityImplCopyWithImpl<$Res>
           ? _value.lineTotal
           : lineTotal // ignore: cast_nullable_to_non_nullable
               as double,
+      productStatus: null == productStatus
+          ? _value.productStatus
+          : productStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      isAvailable: null == isAvailable
+          ? _value.isAvailable
+          : isAvailable // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -207,7 +233,9 @@ class _$CartItemEntityImpl implements _CartItemEntity {
       required this.quantity,
       required this.stockQuantity,
       required this.isSelected,
-      required this.lineTotal});
+      required this.lineTotal,
+      this.productStatus = 'Active',
+      this.isAvailable = true});
 
   @override
   final int cartItemId;
@@ -227,10 +255,16 @@ class _$CartItemEntityImpl implements _CartItemEntity {
   final bool isSelected;
   @override
   final double lineTotal;
+  @override
+  @JsonKey()
+  final String productStatus;
+  @override
+  @JsonKey()
+  final bool isAvailable;
 
   @override
   String toString() {
-    return 'CartItemEntity(cartItemId: $cartItemId, productId: $productId, productName: $productName, imageUrl: $imageUrl, price: $price, quantity: $quantity, stockQuantity: $stockQuantity, isSelected: $isSelected, lineTotal: $lineTotal)';
+    return 'CartItemEntity(cartItemId: $cartItemId, productId: $productId, productName: $productName, imageUrl: $imageUrl, price: $price, quantity: $quantity, stockQuantity: $stockQuantity, isSelected: $isSelected, lineTotal: $lineTotal, productStatus: $productStatus, isAvailable: $isAvailable)';
   }
 
   @override
@@ -254,7 +288,11 @@ class _$CartItemEntityImpl implements _CartItemEntity {
             (identical(other.isSelected, isSelected) ||
                 other.isSelected == isSelected) &&
             (identical(other.lineTotal, lineTotal) ||
-                other.lineTotal == lineTotal));
+                other.lineTotal == lineTotal) &&
+            (identical(other.productStatus, productStatus) ||
+                other.productStatus == productStatus) &&
+            (identical(other.isAvailable, isAvailable) ||
+                other.isAvailable == isAvailable));
   }
 
   @override
@@ -268,7 +306,9 @@ class _$CartItemEntityImpl implements _CartItemEntity {
       quantity,
       stockQuantity,
       isSelected,
-      lineTotal);
+      lineTotal,
+      productStatus,
+      isAvailable);
 
   @JsonKey(ignore: true)
   @override
@@ -288,7 +328,9 @@ abstract class _CartItemEntity implements CartItemEntity {
       required final int quantity,
       required final int stockQuantity,
       required final bool isSelected,
-      required final double lineTotal}) = _$CartItemEntityImpl;
+      required final double lineTotal,
+      final String productStatus,
+      final bool isAvailable}) = _$CartItemEntityImpl;
 
   @override
   int get cartItemId;
@@ -308,6 +350,10 @@ abstract class _CartItemEntity implements CartItemEntity {
   bool get isSelected;
   @override
   double get lineTotal;
+  @override
+  String get productStatus;
+  @override
+  bool get isAvailable;
   @override
   @JsonKey(ignore: true)
   _$$CartItemEntityImplCopyWith<_$CartItemEntityImpl> get copyWith =>

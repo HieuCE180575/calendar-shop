@@ -13,6 +13,12 @@ _$AdminDashboardStatsModelImpl _$$AdminDashboardStatsModelImplFromJson(
       totalRevenue: (json['totalRevenue'] as num).toDouble(),
       totalOrders: (json['totalOrders'] as num).toInt(),
       totalProductsSold: (json['totalProductsSold'] as num).toInt(),
+      totalOrdersGrowth: (json['totalOrdersGrowth'] as num).toDouble(),
+      totalRevenueGrowth: (json['totalRevenueGrowth'] as num).toDouble(),
+      newProductsCount: (json['newProductsCount'] as num).toInt(),
+      totalProducts: (json['totalProducts'] as num).toInt(),
+      totalOutOfStock: (json['totalOutOfStock'] as num).toInt(),
+      totalLowStock: (json['totalLowStock'] as num).toInt(),
       ordersByStatus: (json['ordersByStatus'] as List<dynamic>)
           .map((e) => StatusCountModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -41,6 +47,12 @@ Map<String, dynamic> _$$AdminDashboardStatsModelImplToJson(
       'totalRevenue': instance.totalRevenue,
       'totalOrders': instance.totalOrders,
       'totalProductsSold': instance.totalProductsSold,
+      'totalOrdersGrowth': instance.totalOrdersGrowth,
+      'totalRevenueGrowth': instance.totalRevenueGrowth,
+      'newProductsCount': instance.newProductsCount,
+      'totalProducts': instance.totalProducts,
+      'totalOutOfStock': instance.totalOutOfStock,
+      'totalLowStock': instance.totalLowStock,
       'ordersByStatus': instance.ordersByStatus,
       'bestSelling': instance.bestSelling,
       'revenueByDay': instance.revenueByDay,
@@ -121,6 +133,8 @@ _$RecentOrderModelImpl _$$RecentOrderModelImplFromJson(
       totalAmount: (json['totalAmount'] as num).toDouble(),
       status: json['status'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      productName: json['productName'] as String,
+      productImageUrl: json['productImageUrl'] as String?,
     );
 
 Map<String, dynamic> _$$RecentOrderModelImplToJson(
@@ -131,6 +145,8 @@ Map<String, dynamic> _$$RecentOrderModelImplToJson(
       'totalAmount': instance.totalAmount,
       'status': instance.status,
       'createdAt': instance.createdAt.toIso8601String(),
+      'productName': instance.productName,
+      'productImageUrl': instance.productImageUrl,
     };
 
 _$LowStockProductModelImpl _$$LowStockProductModelImplFromJson(

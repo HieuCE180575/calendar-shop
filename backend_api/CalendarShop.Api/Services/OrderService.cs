@@ -605,4 +605,70 @@ public class OrderService : IOrderService
 
         await _cartItemRepository.SaveChangesAsync();
     }
+
+    public async Task<CalendarShop.Api.Dtos.AdminStats.AdminOrderStatsDto> GetAdminOrderStatsAsync(int days = 7)
+    {
+        var now = DateTime.UtcNow;
+        var currentStartDate = now.AddDays(-days);
+        var prevStartDate = now.AddDays(-days * 2);
+
+        var totalOrders = await _orderRepository.Entities.CountAsync(o => o.CreatedAt <= now);
+        var prevTotalOrders = await _orderRepository.Entities.CountAsync(o => o.CreatedAt <= currentStartDate);
+        double totalOrdersGrowth = prevTotalOrders == 0 ? (totalOrders > 0 ? 100 : 0) : Math.Round(((double)(totalOrders - prevTotalOrders) / prevTotalOrders) * 100, 1);
+
+        var pendingOrders = await _orderRepository.Entities.CountAsync(o => o.Status == "Pending");
+        var deliveringOrders = await _orderRepository.Entities.CountAsync(o => o.Status == "Processing" || o.Status == "Shipping");
+        var completedOrders = await _orderRepository.Entities.CountAsync(o => o.Status == "Delivered");
+        var cancelledOrders = await _orderRepository.Entities.CountAsync(o => o.Status == "Cancelled");
+
+        var revenue = await _orderRepository.Entities.Where(o => o.Status == "Delivered" && o.CreatedAt >= currentStartDate && o.CreatedAt <= now).SumAsync(o => o.TotalAmount);
+        var prevRevenue = await _orderRepository.Entities.Where(o => o.Status == "Delivered" && o.CreatedAt >= prevStartDate && o.CreatedAt < currentStartDate).SumAsync(o => o.TotalAmount);
+        double revenueGrowth = prevRevenue == 0 ? (revenue > 0 ? 100 : 0) : Math.Round(((double)(revenue - prevRevenue) / (double)prevRevenue) * 100, 1);
+
+        var statusGroups = await _orderRepository.Entities
+            .GroupBy(o => o.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        var statusDistribution = statusGroups.Select(g => new CalendarShop.Api.Dtos.AdminStats.OrderStatusDistributionDto
+        {
+            Status = g.Status,
+            Total = g.Count,
+            Percentage = totalOrders > 0 ? Math.Round((double)g.Count / totalOrders * 100, 1) : 0
+        }).ToList();
+
+        // Revenue by day (last {days} days max 7 for UI chart if needed, but let's just do `days`)
+        var recentDeliveredOrders = await _orderRepository.Entities
+            .Where(o => o.Status == "Delivered" && o.CreatedAt >= currentStartDate)
+            .Select(o => new { o.CreatedAt, o.TotalAmount })
+            .ToListAsync();
+
+        int loopDays = Math.Min(days, 30); // Prevent too many days in UI
+        var revenueByDay = Enumerable.Range(0, loopDays)
+            .Select(i => currentStartDate.AddDays(i).Date)
+            .Select(d =>
+            {
+                var ordersOnDay = recentDeliveredOrders.Where(o => o.CreatedAt.Date == d).ToList();
+                return new CalendarShop.Api.Dtos.RevenueByDayDto
+                {
+                    Date = d,
+                    Revenue = ordersOnDay.Sum(o => o.TotalAmount),
+                    OrderCount = ordersOnDay.Count
+                };
+            })
+            .ToList();
+
+        return new CalendarShop.Api.Dtos.AdminStats.AdminOrderStatsDto
+        {
+            TotalOrders = totalOrders,
+            TotalOrdersGrowth = totalOrdersGrowth,
+            PendingOrders = pendingOrders,
+            DeliveringOrders = deliveringOrders,
+            CompletedOrders = completedOrders,
+            RevenueGrowth = revenueGrowth,
+            CancelledOrders = cancelledOrders,
+            StatusDistribution = statusDistribution,
+            RevenueByDay = revenueByDay
+        };
+    }
 }
