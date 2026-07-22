@@ -4,8 +4,10 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Models;
+using CalendarShop.Api.Options;
 using CalendarShop.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace CalendarShop.Api.Services;
 
@@ -25,27 +27,52 @@ public class ChatAssistantService : IChatAssistantService
         ["ma giam"] = "coupon",
         ["giam gia"] = "coupon",
         ["khuyen mai"] = "coupon",
-        ["uu dai"] = "sale",
+        ["sale"] = "sale",
         ["dang sale"] = "sale",
+        ["uu dai"] = "sale",
         ["treo tuong"] = "wall",
-        ["de ban"] = "desk"
+        ["de ban"] = "desk",
+        ["con hang"] = "stock_available",
+        ["het hang"] = "stock_unavailable",
+        ["ton kho"] = "inventory",
+        ["gia thap nhat"] = "min_price",
+        ["gia cao nhat"] = "max_price",
+        ["thap nhat"] = "min_price",
+        ["cao nhat"] = "max_price",
+        ["re nhat"] = "min_price",
+        ["dat nhat"] = "max_price",
+        ["mac nhat"] = "max_price",
+        ["gia mac"] = "max_price",
+        ["tam trung"] = "mid_range",
+        ["trung binh"] = "mid_range"
     };
+
+    private static readonly HashSet<string> ControlTokens =
+    [
+        "lich", "product", "list", "price", "range", "min_price", "max_price", "mid_range",
+        "min", "max", "mid", "gia", "thap", "cao", "nhat", "re", "dat", "mac",
+        "tam", "trung", "binh", "stock_available", "stock_unavailable", "inventory",
+        "stock", "available", "unavailable", "con", "het", "ton", "kho", "sale"
+    ];
 
     private readonly IRepository<Product> _productRepository;
     private readonly IRepository<Coupon> _couponRepository;
     private readonly IDiscountService _discountService;
     private readonly ILocalLlmService _localLlmService;
+    private readonly LocalLlmSettings _llmSettings;
 
     public ChatAssistantService(
         IRepository<Product> productRepository,
         IRepository<Coupon> couponRepository,
         IDiscountService discountService,
-        ILocalLlmService localLlmService)
+        ILocalLlmService localLlmService,
+        IOptions<LocalLlmSettings> llmSettings)
     {
         _productRepository = productRepository;
         _couponRepository = couponRepository;
         _discountService = discountService;
         _localLlmService = localLlmService;
+        _llmSettings = llmSettings.Value;
     }
 
     public async Task<ChatAnswerDto> AskAsync(ChatAskRequest request, CancellationToken cancellationToken = default)
@@ -57,15 +84,37 @@ public class ChatAssistantService : IChatAssistantService
         }
 
         var normalizedQuery = NormalizeText(message);
+        var queryTokens = ExtractTokens(normalizedQuery);
+        if (queryTokens.Count == 0)
+        {
+            throw new BadHttpRequestException("Câu hỏi chưa đủ thông tin để tìm sản phẩm hoặc coupon.");
+        }
+
         if (IsRestrictedOrderQuestion(normalizedQuery))
         {
             return new ChatAnswerDto(
                 "Tôi không thể cung cấp thông tin đơn hàng trong khung chat công khai. Bạn có thể xem đơn hàng của mình trong mục Đơn hàng, hoặc xem báo cáo trong trang quản trị nếu là admin.");
         }
 
-        var products = await LoadProductContextAsync(normalizedQuery, cancellationToken);
-        var coupons = await LoadCouponContextAsync(normalizedQuery, cancellationToken);
-        var prompt = BuildPrompt(message, products, coupons);
+        var products = await _productRepository.Entities
+            .Include(x => x.Category)
+            .Include(x => x.Discount)
+            .Where(x => !x.IsDeleted && x.Category != null && x.Category.Status == "Active")
+            .ToListAsync(cancellationToken);
+
+        var productCandidates = GetProductCandidates(normalizedQuery, queryTokens, products);
+        productCandidates = EnsureGeneralProductContext(normalizedQuery, productCandidates, products);
+
+        var couponCandidates = await GetCouponCandidatesAsync(normalizedQuery, queryTokens, cancellationToken);
+        couponCandidates = EnsureGeneralCouponContext(normalizedQuery, couponCandidates);
+
+        if (productCandidates.Count == 0 && couponCandidates.Count == 0)
+        {
+            return new ChatAnswerDto(
+                "Tôi chưa tìm thấy dữ liệu phù hợp trong cửa hàng. Bạn có thể nhập rõ tên sản phẩm, danh mục hoặc mã coupon được không?");
+        }
+
+        var prompt = BuildPrompt(message, productCandidates, couponCandidates);
         var llmAnswer = await _localLlmService.GenerateAnswerAsync(prompt, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(llmAnswer))
@@ -76,34 +125,118 @@ public class ChatAssistantService : IChatAssistantService
         return new ChatAnswerDto(llmAnswer);
     }
 
-    private async Task<List<object>> LoadProductContextAsync(string normalizedQuery, CancellationToken cancellationToken)
+    private List<ProductCandidate> GetProductCandidates(
+        string normalizedQuery,
+        IReadOnlyCollection<string> queryTokens,
+        IReadOnlyList<Product> products)
     {
-        var queryTokens = ExtractTokens(normalizedQuery);
-        var products = await _productRepository.Entities
-            .Include(x => x.Category)
-            .Include(x => x.Discount)
-            .Where(x => !x.IsDeleted && x.Category != null && x.Category.Status == "Active")
-            .OrderBy(x => x.ProductId)
-            .ToListAsync(cancellationToken);
-
         return products
-            .Select(product => BuildProductContext(product, ScoreProduct(product, normalizedQuery, queryTokens)))
-            .ToList<object>();
+            .Select(product => new ProductCandidate(product, ScoreProduct(product, normalizedQuery, queryTokens)))
+            .Where(candidate => candidate.Score > 0)
+            .OrderByDescending(candidate => candidate.Score)
+            .Take(Math.Max(1, _llmSettings.MaxProductCandidates))
+            .ToList();
     }
 
-    private async Task<List<object>> LoadCouponContextAsync(string normalizedQuery, CancellationToken cancellationToken)
+    private async Task<List<CouponCandidate>> GetCouponCandidatesAsync(
+        string normalizedQuery,
+        IReadOnlyCollection<string> queryTokens,
+        CancellationToken cancellationToken)
     {
-        var queryTokens = ExtractTokens(normalizedQuery);
+        var now = DateTime.UtcNow;
         var coupons = await _couponRepository.Entities
-            .OrderBy(x => x.CouponId)
+            .Where(x => x.Status == "Active" && x.StartDate <= now && x.EndDate >= now)
             .ToListAsync(cancellationToken);
 
         return coupons
-            .Select(coupon => BuildCouponContext(coupon, ScoreCoupon(coupon, normalizedQuery, queryTokens)))
-            .ToList<object>();
+            .Select(coupon => new CouponCandidate(coupon, ScoreCoupon(coupon, normalizedQuery, queryTokens)))
+            .Where(candidate => candidate.Score > 0)
+            .OrderByDescending(candidate => candidate.Score)
+            .Take(Math.Max(1, _llmSettings.MaxCouponCandidates))
+            .ToList();
     }
 
-    private object BuildProductContext(Product product, int relevanceScore)
+    private List<ProductCandidate> EnsureGeneralProductContext(
+        string normalizedQuery,
+        List<ProductCandidate> productCandidates,
+        IReadOnlyList<Product> products)
+    {
+        if (productCandidates.Count > 0 || !ShouldUseOverviewProductContext(normalizedQuery))
+        {
+            return productCandidates;
+        }
+
+        return products
+            .Where(x => x.Status == "Active" && x.StockQuantity > 0)
+            .OrderByDescending(x => ShouldPrioritizeSaleProducts(normalizedQuery) && IsProductOnSale(x))
+            .ThenByDescending(x => x.StockQuantity)
+            .ThenBy(x => _discountService.GetDiscountedPrice(x))
+            .Take(Math.Max(1, _llmSettings.MaxOverviewProducts))
+            .Select(product => new ProductCandidate(product, 1))
+            .ToList();
+    }
+
+    private List<CouponCandidate> EnsureGeneralCouponContext(
+        string normalizedQuery,
+        List<CouponCandidate> couponCandidates)
+    {
+        if (couponCandidates.Count > 0 || !ShouldUseOverviewCouponContext(normalizedQuery))
+        {
+            return couponCandidates;
+        }
+
+        return _couponRepository.Entities
+            .Where(x => x.Status == "Active" && x.StartDate <= DateTime.UtcNow && x.EndDate >= DateTime.UtcNow)
+            .OrderByDescending(x => x.DiscountValue)
+            .Take(Math.Max(1, _llmSettings.MaxOverviewCoupons))
+            .AsEnumerable()
+            .Select(coupon => new CouponCandidate(coupon, 1))
+            .ToList();
+    }
+
+    private static int ScoreProduct(Product product, string normalizedQuery, IReadOnlyCollection<string> queryTokens)
+    {
+        var score = 0;
+        var name = NormalizeText(product.ProductName);
+        var description = NormalizeText(product.Description);
+        var category = NormalizeText(product.Category?.CategoryName);
+        var calendarType = NormalizeText(product.CalendarType);
+
+        if (name.Contains(normalizedQuery, StringComparison.Ordinal)) score += 14;
+        if (!string.IsNullOrWhiteSpace(description) && description.Contains(normalizedQuery, StringComparison.Ordinal)) score += 7;
+        if (!string.IsNullOrWhiteSpace(category) && category.Contains(normalizedQuery, StringComparison.Ordinal)) score += 8;
+
+        foreach (var token in queryTokens.Where(token => !ControlTokens.Contains(token)))
+        {
+            if (name.Contains(token, StringComparison.Ordinal)) score += 5;
+            if (!string.IsNullOrWhiteSpace(description) && description.Contains(token, StringComparison.Ordinal)) score += 3;
+            if (!string.IsNullOrWhiteSpace(category) && category.Contains(token, StringComparison.Ordinal)) score += 4;
+            if (!string.IsNullOrWhiteSpace(calendarType) && calendarType.Contains(token, StringComparison.Ordinal)) score += 3;
+        }
+
+        return score;
+    }
+
+    private static int ScoreCoupon(Coupon coupon, string normalizedQuery, IReadOnlyCollection<string> queryTokens)
+    {
+        var score = 0;
+        var code = NormalizeText(coupon.Code);
+        var description = NormalizeText(coupon.Description);
+
+        if (code.Contains(normalizedQuery, StringComparison.Ordinal)) score += 12;
+        if (!string.IsNullOrWhiteSpace(description) && description.Contains(normalizedQuery, StringComparison.Ordinal)) score += 7;
+
+        foreach (var token in queryTokens.Where(token => !ControlTokens.Contains(token)))
+        {
+            if (code.Contains(token, StringComparison.Ordinal)) score += 5;
+            if (!string.IsNullOrWhiteSpace(description) && description.Contains(token, StringComparison.Ordinal)) score += 3;
+        }
+
+        if (normalizedQuery.Contains("coupon", StringComparison.Ordinal)) score += 2;
+        return score;
+    }
+
+    private object BuildProductContext(Product product)
     {
         var currentPrice = _discountService.GetDiscountedPrice(product);
         var discount = product.Discount;
@@ -111,7 +244,6 @@ public class ChatAssistantService : IChatAssistantService
 
         return new
         {
-            relevanceScore,
             product.ProductId,
             product.ProductName,
             ExactProductName = product.ProductName,
@@ -129,28 +261,6 @@ public class ChatAssistantService : IChatAssistantService
         };
     }
 
-    private static object BuildCouponContext(Coupon coupon, int relevanceScore)
-    {
-        var now = DateTime.UtcNow;
-
-        return new
-        {
-            relevanceScore,
-            coupon.CouponId,
-            coupon.Code,
-            coupon.Description,
-            coupon.DiscountType,
-            coupon.DiscountValue,
-            coupon.MinOrderValue,
-            coupon.StartDate,
-            coupon.EndDate,
-            coupon.UsageLimit,
-            coupon.UsedCount,
-            coupon.Status,
-            IsCurrentlyUsable = coupon.Status == "Active" && coupon.StartDate <= now && coupon.EndDate >= now
-        };
-    }
-
     private bool IsProductOnSale(Product product)
     {
         var discount = product.Discount;
@@ -161,80 +271,78 @@ public class ChatAssistantService : IChatAssistantService
                _discountService.GetDiscountedPrice(product) < product.Price;
     }
 
-    private static int ScoreProduct(Product product, string normalizedQuery, IReadOnlyCollection<string> queryTokens)
-    {
-        var score = 0;
-        var name = NormalizeText(product.ProductName);
-        var description = NormalizeText(product.Description);
-        var category = NormalizeText(product.Category?.CategoryName);
-        var calendarType = NormalizeText(product.CalendarType);
-
-        if (!string.IsNullOrWhiteSpace(normalizedQuery) && name.Contains(normalizedQuery, StringComparison.Ordinal)) score += 14;
-        if (!string.IsNullOrWhiteSpace(normalizedQuery) && description.Contains(normalizedQuery, StringComparison.Ordinal)) score += 7;
-        if (!string.IsNullOrWhiteSpace(normalizedQuery) && category.Contains(normalizedQuery, StringComparison.Ordinal)) score += 8;
-
-        foreach (var token in queryTokens)
-        {
-            if (name.Contains(token, StringComparison.Ordinal)) score += 5;
-            if (description.Contains(token, StringComparison.Ordinal)) score += 3;
-            if (category.Contains(token, StringComparison.Ordinal)) score += 4;
-            if (calendarType.Contains(token, StringComparison.Ordinal)) score += 3;
-        }
-
-        return score;
-    }
-
-    private static int ScoreCoupon(Coupon coupon, string normalizedQuery, IReadOnlyCollection<string> queryTokens)
-    {
-        var score = 0;
-        var code = NormalizeText(coupon.Code);
-        var description = NormalizeText(coupon.Description);
-
-        if (!string.IsNullOrWhiteSpace(normalizedQuery) && code.Contains(normalizedQuery, StringComparison.Ordinal)) score += 12;
-        if (!string.IsNullOrWhiteSpace(normalizedQuery) && description.Contains(normalizedQuery, StringComparison.Ordinal)) score += 7;
-
-        foreach (var token in queryTokens)
-        {
-            if (code.Contains(token, StringComparison.Ordinal)) score += 5;
-            if (description.Contains(token, StringComparison.Ordinal)) score += 3;
-        }
-
-        if (normalizedQuery.Contains("coupon", StringComparison.Ordinal)) score += 2;
-        return score;
-    }
-
-    private static string BuildPrompt(
+    private string BuildPrompt(
         string userQuestion,
-        IReadOnlyList<object> products,
-        IReadOnlyList<object> coupons)
+        IReadOnlyList<ProductCandidate> products,
+        IReadOnlyList<CouponCandidate> coupons)
     {
-        var runtimeContext = new
+        var normalizedQuestion = NormalizeText(userQuestion);
+        var productContexts = products.Select(x => BuildProductContext(x.Product)).ToList();
+        var saleProductContexts = products
+            .Where(x => IsProductOnSale(x.Product))
+            .Select(x => BuildProductContext(x.Product))
+            .ToList();
+
+        var productLimitNote = products.Count >= Math.Max(1, _llmSettings.MaxOverviewProducts)
+            ? $"Product context may be capped at {_llmSettings.MaxOverviewProducts} items."
+            : "Product context is not capped.";
+        var couponLimitNote = coupons.Count >= Math.Max(1, _llmSettings.MaxOverviewCoupons)
+            ? $"Coupon context may be capped at {_llmSettings.MaxOverviewCoupons} items."
+            : "Coupon context is not capped.";
+
+        var context = new
         {
-            products,
-            coupons
+            notes = new[]
+            {
+                productLimitNote,
+                couponLimitNote
+            },
+            questionHints = new
+            {
+                IsSaleQuestion = ShouldPrioritizeSaleProducts(normalizedQuestion)
+            },
+            activeSaleProductCount = saleProductContexts.Count,
+            saleProducts = saleProductContexts,
+            products = productContexts,
+            coupons = coupons.Select(x => new
+            {
+                x.Coupon.CouponId,
+                x.Coupon.Code,
+                x.Coupon.Description,
+                x.Coupon.DiscountType,
+                x.Coupon.DiscountValue,
+                x.Coupon.MinOrderValue,
+                x.Coupon.StartDate,
+                x.Coupon.EndDate,
+                x.Coupon.Status
+            })
         };
-        var runtimeContextJson = JsonSerializer.Serialize(runtimeContext, new JsonSerializerOptions { WriteIndented = true });
+
+        var contextJson = JsonSerializer.Serialize(context, new JsonSerializerOptions { WriteIndented = true });
 
         return $"""
 Bạn là trợ lý sản phẩm của Calendar Shop.
 
 Quy tắc:
-1. Chỉ trả lời dựa trên RUNTIME_DATA bên dưới.
-2. RUNTIME_DATA là dữ liệu hiện tại lấy từ database đang chạy thông qua repository.
-3. Dùng RUNTIME_DATA trước khi trả lời về sản phẩm, tồn kho, giá, sale hoặc coupon.
-4. Không tự bịa giá, tồn kho, coupon, loại lịch hoặc mô tả sản phẩm.
-5. Khi nhắc tên sản phẩm, phải copy chính xác ExactProductName/ProductName từ RUNTIME_DATA.
-6. Không dịch, sửa chính tả, tự đoán, hoặc thay đổi tên sản phẩm.
-7. relevanceScore chỉ là gợi ý độ liên quan với câu hỏi; điểm cao hơn thì nên ưu tiên đọc trước, nhưng vẫn được dùng dữ liệu có điểm thấp nếu câu hỏi cần.
-8. Nếu IsOnSale = true hoặc CurrentPrice < OriginalPrice, sản phẩm đang sale.
-9. Nếu StockQuantity > 0 và Status = Active, có thể nói sản phẩm còn hàng.
-10. Nếu StockQuantity <= 0 hoặc Status khác Active, nói sản phẩm hiện không sẵn sàng để bán.
-11. Trả lời tự nhiên, ngắn gọn, bằng tiếng Việt có dấu.
+1. Chỉ trả lời dựa trên dữ liệu trong CONTEXT.
+2. Không tự bịa giá, tồn kho, coupon, loại lịch hoặc mô tả sản phẩm.
+3. Nếu CONTEXT không đủ để trả lời, nói rõ là chưa tìm thấy đủ thông tin.
+4. Nếu có nhiều sản phẩm phù hợp, hãy gợi ý ngắn gọn 2-3 lựa chọn tốt nhất thay vì bắt người dùng hỏi lại.
+5. Khi nhắc tên sản phẩm, phải copy chính xác ExactProductName/ProductName từ CONTEXT.
+6. Không được dịch, sửa chính tả, tự đoán, hoặc thay đổi tên sản phẩm. Ví dụ ProductName là "Lịch để bàn mini 2026" thì phải giữ đúng như vậy.
+7. Không dùng CalendarType để tạo tên sản phẩm mới.
+8. Nếu questionHints.IsSaleQuestion = true, hãy ưu tiên đọc saleProducts trước.
+9. Nếu activeSaleProductCount > 0, phải trả lời là có sản phẩm đang sale và liệt kê từ saleProducts.
+10. Nếu activeSaleProductCount = 0, mới được nói là chưa có sản phẩm đang sale.
+11. Nếu IsOnSale = true, sản phẩm đó đang áp dụng khuyến mãi/đang sale.
+12. Nếu IsOnSale = false, không được nói sản phẩm đó đang sale.
+13. Nếu CurrentPrice < OriginalPrice thì đây cũng là dấu hiệu sản phẩm đang được bán với giá ưu đãi.
+14. Nếu stockQuantity > 0 và status = Active, có thể nói là còn hàng.
+15. Nếu stockQuantity <= 0 hoặc status khác Active, nói là hiện không sẵn sàng để bán.
+16. Trả lời tự nhiên, ngắn gọn, bằng tiếng Việt có dấu.
 
-RUNTIME_DATA:
-```json
-{runtimeContextJson}
-```
+CONTEXT:
+{contextJson}
 
 CÂU HỎI:
 {userQuestion}
@@ -248,12 +356,14 @@ CÂU HỎI:
             return string.Empty;
         }
 
-        var normalized = text.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD);
-        var builder = new StringBuilder(normalized.Length);
+        var normalized = text.Trim().ToLowerInvariant();
+        normalized = normalized.Normalize(NormalizationForm.FormD);
 
+        var builder = new StringBuilder(normalized.Length);
         foreach (var ch in normalized)
         {
-            if (CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark)
+            var category = CharUnicodeInfo.GetUnicodeCategory(ch);
+            if (category != UnicodeCategory.NonSpacingMark)
             {
                 builder.Append(ch);
             }
@@ -283,6 +393,26 @@ CÂU HỎI:
             .ToList();
     }
 
+    private static bool ShouldUseOverviewProductContext(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("lich", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("san pham", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("stock_available", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("stock_unavailable", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("inventory", StringComparison.Ordinal);
+    }
+
+    private static bool ShouldUseOverviewCouponContext(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("coupon", StringComparison.Ordinal);
+    }
+
+    private static bool ShouldPrioritizeSaleProducts(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("sale", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("coupon", StringComparison.Ordinal);
+    }
+
     private static bool IsRestrictedOrderQuestion(string normalizedQuery)
     {
         return (normalizedQuery.Contains("don", StringComparison.Ordinal) ||
@@ -293,4 +423,7 @@ CÂU HỎI:
                 normalizedQuery.Contains("latest", StringComparison.Ordinal) ||
                 normalizedQuery.Contains("thoi gian", StringComparison.Ordinal));
     }
+
+    private sealed record ProductCandidate(Product Product, int Score);
+    private sealed record CouponCandidate(Coupon Coupon, int Score);
 }
