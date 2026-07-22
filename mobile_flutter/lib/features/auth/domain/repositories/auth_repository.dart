@@ -13,6 +13,7 @@ class ForgotPasswordResult {
 
 abstract class AuthRepository {
   Future<AuthResult> login({required String login, required String password});
+  Future<AuthResult> googleLogin({required String email, String? fullName, String? photoUrl, String? idToken});
   Future<String> register({required String fullName, String? email, String? phone, required String password});
   Future<AppUser> me();
   Future<AppUser> updateProfile({

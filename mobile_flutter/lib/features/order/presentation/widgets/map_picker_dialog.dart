@@ -5,6 +5,22 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/theme/app_colors.dart';
 
+class MapAddressResult {
+  final String fullAddress;
+  final String province;
+  final String district;
+  final String ward;
+  final String addressLine;
+
+  const MapAddressResult({
+    required this.fullAddress,
+    required this.province,
+    required this.district,
+    required this.ward,
+    required this.addressLine,
+  });
+}
+
 class MapPickerDialog extends StatefulWidget {
   const MapPickerDialog({super.key});
 
@@ -20,6 +36,7 @@ class _MapPickerDialogState extends State<MapPickerDialog> {
   final LatLng _initialCenter = const LatLng(10.7798, 106.6990);
   
   String _address = 'Đang xác định vị trí...';
+  Map<String, dynamic>? _currentAddressObj;
   bool _isGeocoding = false;
   bool _isSearching = false;
   Timer? _debounceTimer;
@@ -64,9 +81,11 @@ class _MapPickerDialogState extends State<MapPickerDialog> {
 
       if (response.statusCode == 200 && response.data != null) {
         final displayName = response.data['display_name'] as String?;
+        final addressDetails = response.data['address'] as Map<String, dynamic>?;
         if (displayName != null) {
           setState(() {
             _address = displayName;
+            _currentAddressObj = addressDetails;
           });
           return;
         }
@@ -74,10 +93,12 @@ class _MapPickerDialogState extends State<MapPickerDialog> {
       
       setState(() {
         _address = 'Tọa độ: ${latitude.toStringAsFixed(5)}, ${longitude.toStringAsFixed(5)}';
+        _currentAddressObj = null;
       });
     } catch (e) {
       setState(() {
         _address = 'Không tìm thấy địa chỉ. Nhấp vào đây để tự nhập.';
+        _currentAddressObj = null;
       });
     } finally {
       if (mounted) {
@@ -106,6 +127,7 @@ class _MapPickerDialogState extends State<MapPickerDialog> {
           'q': query,
           'format': 'json',
           'limit': 1,
+          'addressdetails': 1,
           'accept-language': 'vi',
         },
       );
@@ -115,6 +137,7 @@ class _MapPickerDialogState extends State<MapPickerDialog> {
         final lat = double.parse(firstMatch['lat'] as String);
         final lon = double.parse(firstMatch['lon'] as String);
         final displayName = firstMatch['display_name'] as String;
+        final addressDetails = firstMatch['address'] as Map<String, dynamic>?;
 
         final targetLatLng = LatLng(lat, lon);
         
@@ -123,6 +146,7 @@ class _MapPickerDialogState extends State<MapPickerDialog> {
         
         setState(() {
           _address = displayName;
+          _currentAddressObj = addressDetails;
         });
       } else {
         if (mounted) {
@@ -336,7 +360,8 @@ class _MapPickerDialogState extends State<MapPickerDialog> {
                                 onPressed: _isGeocoding
                                     ? null
                                     : () {
-                                        Navigator.pop(context, _address);
+                                        final result = _parseAddressDetails(_address, _currentAddressObj);
+                                        Navigator.pop(context, result);
                                       },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primary,
@@ -375,6 +400,81 @@ class _MapPickerDialogState extends State<MapPickerDialog> {
           ),
         ),
       ),
+    );
+  }
+
+  MapAddressResult _parseAddressDetails(String displayName, Map<String, dynamic>? rawAddressObj) {
+    String province = '';
+    String district = '';
+    String ward = '';
+    String addressLine = '';
+
+    if (rawAddressObj != null) {
+      province = (rawAddressObj['city'] ??
+              rawAddressObj['province'] ??
+              rawAddressObj['state'] ??
+              rawAddressObj['region'] ??
+              '')
+          .toString();
+
+      district = (rawAddressObj['district'] ??
+              rawAddressObj['city_district'] ??
+              rawAddressObj['county'] ??
+              rawAddressObj['town'] ??
+              rawAddressObj['suburb'] ??
+              '')
+          .toString();
+
+      ward = (rawAddressObj['ward'] ??
+              rawAddressObj['quarter'] ??
+              rawAddressObj['village'] ??
+              rawAddressObj['commune'] ??
+              rawAddressObj['suburb'] ??
+              '')
+          .toString();
+
+      final houseNumber = rawAddressObj['house_number']?.toString() ?? '';
+      final road = rawAddressObj['road']?.toString() ??
+          rawAddressObj['pedestrian']?.toString() ??
+          rawAddressObj['building']?.toString() ??
+          '';
+
+      if (road.isNotEmpty) {
+        addressLine = houseNumber.isNotEmpty ? '$houseNumber $road' : road;
+      }
+    }
+
+    if (displayName.isNotEmpty) {
+      final parts = displayName.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
+      if (parts.isNotEmpty && parts.last.toLowerCase().contains('việt nam')) {
+        parts.removeLast();
+      }
+
+      if (province.isEmpty && parts.isNotEmpty) {
+        province = parts.removeLast();
+      }
+      if (district.isEmpty && parts.isNotEmpty) {
+        district = parts.removeLast();
+      }
+      if (ward.isEmpty && parts.isNotEmpty) {
+        ward = parts.removeLast();
+      }
+      if (addressLine.isEmpty && parts.isNotEmpty) {
+        addressLine = parts.join(', ');
+      }
+    }
+
+    if (addressLine.isEmpty) {
+      addressLine = displayName;
+    }
+
+    return MapAddressResult(
+      fullAddress: displayName,
+      province: province,
+      district: district,
+      ward: ward,
+      addressLine: addressLine,
     );
   }
 }

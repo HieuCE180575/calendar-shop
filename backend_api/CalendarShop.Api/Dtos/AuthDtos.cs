@@ -3,6 +3,7 @@ namespace CalendarShop.Api.Dtos;
 public record RegisterRequest(string FullName, string? Email, string? Phone, string Password);
 public record RegisterResponse(string Message);
 public record LoginRequest(string Login, string Password);
+public record GoogleLoginRequest(string? Email, string? FullName, string? PhotoUrl, string? IdToken);
 public record ChangePasswordRequest(string OldPassword, string NewPassword);
 public record UpdateProfileRequest(
     string FullName,

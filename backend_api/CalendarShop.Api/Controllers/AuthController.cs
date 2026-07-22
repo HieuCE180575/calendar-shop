@@ -29,6 +29,13 @@ public class AuthController : AppControllerBase
         return Ok(response);
     }
 
+    [HttpPost("google-login")]
+    public async Task<ActionResult<AuthResponse>> GoogleLogin(GoogleLoginRequest request)
+    {
+        var response = await _authService.GoogleLoginAsync(request);
+        return Ok(response);
+    }
+
     [AllowAnonymous]
     [HttpGet("confirm-email")]
     public async Task<IActionResult> ConfirmEmailByLink([FromQuery] string token)

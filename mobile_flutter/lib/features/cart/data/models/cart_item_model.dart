@@ -16,6 +16,8 @@ class CartItemModel with _$CartItemModel {
     required int stockQuantity,
     required bool isSelected,
     required double lineTotal,
+    @Default('Active') String productStatus,
+    @Default(true) bool isAvailable,
   }) = _CartItemModel;
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) =>
@@ -33,5 +35,7 @@ extension CartItemModelMapper on CartItemModel {
         stockQuantity: stockQuantity,
         isSelected: isSelected,
         lineTotal: lineTotal,
+        productStatus: productStatus,
+        isAvailable: isAvailable,
       );
 }

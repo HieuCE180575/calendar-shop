@@ -229,6 +229,47 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       );
                 },
               ),
+              const SizedBox(height: 16),
+              Row(
+                children: const [
+                  Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'HOẶC',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF9CA3AF),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: state.isLoading ? null : _handleGoogleSignIn,
+                  icon: const Icon(Icons.g_mobiledata, color: Color(0xFFEA4335), size: 30),
+                  label: const Text(
+                    'Đăng ký nhanh với Google',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF374151),
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -247,6 +288,383 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 ],
               ),
               const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleGoogleSignIn() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        elevation: 10,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 420,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF333333)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.g_mobiledata, color: Color(0xFFEA4335), size: 32),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Đăng nhập bằng Google',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFFE3E2E6),
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Color(0xFF8E918F), size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF09359C),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'Calendar Shop',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Chọn tài khoản',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 6),
+              RichText(
+                text: const TextSpan(
+                  text: 'Tiếp tục tới ',
+                  style: TextStyle(fontSize: 14, color: Color(0xFFC4C7C5)),
+                  children: [
+                    TextSpan(
+                      text: 'Calendar Shop',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF333333)),
+                ),
+                child: Column(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        ref.read(authNotifierProvider.notifier).loginWithGoogle(
+                              email: 'hieunguyenk4.work@gmail.com',
+                              fullName: 'Hieu Nguyen',
+                              photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=HieuNguyen',
+                            );
+                      },
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14.0),
+                        child: Row(
+                          children: [
+                            const CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Color(0xFF00534E),
+                              child: Text(
+                                'H',
+                                style: TextStyle(
+                                  color: Color(0xFF6CFFED),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'Hieu Nguyen',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'hieunguyenk4.work@gmail.com',
+                                    style: TextStyle(
+                                      color: Color(0xFF8E918F),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1, color: Color(0xFF333333)),
+                    InkWell(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        ref.read(authNotifierProvider.notifier).loginWithGoogle(
+                              email: 'lego123th@gmail.com',
+                              fullName: 'Hieu Hieu',
+                              photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=HieuHieu',
+                            );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(14.0),
+                        child: Row(
+                          children: [
+                            const CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Color(0xFF444746),
+                              child: Text(
+                                'H',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'Hieu Hieu',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'lego123th@gmail.com',
+                                    style: TextStyle(
+                                      color: Color(0xFF8E918F),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1, color: Color(0xFF333333)),
+                    InkWell(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _showManualGoogleInput();
+                      },
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14.0),
+                        child: Row(
+                          children: const [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Color(0xFF2D2D2D),
+                              child: Icon(
+                                Icons.account_circle_outlined,
+                                color: Color(0xFFC4C7C5),
+                                size: 22,
+                              ),
+                            ),
+                            SizedBox(width: 14),
+                            Text(
+                              'Sử dụng một tài khoản khác',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              RichText(
+                text: const TextSpan(
+                  text: 'Trước khi sử dụng Calendar Shop, bạn có thể xem ',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF8E918F), height: 1.4),
+                  children: [
+                    TextSpan(
+                      text: 'Chính sách quyền riêng tư',
+                      style: TextStyle(color: Color(0xFFA8C7FA), fontWeight: FontWeight.w500),
+                    ),
+                    TextSpan(text: ' và '),
+                    TextSpan(
+                      text: 'Điều khoản dịch vụ',
+                      style: TextStyle(color: Color(0xFFA8C7FA), fontWeight: FontWeight.w500),
+                    ),
+                    TextSpan(text: ' của ứng dụng này.'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showManualGoogleInput() {
+    final customEmailController = TextEditingController();
+    final customNameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 400,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF333333)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.g_mobiledata, color: Color(0xFFEA4335), size: 32),
+                  SizedBox(width: 8),
+                  Text(
+                    'Nhập tài khoản Google',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Nhập địa chỉ Email Google của bạn để đăng nhập:',
+                style: TextStyle(fontSize: 13, color: Color(0xFF8E918F)),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: customEmailController,
+                keyboardType: TextInputType.emailAddress,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Email Google',
+                  labelStyle: const TextStyle(color: Color(0xFFA8C7FA)),
+                  hintText: 'hieunguyenk4.work@gmail.com',
+                  hintStyle: const TextStyle(color: Color(0xFF8E918F)),
+                  filled: true,
+                  fillColor: const Color(0xFF2D2D2D),
+                  prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFFA8C7FA)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF444746)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFA8C7FA), width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: customNameController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Họ tên hiển thị (tùy chọn)',
+                  labelStyle: const TextStyle(color: Color(0xFFA8C7FA)),
+                  hintText: 'Hieu Nguyen',
+                  hintStyle: const TextStyle(color: Color(0xFF8E918F)),
+                  filled: true,
+                  fillColor: const Color(0xFF2D2D2D),
+                  prefixIcon: const Icon(Icons.person_outline, color: Color(0xFFA8C7FA)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF444746)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFA8C7FA), width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Hủy', style: TextStyle(color: Color(0xFFA8C7FA))),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      final email = customEmailController.text.trim();
+                      if (email.isEmpty) return;
+                      Navigator.pop(ctx);
+                      ref.read(authNotifierProvider.notifier).loginWithGoogle(
+                            email: email,
+                            fullName: customNameController.text.trim(),
+                          );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFA8C7FA),
+                      foregroundColor: const Color(0xFF003062),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Đăng nhập', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
