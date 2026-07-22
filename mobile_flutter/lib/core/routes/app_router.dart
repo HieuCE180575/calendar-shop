@@ -38,6 +38,8 @@ import '../../features/admin/domain/entities/admin_discount.dart';
 import '../../features/admin/presentation/pages/orders/admin_order_detail_page.dart';
 import '../../features/admin/domain/entities/admin_order.dart';
 import '../../features/category/presentation/pages/admin_category_page.dart';
+import '../../features/notification/presentation/pages/notification_center_page.dart';
+
 final appRouter = GoRouter(
   initialLocation: '/login',
   routes: [
@@ -60,6 +62,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
     GoRoute(path: '/change-password', builder: (context, state) => const ChangePasswordPage()),
+    GoRoute(path: '/notifications', builder: (context, state) => const NotificationCenterPage()),
     
     ShellRoute(
       builder: (context, state, child) {

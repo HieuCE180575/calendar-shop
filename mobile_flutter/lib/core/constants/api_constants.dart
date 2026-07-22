@@ -38,4 +38,5 @@ class ApiConstants {
   static const String favorites = '/favorites';
   static const String reviews = '/reviews';
   static const String discounts = '/discounts';
+  static const String notifications = '/notifications';
 }

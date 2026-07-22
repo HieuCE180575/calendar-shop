@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<Discount> Discounts => Set<Discount>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -117,5 +118,11 @@ public class AppDbContext : DbContext
             .WithMany(d => d.Products)
             .HasForeignKey(p => p.DiscountId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Notification>()
+            .HasOne(x => x.User)
+            .WithMany(x => x.Notifications)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
