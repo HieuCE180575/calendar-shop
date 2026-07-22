@@ -206,12 +206,16 @@ class AuthRemoteDataSource {
     }
   }
 
-  Future<MessageResultModel> confirmEmail({required String token}) async {
+  Future<MessageResultModel> confirmEmail({
+    required String email,
+    required String otp,
+  }) async {
     try {
       final response = await apiClient.dio.post(
         ApiConstants.confirmEmail,
         data: {
-          'token': token,
+          'email': email,
+          'otp': otp,
         },
       );
       return MessageResultModel.fromJson(response.data);

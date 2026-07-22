@@ -15,7 +15,7 @@ public interface IAuthService
     Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request);
     Task<MessageResponse> VerifyResetCodeAsync(VerifyResetCodeRequest request);
     Task ResetPasswordAsync(ResetPasswordRequest request);
-    Task<MessageResponse> ConfirmEmailAsync(string token);
+    Task<MessageResponse> ConfirmEmailAsync(ConfirmEmailRequest request);
     Task<MessageResponse> ResendEmailConfirmationAsync(ResendEmailConfirmationRequest request);
     Task<AvailabilityCheckResponse> CheckAvailabilityAsync(string? email, string? phone);
 }

@@ -113,8 +113,13 @@ namespace CalendarShop.Api.Validators
     {
         public ConfirmEmailRequestValidator()
         {
-            RuleFor(x => x.Token)
-                .NotEmpty().WithMessage("Token xác nhận email là bắt buộc.");
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email là bắt buộc.")
+                .EmailAddress().WithMessage("Email không đúng định dạng.");
+
+            RuleFor(x => x.Otp)
+                .NotEmpty().WithMessage("Mã OTP là bắt buộc.")
+                .Matches(@"^\d{6}$").WithMessage("Mã OTP phải gồm đúng 6 chữ số.");
         }
     }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,7 +17,7 @@ class ConfirmEmailPage extends ConsumerStatefulWidget {
 }
 
 class _ConfirmEmailPageState extends ConsumerState<ConfirmEmailPage> {
-  final _tokenController = TextEditingController();
+  final _otpController = TextEditingController();
   final _emailController = TextEditingController();
   bool _isConfirmAction = false;
 
@@ -30,13 +31,13 @@ class _ConfirmEmailPageState extends ConsumerState<ConfirmEmailPage> {
   @override
   void initState() {
     super.initState();
-    _tokenController.text = widget.initialToken ?? '';
+    _otpController.text = widget.initialToken ?? '';
     _emailController.text = widget.initialEmail ?? '';
   }
 
   @override
   void dispose() {
-    _tokenController.dispose();
+    _otpController.dispose();
     _emailController.dispose();
     super.dispose();
   }
@@ -148,13 +149,15 @@ class _ConfirmEmailPageState extends ConsumerState<ConfirmEmailPage> {
                     ),
                     const SizedBox(height: 10),
                     TextField(
-                      controller: _tokenController,
-                      minLines: 2,
-                      maxLines: 4,
+                      controller: _otpController,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
+                      maxLength: 6,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
-                        hintText: 'Dán chuỗi token xác nhận tại đây...',
+                        hintText: 'Nhập mã OTP 6 số...',
                         hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                        prefixIcon: const Icon(Icons.key_outlined, color: _textSecondary),
+                        prefixIcon: const Icon(Icons.password_outlined, color: _textSecondary),
                         filled: true,
                         fillColor: _backgroundColor,
                         border: OutlineInputBorder(
@@ -190,13 +193,20 @@ class _ConfirmEmailPageState extends ConsumerState<ConfirmEmailPage> {
                       text: 'Xác nhận kích hoạt',
                       isLoading: state.isLoading,
                       onPressed: () {
-                        final token = _tokenController.text.trim();
-                        if (token.isNotEmpty) {
+                        final email = _emailController.text.trim();
+                        final otp = _otpController.text.trim();
+                        if (email.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Vui lòng nhập email đã đăng ký!')),
+                          );
+                          return;
+                        }
+                        if (otp.length == 6) {
                           setState(() => _isConfirmAction = true);
-                          ref.read(authNotifierProvider.notifier).confirmEmail(token);
+                          ref.read(authNotifierProvider.notifier).confirmEmail(email, otp);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Vui lòng nhập token xác nhận!')),
+                            const SnackBar(content: Text('Vui lòng nhập mã OTP 6 số!')),
                           );
                         }
                       },

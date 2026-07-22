@@ -42,7 +42,7 @@ public class AuthController : AppControllerBase
     {
         try
         {
-            var response = await _authService.ConfirmEmailAsync(token);
+            var response = await _authService.ConfirmEmailAsync(new ConfirmEmailRequest(string.Empty, token));
             var html = BuildConfirmEmailHtml("Xác nhận email thành công", response.Message, true);
             return Content(html, "text/html; charset=utf-8");
         }
@@ -56,7 +56,7 @@ public class AuthController : AppControllerBase
     [HttpPost("confirm-email")]
     public async Task<ActionResult<MessageResponse>> ConfirmEmail(ConfirmEmailRequest request)
     {
-        var response = await _authService.ConfirmEmailAsync(request.Token);
+        var response = await _authService.ConfirmEmailAsync(request);
         return Ok(response);
     }
 

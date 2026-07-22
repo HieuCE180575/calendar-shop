@@ -188,10 +188,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> confirmEmail(String token) async {
+  Future<bool> confirmEmail(String email, String otp) async {
     state = state.copyWith(isLoading: true, error: null, message: null);
     try {
-      final message = await ref.read(authRepositoryProvider).confirmEmail(token: token);
+      final message = await ref.read(authRepositoryProvider).confirmEmail(email: email, otp: otp);
       state = AuthState(message: message);
       return true;
     } catch (e) {
