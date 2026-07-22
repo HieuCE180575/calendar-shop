@@ -27,7 +27,8 @@ class ApiConstants {
   static const String verifyResetCode = '/auth/verify-reset-code';
   static const String resetPassword = '/auth/reset-password';
   static const String confirmEmail = '/auth/confirm-email';
-  static const String resendEmailConfirmation = '/auth/resend-email-confirmation';
+  static const String resendEmailConfirmation =
+      '/auth/resend-email-confirmation';
   static const String users = '/users';
   static const String products = '/products';
   static const String categories = '/categories';
@@ -39,4 +40,5 @@ class ApiConstants {
   static const String reviews = '/reviews';
   static const String discounts = '/discounts';
   static const String notifications = '/notifications';
+  static const String chatAsk = '/chat/ask';
 }
