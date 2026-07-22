@@ -219,17 +219,14 @@ class NotificationCenterPage extends ConsumerWidget {
                               final match = regex.firstMatch(item.content) ?? regex.firstMatch(item.title);
                               if (match != null) {
                                 final orderIdStr = match.group(1);
-                                if (orderIdStr != null) {
-                                  // If admin, go to admin order detail, otherwise user order detail
-                                  if (isAdmin) {
-                                    // Notice: we need admin order entity to pass, or use id path
-                                    // Current route expects state.extra as AdminOrder which we don't have.
-                                    // It's safer to let them stay or handle admin routing differently.
-                                    // But user side:
-                                  } else {
-                                    context.push('/orders/$orderIdStr');
+                                  if (orderIdStr != null) {
+                                    // If admin, go to admin order detail, otherwise user order detail
+                                    if (isAdmin) {
+                                      context.push('/admin/orders/$orderIdStr');
+                                    } else {
+                                      context.push('/orders/$orderIdStr');
+                                    }
                                   }
-                                }
                               }
                             }
                           },

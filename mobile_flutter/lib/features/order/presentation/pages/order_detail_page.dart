@@ -115,6 +115,8 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
           final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
           final canCancel =
               order.status == 'Pending' || order.status == 'Confirmed';
+          final canReorder =
+              order.status == 'Completed' || order.status == 'Cancelled';
 
           return Stack(
             children: [
@@ -427,8 +429,8 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                 ),
               ),
 
-              // ─── Cancel Button (Floating Bottom) ─────────────────────────
-              if (canCancel)
+              // ─── Cancel Button / Reorder Button (Floating Bottom) ─────────────────────────
+              if (canCancel || canReorder)
                 Positioned(
                   left: 16,
                   right: 16,
@@ -437,27 +439,46 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                     child: SizedBox(
                       width: double.infinity,
                       height: 50,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(
-                              color: AppColors.danger, width: 1.5),
-                          foregroundColor: AppColors.danger,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          backgroundColor: Colors.white,
-                        ),
-                        onPressed: () =>
-                            _showCancelDialog(context, ref, order.orderId),
-                        icon: const Icon(Icons.cancel_outlined, size: 18),
-                        label: const Text(
-                          'Hủy đơn hàng',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
+                      child: canReorder
+                          ? ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () => _reorder(context, ref, order.orderId),
+                              icon: const Icon(Icons.refresh, size: 18),
+                              label: const Text(
+                                'Mua lại',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            )
+                          : OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                    color: AppColors.danger, width: 1.5),
+                                foregroundColor: AppColors.danger,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                backgroundColor: Colors.white,
+                              ),
+                              onPressed: () =>
+                                  _showCancelDialog(context, ref, order.orderId),
+                              icon: const Icon(Icons.cancel_outlined, size: 18),
+                              label: const Text(
+                                'Hủy đơn hàng',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -466,6 +487,30 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
         },
       ),
     );
+  }
+
+  Future<void> _reorder(BuildContext context, WidgetRef ref, int orderId) async {
+    try {
+      await ref.read(reorderActionProvider.notifier).reorder(orderId);
+      if (context.mounted) {
+        context.push('/cart');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(children: [
+              Icon(Icons.error_outline, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Expanded(child: Text('Không thể mua lại đơn hàng này.')),
+            ]),
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    }
   }
 
   void _showCancelDialog(BuildContext context, WidgetRef ref, int orderId) {

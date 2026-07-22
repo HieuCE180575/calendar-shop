@@ -204,8 +204,9 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin/orders/:id',
       builder: (context, state) {
-        final order = state.extra as AdminOrder;
-        return AdminOrderDetailPage(order: order);
+        final order = state.extra as AdminOrder?;
+        final orderId = int.parse(state.pathParameters['id']!);
+        return AdminOrderDetailPage(order: order, orderId: orderId);
       },
     ),
   ],

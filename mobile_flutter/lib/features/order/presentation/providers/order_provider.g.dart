@@ -348,7 +348,7 @@ class _OrderDetailProviderElement
   int get orderId => (origin as OrderDetailProvider).orderId;
 }
 
-String _$reorderActionHash() => r'3288d04b3da86d206a283c6ef49a09425f036a37';
+String _$reorderActionHash() => r'bc2b0a61f219a9d6c31e5152f98809278b23d35b';
 
 /// See also [ReorderAction].
 @ProviderFor(ReorderAction)
