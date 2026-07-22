@@ -17,7 +17,7 @@ public class ChatAssistantService : IChatAssistantService
     [
         "co", "khong", "la", "nay", "kia", "do", "cua", "toi", "minh", "ma", "no",
         "gi", "nao", "o", "va", "hay", "cho", "xin", "tu", "mot", "nhung", "nhi",
-        "voi", "ve", "duoc", "khach", "hang", "shop", "calendar"
+        "voi", "ve", "duoc", "khach", "hang", "shop", "calendar", "hien", "tai"
     ];
 
     private static readonly Dictionary<string, string> PhraseSynonyms = new()
@@ -29,24 +29,26 @@ public class ChatAssistantService : IChatAssistantService
         ["khuyen mai"] = "coupon",
         ["treo tuong"] = "wall",
         ["de ban"] = "desk",
-        ["con hang"] = "stock",
-        ["het hang"] = "outofstock",
+        ["con hang"] = "stock_available",
+        ["het hang"] = "stock_unavailable",
+        ["ton kho"] = "inventory",
+        ["san pham nao"] = "product_list",
+        ["co gi"] = "product_list",
+        ["gia bao nhieu"] = "price_range",
         ["tam gia"] = "price_range",
         ["khoang gia"] = "price_range",
-        ["gia bao nhieu"] = "price_range",
         ["gia thap nhat"] = "min_price",
         ["gia cao nhat"] = "max_price",
+        ["re nhat"] = "min_price",
+        ["dat nhat"] = "max_price",
         ["tam trung"] = "mid_range",
         ["trung binh"] = "mid_range",
+        ["gia tam trung"] = "mid_range",
         ["ban gan day"] = "recent_sales",
         ["thoi gian ban"] = "recent_sales",
         ["don gan nhat"] = "recent_sales",
         ["gan nhat"] = "latest",
-        ["moi nhat"] = "latest",
-        ["re nhat"] = "min_price",
-        ["dat nhat"] = "max_price",
-        ["muc gia"] = "price_range",
-        ["gia tam trung"] = "mid_range"
+        ["moi nhat"] = "latest"
     };
 
     private readonly IRepository<Product> _productRepository;
@@ -117,7 +119,7 @@ public class ChatAssistantService : IChatAssistantService
                 true);
         }
 
-        var requiresClarification = NeedsClarification(productCandidates, couponCandidates);
+        var requiresClarification = NeedsClarification(normalizedQuery, productCandidates, couponCandidates);
         if (requiresClarification)
         {
             return new ChatAnswerDto(
@@ -158,6 +160,11 @@ public class ChatAssistantService : IChatAssistantService
             filteredProducts = allProducts.ToList();
         }
 
+        var inStockProducts = filteredProducts
+            .Where(x => x.Status == "Active" && x.StockQuantity > 0)
+            .OrderByDescending(x => x.StockQuantity)
+            .ToList();
+
         var pricedProducts = filteredProducts
             .Select(product => new
             {
@@ -166,6 +173,50 @@ public class ChatAssistantService : IChatAssistantService
             })
             .OrderBy(x => x.Price)
             .ToList();
+
+        if (IsProductListIntent(normalizedQuery))
+        {
+            var examples = filteredProducts.Take(4).ToList();
+            var names = string.Join(", ", examples.Select(x => x.ProductName));
+            var answer = filteredProducts.Count switch
+            {
+                0 => "Hiện tôi chưa thấy sản phẩm nào phù hợp với mô tả này.",
+                <= 4 => $"Hiện cửa hàng có {filteredProducts.Count} sản phẩm phù hợp: {names}.",
+                _ => $"Hiện cửa hàng có {filteredProducts.Count} sản phẩm phù hợp. Một vài sản phẩm tiêu biểu là: {names}."
+            };
+
+            return new ChatAnswerDto(
+                normalizedQuery,
+                answer,
+                examples.Select((x, index) => new ChatSourceDto("product", x.ProductId, x.ProductName, 100 - index)).ToList(),
+                false,
+                false);
+        }
+
+        if (IsInventoryIntent(normalizedQuery))
+        {
+            if (inStockProducts.Count == 0)
+            {
+                return new ChatAnswerDto(
+                    normalizedQuery,
+                    "Hiện chưa có sản phẩm nào còn hàng trong nhóm bạn đang hỏi.",
+                    [],
+                    false,
+                    false);
+            }
+
+            var examples = inStockProducts.Take(3).ToList();
+            var exampleText = string.Join(
+                "; ",
+                examples.Select(x => $"{x.ProductName}: còn {x.StockQuantity}"));
+
+            return new ChatAnswerDto(
+                normalizedQuery,
+                $"Hiện có {inStockProducts.Count} sản phẩm còn hàng. Một vài sản phẩm có tồn kho là: {exampleText}.",
+                examples.Select((x, index) => new ChatSourceDto("product", x.ProductId, x.ProductName, 100 - index)).ToList(),
+                false,
+                false);
+        }
 
         if (pricedProducts.Count == 0)
         {
@@ -181,7 +232,7 @@ public class ChatAssistantService : IChatAssistantService
                 $"Giá thấp nhất hiện tại là {FormatMoney(min.Price)} cho sản phẩm {min.Product.ProductName}. Giá cao nhất là {FormatMoney(max.Price)} cho sản phẩm {max.Product.ProductName}.",
                 [
                     new ChatSourceDto("product", min.Product.ProductId, min.Product.ProductName, 100),
-                    new ChatSourceDto("product", max.Product.ProductId, max.Product.ProductName, 100)
+                    new ChatSourceDto("product", max.Product.ProductId, max.Product.ProductName, 99)
                 ],
                 false,
                 false);
@@ -193,7 +244,7 @@ public class ChatAssistantService : IChatAssistantService
             var median = pricedProducts[pricedProducts.Count / 2];
             return new ChatAnswerDto(
                 normalizedQuery,
-                $"Nếu xét tầm giá trung bình cho lịch, mức phổ biến để tham khảo là khoảng {FormatMoney(median.Price)}. Giá trung bình toàn bộ nhóm này đang ở mức {FormatMoney(decimal.Round(averagePrice, 0))}. Một sản phẩm gần mức này là {median.Product.ProductName}.",
+                $"Nếu xét tầm giá trung bình cho lịch, mức tham khảo phổ biến là khoảng {FormatMoney(median.Price)}. Giá trung bình toàn bộ nhóm này đang ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.",
                 [new ChatSourceDto("product", median.Product.ProductId, median.Product.ProductName, 100)],
                 false,
                 false);
@@ -207,7 +258,7 @@ public class ChatAssistantService : IChatAssistantService
             var averagePrice = pricedProducts.Average(x => x.Price);
             return new ChatAnswerDto(
                 normalizedQuery,
-                $"Giá lịch hiện tại dao động từ {FormatMoney(min.Price)} đến {FormatMoney(max.Price)}. Mức giá tham khảo tầm trung là khoảng {FormatMoney(median.Price)}, còn giá trung bình đang ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.",
+                $"Giá lịch hiện tại dao động từ {FormatMoney(min.Price)} đến {FormatMoney(max.Price)}. Mức giá tham khảo tầm trung là khoảng {FormatMoney(median.Price)}, còn giá trung bình ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.",
                 [
                     new ChatSourceDto("product", min.Product.ProductId, min.Product.ProductName, 100),
                     new ChatSourceDto("product", max.Product.ProductId, max.Product.ProductName, 99),
@@ -321,8 +372,16 @@ public class ChatAssistantService : IChatAssistantService
         return score;
     }
 
-    private static bool NeedsClarification(IReadOnlyList<ProductCandidate> products, IReadOnlyList<CouponCandidate> coupons)
+    private static bool NeedsClarification(
+        string normalizedQuery,
+        IReadOnlyList<ProductCandidate> products,
+        IReadOnlyList<CouponCandidate> coupons)
     {
+        if (IsGenericInventoryQuestion(normalizedQuery))
+        {
+            return false;
+        }
+
         if (products.Count >= 2 && Math.Abs(products[0].Score - products[1].Score) <= 2)
         {
             return true;
@@ -431,10 +490,11 @@ Quy tắc:
 1. Chỉ được trả lời dựa trên dữ liệu trong CONTEXT.
 2. Không được tự bịa giá, tồn kho, coupon, loại lịch hoặc mô tả sản phẩm.
 3. Nếu CONTEXT không đủ để trả lời, phải nói rõ là không tìm thấy đủ thông tin.
-4. Nếu có nhiều kết quả gần giống nhau, phải yêu cầu người dùng làm rõ.
-5. Trả lời ngắn gọn, tự nhiên, bằng tiếng Việt có dấu.
-6. Nếu stockQuantity > 0 và status = Active, có thể nói là còn hàng.
-7. Nếu stockQuantity <= 0 hoặc status khác Active, nói là hiện không sẵn sàng để bán.
+4. Nếu có nhiều kết quả gần giống nhau, chỉ hỏi làm rõ khi người dùng đang hỏi về một sản phẩm cụ thể.
+5. Nếu người dùng hỏi chung chung kiểu "có sản phẩm nào không", "có tồn kho nào", hãy tóm tắt ngắn gọn thay vì bắt làm rõ.
+6. Trả lời ngắn gọn, tự nhiên, bằng tiếng Việt có dấu.
+7. Nếu stockQuantity > 0 và status = Active, có thể nói là còn hàng.
+8. Nếu stockQuantity <= 0 hoặc status khác Active, nói là hiện không sẵn sàng để bán.
 
 CONTEXT:
 {contextJson}
@@ -494,7 +554,8 @@ CÂU HỎI:
         {
             "price", "range", "min", "max", "mid", "recent", "sales", "thap", "cao",
             "nhat", "tam", "trung", "binh", "gia", "ban", "gan", "day", "thoi", "gian",
-            "latest", "moi", "re", "dat", "muc"
+            "latest", "moi", "re", "dat", "muc", "inventory", "stock", "available",
+            "product", "list"
         };
 
         var filterTokens = queryTokens.Where(token => !controlTokens.Contains(token)).ToList();
@@ -516,6 +577,28 @@ CÂU HỎI:
                 category.Contains(token, StringComparison.Ordinal) ||
                 type.Contains(token, StringComparison.Ordinal));
         }).ToList();
+    }
+
+    private static bool IsProductListIntent(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("product_list", StringComparison.Ordinal) ||
+               (normalizedQuery.Contains("san pham", StringComparison.Ordinal) &&
+                (normalizedQuery.Contains("co", StringComparison.Ordinal) ||
+                 normalizedQuery.Contains("nao", StringComparison.Ordinal))) ||
+               normalizedQuery == "lich";
+    }
+
+    private static bool IsInventoryIntent(string normalizedQuery)
+    {
+        return normalizedQuery.Contains("inventory", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("stock_available", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("ton kho", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("con hang", StringComparison.Ordinal);
+    }
+
+    private static bool IsGenericInventoryQuestion(string normalizedQuery)
+    {
+        return IsProductListIntent(normalizedQuery) || IsInventoryIntent(normalizedQuery);
     }
 
     private static bool IsPriceRangeIntent(string normalizedQuery)

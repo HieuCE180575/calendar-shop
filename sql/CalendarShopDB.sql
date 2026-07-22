@@ -354,11 +354,11 @@ INSERT INTO dbo.Categories (
     Status
 )
 VALUES
-    (1, N'Lich treo tuong', N'Lich treo tuong dung cho gia dinh va van phong', N'Active'),
-    (2, N'Lich de ban', N'Lich de ban nho gon', N'Active'),
-    (3, N'Lich bloc', N'Lich bloc truyen thong', N'Active'),
-    (4, N'Planner', N'So planner va lich ke hoach', N'Active'),
-    (5, N'Lich custom', N'Lich thiet ke theo yeu cau', N'Active');
+    (1, N'Lịch treo tường', N'Lịch treo tường dùng cho gia đình và văn phòng', N'Active'),
+    (2, N'Lịch để bàn', N'Lịch để bàn nhỏ gọn', N'Active'),
+    (3, N'Lịch bloc', N'Lịch bloc truyền thống', N'Active'),
+    (4, N'Planner', N'Sổ planner và lịch kế hoạch', N'Active'),
+    (5, N'Lịch custom', N'Lịch thiết kế theo yêu cầu', N'Active');
 SET IDENTITY_INSERT dbo.Categories OFF;
 GO
 
@@ -367,8 +367,8 @@ INSERT INTO dbo.Discounts (
     DiscountId, Name, DiscountType, DiscountValue, StartDate, EndDate, Status, CreatedAt
 )
 VALUES
-    (1, N'Black Friday Giam 20% Lich de ban', 'Percent', 20, '2026-01-01', '2026-12-31', 'Active', '2026-01-01T00:00:00Z'),
-    (2, N'Giam thang 50k Lich bloc', 'FixedAmount', 50000, '2026-01-01', '2026-12-31', 'Active', '2026-01-02T00:00:00Z');
+    (1, N'Black Friday giảm 20% lịch để bàn', 'Percent', 20, '2026-01-01', '2026-12-31', 'Active', '2026-01-01T00:00:00Z'),
+    (2, N'Giảm thẳng 50k lịch bloc', 'FixedAmount', 50000, '2026-01-01', '2026-12-31', 'Active', '2026-01-02T00:00:00Z');
 SET IDENTITY_INSERT dbo.Discounts OFF;
 GO
 
@@ -386,11 +386,11 @@ INSERT INTO dbo.Products (
     Status
 )
 VALUES
-    (1, 1, NULL, N'Lich treo tuong 2026 phong canh Viet Nam', N'Lich treo tuong 12 thang.', 120000, 50, NULL, N'Wall Calendar', N'Active'),
-    (2, 2, 1, N'Lich de ban mini 2026', N'Lich de ban nho gon.', 65000, 100, NULL, N'Desk Calendar', N'Active'),
-    (3, 3, 2, N'Lich bloc dai 2026', N'Lich bloc truyen thong kho lon.', 180000, 30, NULL, N'Bloc Calendar', N'Active'),
-    (4, 4, NULL, N'Planner hoc tap 2026', N'Planner ghi chu ke hoach hoc tap.', 95000, 80, NULL, N'Planner', N'Active'),
-    (5, 5, NULL, N'Lich custom anh gia dinh', N'Lich thiet ke theo anh ca nhan.', 250000, 20, NULL, N'Custom Calendar', N'Active');
+    (1, 1, NULL, N'Lịch treo tường 2026 phong cảnh Việt Nam', N'Lịch treo tường 12 tháng.', 120000, 50, NULL, N'Wall Calendar', N'Active'),
+    (2, 2, 1, N'Lịch để bàn mini 2026', N'Lịch để bàn nhỏ gọn.', 65000, 100, NULL, N'Desk Calendar', N'Active'),
+    (3, 3, 2, N'Lịch bloc đại 2026', N'Lịch bloc truyền thống khổ lớn.', 180000, 30, NULL, N'Bloc Calendar', N'Active'),
+    (4, 4, NULL, N'Planner học tập 2026', N'Planner ghi chú kế hoạch học tập.', 95000, 80, NULL, N'Planner', N'Active'),
+    (5, 5, NULL, N'Lịch custom ảnh gia đình', N'Lịch thiết kế theo ảnh cá nhân.', 250000, 20, NULL, N'Custom Calendar', N'Active');
 SET IDENTITY_INSERT dbo.Products OFF;
 GO
 
@@ -409,10 +409,10 @@ INSERT INTO dbo.Coupons (
     Status
 )
 VALUES
-    (1, N'WELCOME10', N'Giam 10 phan tram cho khach hang moi', N'Percent', 10, 100000, '2026-01-01', '2026-12-31', 1000, 12, N'Active'),
-    (2, N'GIAM50K', N'Giam 50,000 VND cho don tu 500,000 VND', N'Amount', 50000, 500000, '2026-01-01', '2026-12-31', 500, 8, N'Active'),
-    (3, N'SUMMER15', N'Giam 15 phan tram cho don mua mua he', N'Percent', 15, 300000, '2026-06-01', '2026-08-31', 300, 25, N'Inactive'),
-    (4, N'VIP100K', N'Giam 100,000 VND cho don tu 1,000,000 VND', N'Amount', 100000, 1000000, '2026-01-01', '2026-12-31', NULL, 3, N'Active');
+    (1, N'WELCOME10', N'Giảm 10 phần trăm cho khách hàng mới', N'Percent', 10, 100000, '2026-01-01', '2026-12-31', 1000, 12, N'Active'),
+    (2, N'GIAM50K', N'Giảm 50,000 VND cho đơn từ 500,000 VND', N'Amount', 50000, 500000, '2026-01-01', '2026-12-31', 500, 8, N'Active'),
+    (3, N'SUMMER15', N'Giảm 15 phần trăm cho đơn mua mùa hè', N'Percent', 15, 300000, '2026-06-01', '2026-08-31', 300, 25, N'Inactive'),
+    (4, N'VIP100K', N'Giảm 100,000 VND cho đơn từ 1,000,000 VND', N'Amount', 100000, 1000000, '2026-01-01', '2026-12-31', NULL, 3, N'Active');
 SET IDENTITY_INSERT dbo.Coupons OFF;
 GO
 
@@ -436,16 +436,16 @@ INSERT INTO dbo.Orders (
     UpdatedAt
 )
 VALUES
-    (1, 2, NULL, N'Ly Thi I', '0911111111', N'123 Duong A, Quan 1, TP HCM', 240000, 0, 0, 240000, 'COD', 'Delivered', NULL, NULL, '2026-05-15T10:00:00Z', NULL),
-    (2, 2, NULL, N'Bui Van J', '0911111112', N'456 Duong B, Quan 3, TP HCM', 180000, 0, 0, 180000, 'Banking', 'Delivered', NULL, NULL, '2026-06-20T14:30:00Z', NULL),
-    (3, 2, NULL, N'Nguyen Van A', '0911111113', N'789 Duong C, Binh Thanh, TP HCM', 370000, 0, 0, 370000, 'COD', 'Delivered', NULL, NULL, '2026-07-01T08:15:00Z', NULL),
+    (1, 2, NULL, N'Lý Thị I', '0911111111', N'123 Đường A, Quận 1, TP HCM', 240000, 0, 0, 240000, 'COD', 'Delivered', NULL, NULL, '2026-05-15T10:00:00Z', NULL),
+    (2, 2, NULL, N'Bùi Văn J', '0911111112', N'456 Đường B, Quận 3, TP HCM', 180000, 0, 0, 180000, 'Banking', 'Delivered', NULL, NULL, '2026-06-20T14:30:00Z', NULL),
+    (3, 2, NULL, N'Nguyễn Văn A', '0911111113', N'789 Đường C, Bình Thạnh, TP HCM', 370000, 0, 0, 370000, 'COD', 'Delivered', NULL, NULL, '2026-07-01T08:15:00Z', NULL),
     (4, 2, NULL, N'Tran Thi B', '0922222222', N'Toa nha X, Cau Giay, Ha Noi', 275000, 0, 0, 275000, 'COD', 'Delivered', NULL, NULL, '2026-07-02T16:45:00Z', NULL),
-    (5, 2, NULL, N'Le Van C', '0933333333', N'Duong So 5, Hai Chau, Da Nang', 500000, 0, 0, 500000, 'Banking', 'Delivered', NULL, NULL, '2026-07-03T11:20:00Z', NULL),
+    (5, 2, NULL, N'Lê Văn C', '0933333333', N'Đường Số 5, Hải Châu, Đà Nẵng', 500000, 0, 0, 500000, 'Banking', 'Delivered', NULL, NULL, '2026-07-03T11:20:00Z', NULL),
     (6, 2, NULL, N'Pham Thi D', '0944444444', N'Ninh Kieu, Can Tho', 250000, 0, 0, 250000, 'Momo', 'Delivered', NULL, NULL, '2026-07-04T09:00:00Z', NULL),
     (7, 2, NULL, N'Hoang Van E', '0955555555', N'Le Chan, Hai Phong', 120000, 0, 0, 120000, 'COD', 'Pending', NULL, NULL, '2026-07-05T15:10:00Z', NULL),
-    (8, 2, NULL, N'Nguyen Thi F', '0966666666', N'Ha Long, Quang Ninh', 180000, 0, 0, 180000, 'COD', 'Cancelled', NULL, N'Khong can nua', '2026-07-06T10:00:00Z', NULL),
-    (9, 2, NULL, N'Vu Van G', '0977777777', N'Thanh pho Vinh, Nghe An', 130000, 0, 0, 130000, 'VNPay', 'Confirmed', NULL, NULL, '2026-07-06T18:25:00Z', NULL),
-    (10, 2, NULL, N'Dang Van H', '0988888888', N'Thanh pho Hue, Thua Thien Hue', 190000, 0, 0, 190000, 'COD', 'Shipping', NULL, NULL, '2026-07-07T13:40:00Z', NULL);
+    (8, 2, NULL, N'Nguyễn Thị F', '0966666666', N'Hạ Long, Quảng Ninh', 180000, 0, 0, 180000, 'COD', 'Cancelled', NULL, N'Không cần nữa', '2026-07-06T10:00:00Z', NULL),
+    (9, 2, NULL, N'Vũ Văn G', '0977777777', N'Thành phố Vinh, Nghệ An', 130000, 0, 0, 130000, 'VNPay', 'Confirmed', NULL, NULL, '2026-07-06T18:25:00Z', NULL),
+    (10, 2, NULL, N'Đặng Văn H', '0988888888', N'Thành phố Huế, Thừa Thiên Huế', 190000, 0, 0, 190000, 'COD', 'Shipping', NULL, NULL, '2026-07-07T13:40:00Z', NULL);
 SET IDENTITY_INSERT dbo.Orders OFF;
 GO
 
@@ -461,18 +461,18 @@ INSERT INTO dbo.OrderItems (
     TotalPrice
 )
 VALUES
-    (1, 1, 1, N'Lich treo tuong 2026 phong canh Viet Nam', NULL, 120000, 2, 240000),
-    (2, 2, 3, N'Lich bloc dai 2026', NULL, 180000, 1, 180000),
-    (3, 3, 1, N'Lich treo tuong 2026 phong canh Viet Nam', NULL, 120000, 2, 240000),
-    (4, 3, 2, N'Lich de ban mini 2026', NULL, 65000, 2, 130000),
-    (5, 4, 3, N'Lich bloc dai 2026', NULL, 180000, 1, 180000),
-    (6, 4, 4, N'Planner hoc tap 2026', NULL, 95000, 1, 95000),
-    (7, 5, 5, N'Lich custom anh gia dinh', NULL, 250000, 2, 500000),
-    (8, 6, 5, N'Lich custom anh gia dinh', NULL, 250000, 1, 250000),
-    (9, 7, 1, N'Lich treo tuong 2026 phong canh Viet Nam', NULL, 120000, 1, 120000),
-    (10, 8, 3, N'Lich bloc dai 2026', NULL, 180000, 1, 180000),
-    (11, 9, 2, N'Lich de ban mini 2026', NULL, 65000, 2, 130000),
-    (12, 10, 4, N'Planner hoc tap 2026', NULL, 95000, 2, 190000);
+    (1, 1, 1, N'Lịch treo tường 2026 phong cảnh Việt Nam', NULL, 120000, 2, 240000),
+    (2, 2, 3, N'Lịch bloc đại 2026', NULL, 180000, 1, 180000),
+    (3, 3, 1, N'Lịch treo tường 2026 phong cảnh Việt Nam', NULL, 120000, 2, 240000),
+    (4, 3, 2, N'Lịch để bàn mini 2026', NULL, 65000, 2, 130000),
+    (5, 4, 3, N'Lịch bloc đại 2026', NULL, 180000, 1, 180000),
+    (6, 4, 4, N'Planner học tập 2026', NULL, 95000, 1, 95000),
+    (7, 5, 5, N'Lịch custom ảnh gia đình', NULL, 250000, 2, 500000),
+    (8, 6, 5, N'Lịch custom ảnh gia đình', NULL, 250000, 1, 250000),
+    (9, 7, 1, N'Lịch treo tường 2026 phong cảnh Việt Nam', NULL, 120000, 1, 120000),
+    (10, 8, 3, N'Lịch bloc đại 2026', NULL, 180000, 1, 180000),
+    (11, 9, 2, N'Lịch để bàn mini 2026', NULL, 65000, 2, 130000),
+    (12, 10, 4, N'Planner học tập 2026', NULL, 95000, 2, 190000);
 SET IDENTITY_INSERT dbo.OrderItems OFF;
 GO
 

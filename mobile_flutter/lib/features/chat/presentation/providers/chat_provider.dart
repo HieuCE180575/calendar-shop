@@ -66,7 +66,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           ChatState(
             messages: [
               ChatMessageItem(
-                text: 'Xin chao! Toi co the giup ban tim san pham, gia, ton kho va coupon dang ap dung.',
+                text: 'Xin chào! Tôi có thể giúp bạn tìm sản phẩm, giá, tồn kho và coupon đang áp dụng.',
                 isUser: false,
                 timestamp: DateTime.fromMillisecondsSinceEpoch(0),
               ),
@@ -115,7 +115,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = ChatState(
       messages: [
         ChatMessageItem(
-          text: 'Xin chao! Toi co the giup ban tim san pham, gia, ton kho va coupon dang ap dung.',
+          text: 'Xin chào! Tôi có thể giúp bạn tìm sản phẩm, giá, tồn kho và coupon đang áp dụng.',
           isUser: false,
           timestamp: DateTime.fromMillisecondsSinceEpoch(0),
         ),
