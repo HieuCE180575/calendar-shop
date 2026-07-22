@@ -153,7 +153,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Thông tin giao hàng',
+                    'Thông tin nhận hàng',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

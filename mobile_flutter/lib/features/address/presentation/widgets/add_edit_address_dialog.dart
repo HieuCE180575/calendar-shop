@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/address_provider.dart';
 import '../../domain/entities/address.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../order/presentation/widgets/map_picker_dialog.dart';
 
 class AddEditAddressDialog extends ConsumerStatefulWidget {
   final Address? existingAddress;
@@ -125,7 +127,24 @@ class _AddEditAddressDialogState extends ConsumerState<AddEditAddressDialog> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: _addressLineController,
-                decoration: const InputDecoration(labelText: 'So nha, ten duong'),
+                decoration: InputDecoration(
+                  labelText: 'So nha, ten duong',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.map_outlined, color: AppColors.primary),
+                    tooltip: 'Chọn trên bản đồ',
+                    onPressed: () async {
+                      final selectedAddress = await showDialog<String>(
+                        context: context,
+                        builder: (context) => const MapPickerDialog(),
+                      );
+                      if (selectedAddress != null && mounted) {
+                        setState(() {
+                          _addressLineController.text = selectedAddress;
+                        });
+                      }
+                    },
+                  ),
+                ),
                 validator: (val) => (val == null || val.isEmpty) ? 'Bat buoc' : null,
               ),
               const SizedBox(height: 8),

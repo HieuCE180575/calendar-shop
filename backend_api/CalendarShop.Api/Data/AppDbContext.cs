@@ -1,4 +1,4 @@
-using CalendarShop.Api.Models;
+ using CalendarShop.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CalendarShop.Api.Data;
