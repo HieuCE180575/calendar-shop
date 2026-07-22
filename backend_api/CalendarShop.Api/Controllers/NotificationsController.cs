@@ -45,11 +45,10 @@ public class NotificationsController : AppControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost("trigger-holiday")]
     public async Task<IActionResult> TriggerHolidayReminders()
     {
-        // Nhầm đảm bảo an toàn, API giả lập kích hoạt hàng ngày này 
-        // có thể được gọi bởi Admin hoặc trong chế độ Development để Demo.
         await _notificationService.SendDailyHolidayRemindersAsync();
         return Ok(new { Message = "Đã chạy kiểm tra nhắc nhở ngày lễ thành công." });
     }

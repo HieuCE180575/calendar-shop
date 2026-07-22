@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/notification_entity.dart';
 import '../providers/notification_provider.dart';
 
@@ -40,16 +42,20 @@ class NotificationCenterPage extends ConsumerWidget {
 
     if (difference.inMinutes < 60) {
       return '${difference.inMinutes} phút trước';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} giờ trước';
-    } else {
-      return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}/${local.year} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
     }
+    if (difference.inHours < 24) {
+      return '${difference.inHours} giờ trước';
+    }
+
+    return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}/${local.year} '
+        '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notificationState = ref.watch(notificationNotifierProvider);
+    final currentUser = ref.watch(authNotifierProvider).user;
+    final isAdmin = currentUser?.role == 'Admin';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -77,7 +83,7 @@ class NotificationCenterPage extends ConsumerWidget {
             if (notifications.isEmpty) {
               return Stack(
                 children: [
-                  ListView(), // Needed to trigger RefreshIndicator on pull when empty
+                  ListView(),
                   Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -105,38 +111,42 @@ class NotificationCenterPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          'Các thông báo về đơn hàng & ngày lễ sẽ xuất hiện tại đây.',
+                          'Các thông báo về đơn hàng và ngày lễ sẽ xuất hiện tại đây.',
                           style: TextStyle(
                             fontSize: 14,
                             color: AppColors.textSecondary,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: () async {
-                            try {
-                              await ref.read(notificationNotifierProvider.notifier).triggerHolidayReminders();
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Giả lập gửi thông báo ngày lễ thành công!')),
-                                );
+                        if (isAdmin) ...[
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              try {
+                                await ref.read(notificationNotifierProvider.notifier).triggerHolidayReminders();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Đã chạy mô phỏng nhắc nhở ngày lễ thành công.'),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Lỗi: $e')),
+                                  );
+                                }
                               }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Lỗi: $e')),
-                                );
-                              }
-                            }
-                          },
-                          icon: const Icon(Icons.bolt),
-                          label: const Text('Giả lập thông báo ngày lễ'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
+                            },
+                            icon: const Icon(Icons.bolt),
+                            label: const Text('Mô phỏng thông báo ngày lễ'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                            ),
                           ),
-                        )
+                        ],
                       ],
                     ),
                   ),
@@ -146,7 +156,6 @@ class NotificationCenterPage extends ConsumerWidget {
 
             return Column(
               children: [
-                // Demo tool helper banner
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -161,17 +170,18 @@ class NotificationCenterPage extends ConsumerWidget {
                           style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                         ),
                       ),
-                      TextButton.icon(
-                        onPressed: () async {
-                          await ref.read(notificationNotifierProvider.notifier).triggerHolidayReminders();
-                        },
-                        icon: const Icon(Icons.bolt, size: 14),
-                        label: const Text('Mô phỏng ngày lễ', style: TextStyle(fontSize: 11)),
-                        style: TextButton.styleFrom(
-                          minimumSize: Size.zero,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      if (isAdmin)
+                        TextButton.icon(
+                          onPressed: () async {
+                            await ref.read(notificationNotifierProvider.notifier).triggerHolidayReminders();
+                          },
+                          icon: const Icon(Icons.bolt, size: 14),
+                          label: const Text('Mô phỏng ngày lễ', style: TextStyle(fontSize: 11)),
+                          style: TextButton.styleFrom(
+                            minimumSize: Size.zero,
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -185,7 +195,9 @@ class NotificationCenterPage extends ConsumerWidget {
                         icon: _getIconForType(item.type),
                         color: _getColorForType(item.type),
                         formattedTime: _formatDateTime(item.createdAt),
-                        onTap: () => ref.read(notificationNotifierProvider.notifier).markAsRead(item.notificationId),
+                        onTap: () => ref
+                            .read(notificationNotifierProvider.notifier)
+                            .markAsRead(item.notificationId),
                       );
                     },
                   ),
@@ -247,21 +259,15 @@ class _NotificationTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Left Icon representing Type
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
-            // Middle Content Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +287,6 @@ class _NotificationTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      // Dot for unread indicator
                       if (!item.isRead)
                         Container(
                           width: 8,

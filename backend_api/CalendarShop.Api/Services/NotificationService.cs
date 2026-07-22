@@ -1,6 +1,5 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using CalendarShop.Api.Data;
 using CalendarShop.Api.Dtos;
 using CalendarShop.Api.Models;
 using CalendarShop.Api.Repositories;
@@ -70,8 +69,8 @@ public class NotificationService : INotificationService
 
     public async Task<NotificationDto> CreateNotificationAsync(int userId, string title, string content, string type)
     {
-        var userExists = await _userRepository.Entities.AnyAsync(u => u.UserId == userId);
-        if (!userExists)
+        var user = await _userRepository.Entities.FirstOrDefaultAsync(u => u.UserId == userId);
+        if (user == null)
         {
             throw new KeyNotFoundException("Không tìm thấy người dùng.");
         }
@@ -89,14 +88,14 @@ public class NotificationService : INotificationService
         await _notificationRepository.AddAsync(notification);
         await _notificationRepository.SaveChangesAsync();
 
-        // Giả lập gửi Push Notification qua Firebase Cloud Messaging (FCM)
-        var user = await _userRepository.Entities.FirstOrDefaultAsync(u => u.UserId == userId);
-        if (user != null && !string.IsNullOrEmpty(user.FcmToken))
+        // Giả lập gửi push notification qua Firebase Cloud Messaging (FCM).
+        if (!string.IsNullOrWhiteSpace(user.FcmToken))
         {
-            _logger.LogInformation("Simulating FCM Send: Token={Token}, Title={Title}, Content={Content}", 
-                user.FcmToken, title, content);
-            // Ở đây trong môi trường production thực tế, bạn sẽ khởi tạo HttpClient 
-            // và POST lên Firebase HTTP v1 API Endpoint (https://fcm.googleapis.com/v1/projects/{your-project-id}/messages:send)
+            _logger.LogInformation(
+                "Simulating FCM send: Token={Token}, Title={Title}, Content={Content}",
+                user.FcmToken,
+                title,
+                content);
         }
 
         return _mapper.Map<NotificationDto>(notification);
@@ -104,6 +103,11 @@ public class NotificationService : INotificationService
 
     public async Task RegisterFcmTokenAsync(int userId, string fcmToken)
     {
+        if (string.IsNullOrWhiteSpace(fcmToken))
+        {
+            throw new BadHttpRequestException("FCM token không được để trống.");
+        }
+
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
         {
@@ -114,47 +118,68 @@ public class NotificationService : INotificationService
         user.UpdatedAt = DateTime.UtcNow;
         _userRepository.Update(user);
         await _userRepository.SaveChangesAsync();
-        
-        _logger.LogInformation("Đăng ký FCM Token thành công cho UserId: {UserId}", userId);
+
+        _logger.LogInformation("Đăng ký FCM token thành công cho UserId: {UserId}", userId);
     }
 
     public async Task SendDailyHolidayRemindersAsync()
     {
         var today = DateTime.Today;
-        string? holidayName = null;
-
-        // Định nghĩa một số ngày lễ chính trong năm
-        if (today.Month == 1 && today.Day == 1) holidayName = "Tết Dương Lịch";
-        else if (today.Month == 2 && today.Day == 14) holidayName = "Lễ Tình Nhân (Valentine's Day)";
-        else if (today.Month == 3 && today.Day == 8) holidayName = "Quốc tế Phụ nữ (8/3)";
-        else if (today.Month == 4 && today.Day == 30) holidayName = "Ngày Giải phóng Miền Nam";
-        else if (today.Month == 5 && today.Day == 1) holidayName = "Ngày Quốc tế Lao động";
-        else if (today.Month == 9 && today.Day == 2) holidayName = "Ngày Quốc khánh Việt Nam";
-        else if (today.Month == 10 && today.Day == 20) holidayName = "Ngày Phụ nữ Việt Nam";
-        else if (today.Month == 11 && today.Day == 20) holidayName = "Ngày Nhà giáo Việt Nam";
-        else if (today.Month == 12 && today.Day == 24) holidayName = "Đêm Giáng Sinh (Noel)";
-        else if (today.Month == 12 && today.Day == 25) holidayName = "Ngày Giáng Sinh (Noel)";
-
-        // Để test, nếu không có ngày lễ nào hôm nay thì chúng ta có thể giả lập nhắc nhở chuẩn bị Tết
+        var holidayName = GetHolidayName(today);
         if (holidayName == null)
         {
-             holidayName = "Chuẩn bị sắm lịch Tết Ất Tỵ 2025";
+            _logger.LogInformation(
+                "Hôm nay {Date:dd/MM/yyyy} không có ngày lễ cấu hình, bỏ qua gửi nhắc nhở.",
+                today);
+            return;
         }
 
         var activeUsers = await _userRepository.Entities
             .Where(u => u.Status == "Active")
             .ToListAsync();
 
+        var createdCount = 0;
+
         foreach (var user in activeUsers)
         {
+            var alreadySentToday = await _notificationRepository.Entities.AnyAsync(n =>
+                n.UserId == user.UserId &&
+                n.Type == "Holiday" &&
+                n.CreatedAt.Date == today &&
+                n.Title == $"📅 Nhắc nhở ngày lễ: {holidayName}");
+
+            if (alreadySentToday)
+            {
+                continue;
+            }
+
             await CreateNotificationAsync(
-                user.UserId, 
-                $"📅 Nhắc nhở ngày lễ: {holidayName}", 
+                user.UserId,
+                $"📅 Nhắc nhở ngày lễ: {holidayName}",
                 $"Hôm nay là dịp {holidayName}. Hãy mở app để xem các mẫu lịch thiết kế đặc biệt và tạo lịch cá nhân hóa cho gia đình nhé!",
-                "Holiday"
-            );
+                "Holiday");
+
+            createdCount++;
         }
 
-        _logger.LogInformation("Đã quét và tạo nhắc nhở ngày lễ '{Holiday}' cho {Count} người dùng.", holidayName, activeUsers.Count);
+        _logger.LogInformation(
+            "Đã quét nhắc nhở ngày lễ '{Holiday}' và tạo {Count} thông báo mới.",
+            holidayName,
+            createdCount);
+    }
+
+    private static string? GetHolidayName(DateTime date)
+    {
+        if (date.Month == 1 && date.Day == 1) return "Tết Dương lịch";
+        if (date.Month == 2 && date.Day == 14) return "Lễ Tình Nhân (Valentine's Day)";
+        if (date.Month == 3 && date.Day == 8) return "Quốc tế Phụ nữ (8/3)";
+        if (date.Month == 4 && date.Day == 30) return "Ngày Giải phóng Miền Nam";
+        if (date.Month == 5 && date.Day == 1) return "Ngày Quốc tế Lao động";
+        if (date.Month == 9 && date.Day == 2) return "Ngày Quốc khánh Việt Nam";
+        if (date.Month == 10 && date.Day == 20) return "Ngày Phụ nữ Việt Nam";
+        if (date.Month == 11 && date.Day == 20) return "Ngày Nhà giáo Việt Nam";
+        if (date.Month == 12 && date.Day == 24) return "Đêm Giáng Sinh (Noel)";
+        if (date.Month == 12 && date.Day == 25) return "Ngày Giáng Sinh (Noel)";
+        return null;
     }
 }
