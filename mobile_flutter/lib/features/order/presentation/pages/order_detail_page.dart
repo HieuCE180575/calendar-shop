@@ -52,7 +52,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
             }
           },
         ),
-        title: Text('Don hang #${widget.orderId}'),
+        title: Text('Đơn hàng #${widget.orderId}'),
         centerTitle: true,
       ),
       body: orderState.when(
@@ -68,7 +68,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                 const Icon(Icons.error_outline, color: Colors.red, size: 60),
                 const SizedBox(height: 10),
                 Text(
-                  'Khong the tai chi tiet don hang: $error',
+                  'Không thể tải chi tiết đơn hàng: $error',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.red),
                 ),
@@ -77,7 +77,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                   onPressed: () =>
                       ref.invalidate(orderDetailProvider(widget.orderId)),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Thu lai'),
+                  label: const Text('Thử lại'),
                 ),
               ],
             ),
@@ -94,7 +94,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.local_shipping_outlined),
-                    title: const Text('Trang thai'),
+                    title: const Text('Trạng thái'),
                     trailing: Chip(label: Text(order.status)),
                   ),
                 ),
@@ -106,20 +106,20 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Thong tin giao hang',
+                          'Thông tin giao hàng',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
                         ),
                         const Divider(),
-                        Text('Nguoi nhan: ${order.customerName}'),
+                        Text('Người nhận: ${order.customerName}'),
                         const SizedBox(height: 4),
-                        Text('So dien thoai: ${order.customerPhone}'),
+                        Text('Số điện thoại: ${order.customerPhone}'),
                         const SizedBox(height: 4),
-                        Text('Dia chi: ${order.shippingAddress}'),
+                        Text('Địa chỉ: ${order.shippingAddress}'),
                         const SizedBox(height: 4),
-                        Text('Ngay dat: ${dateFormat.format(order.createdAt)}'),
+                        Text('Ngày đặt: ${dateFormat.format(order.createdAt)}'),
                       ],
                     ),
                   ),
@@ -132,7 +132,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'San pham',
+                          'Sản phẩm',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -167,13 +167,13 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
-                        _buildPriceRow('Tam tinh', order.subTotal),
+                        _buildPriceRow('Tạm tính', order.subTotal),
                         if (order.discountAmount > 0)
-                          _buildPriceRow('Giam gia', -order.discountAmount),
-                        _buildPriceRow('Phi van chuyen', order.shippingFee),
+                          _buildPriceRow('Giảm giá', -order.discountAmount),
+                        _buildPriceRow('Phí vận chuyển', order.shippingFee),
                         const Divider(),
                         _buildPriceRow(
-                          'Tong cong',
+                          'Tổng cộng',
                           order.totalAmount,
                           isBold: true,
                         ),
@@ -185,7 +185,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.payment_outlined),
-                    title: const Text('Phuong thuc thanh toan'),
+                    title: const Text('Phương thức thanh toán'),
                     trailing: Text(order.paymentMethod),
                   ),
                 ),
@@ -194,7 +194,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.note_outlined),
-                      title: const Text('Ghi chu'),
+                      title: const Text('Ghi chú'),
                       subtitle: Text(order.note!),
                     ),
                   ),
@@ -211,7 +211,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                       onPressed: () =>
                           _showCancelDialog(context, ref, order.orderId),
                       child: const Text(
-                        'Huy don hang',
+                        'Hủy đơn hàng',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -261,11 +261,11 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Huy don hang'),
+        title: const Text('Hủy đơn hàng'),
         content: TextField(
           controller: reasonController,
           decoration: const InputDecoration(
-            labelText: 'Ly do huy (khong bat buoc)',
+            labelText: 'Lý do hủy (không bắt buộc)',
             border: OutlineInputBorder(),
           ),
           maxLines: 3,
@@ -273,7 +273,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Dong'),
+            child: const Text('Đóng'),
           ),
           TextButton(
             onPressed: () async {
@@ -286,20 +286,20 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Da huy don hang thanh cong.'),
+                      content: Text('Đã hủy đơn hàng thành công.'),
                     ),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Khong the huy don hang: $e')),
+                    SnackBar(content: Text('Không thể hủy đơn hàng: $e')),
                   );
                 }
               }
             },
             child: const Text(
-              'Xac nhan huy',
+              'Xác nhận hủy',
               style: TextStyle(color: Colors.red),
             ),
           ),

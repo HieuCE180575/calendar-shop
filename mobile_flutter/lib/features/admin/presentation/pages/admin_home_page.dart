@@ -14,7 +14,7 @@ class AdminHomePage extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
-          'Bang quan tri Admin',
+          'Bảng quản trị Admin',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -23,13 +23,13 @@ class AdminHomePage extends ConsumerWidget {
               Icons.storefront_outlined,
               color: AppColors.primary,
             ),
-            tooltip: 'Trang ban hang',
+            tooltip: 'Trang bán hàng',
             onPressed: () => context.go('/products'),
           ),
           IconButton(
             onPressed: () => context.push('/profile'),
             icon: const Icon(Icons.account_circle_outlined),
-            tooltip: 'Ho so',
+            tooltip: 'Hồ sơ',
           ),
           IconButton(
             onPressed: () async {
@@ -39,7 +39,7 @@ class AdminHomePage extends ConsumerWidget {
               }
             },
             icon: const Icon(Icons.logout),
-            tooltip: 'Dang xuat',
+            tooltip: 'Đăng xuất',
           ),
         ],
       ),
@@ -49,8 +49,8 @@ class AdminHomePage extends ConsumerWidget {
           _buildAdminTile(
             context,
             icon: Icons.inventory_2_outlined,
-            title: 'Quan ly san pham',
-            subtitle: 'Them, sua, xoa, ton kho va trang thai',
+            title: 'Quản lý sản phẩm',
+            subtitle: 'Thêm, sửa, xóa, tồn kho và trạng thái',
             route: '/admin/products',
             color: const Color(0xFF2563EB),
           ),
@@ -58,8 +58,8 @@ class AdminHomePage extends ConsumerWidget {
           _buildAdminTile(
             context,
             icon: Icons.category_outlined,
-            title: 'Quan ly danh muc',
-            subtitle: 'Phan loai cac dong lich',
+            title: 'Quản lý danh mục',
+            subtitle: 'Phân loại các dòng lịch',
             route: '/admin/categories',
             color: const Color(0xFF0284C7),
           ),
@@ -67,8 +67,8 @@ class AdminHomePage extends ConsumerWidget {
           _buildAdminTile(
             context,
             icon: Icons.receipt_long_outlined,
-            title: 'Quan ly don hang',
-            subtitle: 'Duyet don, giao hang, cap nhat trang thai',
+            title: 'Quản lý đơn hàng',
+            subtitle: 'Duyệt đơn, giao hàng, cập nhật trạng thái',
             route: '/admin/orders',
             color: const Color(0xFF10B981),
           ),
@@ -76,8 +76,8 @@ class AdminHomePage extends ConsumerWidget {
           _buildAdminTile(
             context,
             icon: Icons.people_alt_outlined,
-            title: 'Quan ly nguoi dung',
-            subtitle: 'Xem danh sach, tim kiem, khoa/mo khoa, phan quyen',
+            title: 'Quản lý người dùng',
+            subtitle: 'Xem danh sách, tìm kiếm, khóa/mở khóa, phân quyền',
             route: '/admin/users',
             color: const Color(0xFFEC4899),
           ),
@@ -85,8 +85,8 @@ class AdminHomePage extends ConsumerWidget {
           _buildAdminTile(
             context,
             icon: Icons.discount_outlined,
-            title: 'Quan ly ma giam gia',
-            subtitle: 'Bat/tat coupon, gia tri giam, han su dung',
+            title: 'Quản lý mã giảm giá',
+            subtitle: 'Bật/tắt coupon, giá trị giảm, hạn sử dụng',
             route: '/admin/coupons',
             color: const Color(0xFFF59E0B),
           ),
@@ -94,8 +94,8 @@ class AdminHomePage extends ConsumerWidget {
           _buildAdminTile(
             context,
             icon: Icons.flash_on_outlined,
-            title: 'Quan ly Flash Sale',
-            subtitle: 'Giam gia truc tiep len san pham',
+            title: 'Quản lý Flash Sale',
+            subtitle: 'Giảm giá trực tiếp lên sản phẩm',
             route: '/admin/discounts',
             color: const Color(0xFFEF4444),
           ),
@@ -103,8 +103,8 @@ class AdminHomePage extends ConsumerWidget {
           _buildAdminTile(
             context,
             icon: Icons.bar_chart_outlined,
-            title: 'Bao cao & Thong ke',
-            subtitle: 'Tong doanh thu, so luong ban, bieu do',
+            title: 'Báo cáo & Thống kê',
+            subtitle: 'Tổng doanh thu, số lượng bán, biểu đồ',
             route: '/admin/statistics',
             color: const Color(0xFF8B5CF6),
           ),

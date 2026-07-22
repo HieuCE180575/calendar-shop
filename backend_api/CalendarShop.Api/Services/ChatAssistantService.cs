@@ -77,7 +77,7 @@ public class ChatAssistantService : IChatAssistantService
         var message = request.Message?.Trim();
         if (string.IsNullOrWhiteSpace(message))
         {
-            throw new BadHttpRequestException("Noi dung cau hoi khong duoc de trong.");
+            throw new BadHttpRequestException("Nội dung câu hỏi không được để trống.");
         }
 
         var normalizedQuery = NormalizeText(message);
@@ -101,7 +101,7 @@ public class ChatAssistantService : IChatAssistantService
 
         if (queryTokens.Count == 0)
         {
-            throw new BadHttpRequestException("Cau hoi chua du thong tin de tim san pham hoac coupon.");
+            throw new BadHttpRequestException("Câu hỏi chưa đủ thông tin để tìm sản phẩm hoặc coupon.");
         }
 
         var productCandidates = GetProductCandidates(normalizedQuery, queryTokens, allProducts);
@@ -111,7 +111,7 @@ public class ChatAssistantService : IChatAssistantService
         {
             return new ChatAnswerDto(
                 normalizedQuery,
-                "Toi chua tim thay du lieu phu hop trong cua hang. Ban co the nhap ro ten san pham, danh muc hoac ma coupon duoc khong?",
+                "Tôi chưa tìm thấy dữ liệu phù hợp trong cửa hàng. Bạn có thể nhập rõ tên sản phẩm, danh mục hoặc mã coupon được không?",
                 [],
                 false,
                 true);
@@ -178,7 +178,7 @@ public class ChatAssistantService : IChatAssistantService
             var max = pricedProducts.Last();
             return new ChatAnswerDto(
                 normalizedQuery,
-                $"Gia thap nhat hien tai la {FormatMoney(min.Price)} cho san pham {min.Product.ProductName}. Gia cao nhat la {FormatMoney(max.Price)} cho san pham {max.Product.ProductName}.",
+                $"Giá thấp nhất hiện tại là {FormatMoney(min.Price)} cho sản phẩm {min.Product.ProductName}. Giá cao nhất là {FormatMoney(max.Price)} cho sản phẩm {max.Product.ProductName}.",
                 [
                     new ChatSourceDto("product", min.Product.ProductId, min.Product.ProductName, 100),
                     new ChatSourceDto("product", max.Product.ProductId, max.Product.ProductName, 100)
@@ -193,7 +193,7 @@ public class ChatAssistantService : IChatAssistantService
             var median = pricedProducts[pricedProducts.Count / 2];
             return new ChatAnswerDto(
                 normalizedQuery,
-                $"Neu xet tam gia trung binh cho lich, muc pho bien de tham khao la khoang {FormatMoney(median.Price)}. Gia trung binh toan bo nhom nay dang o muc {FormatMoney(decimal.Round(averagePrice, 0))}. Mot san pham gan muc nay la {median.Product.ProductName}.",
+                $"Nếu xét tầm giá trung bình cho lịch, mức phổ biến để tham khảo là khoảng {FormatMoney(median.Price)}. Giá trung bình toàn bộ nhóm này đang ở mức {FormatMoney(decimal.Round(averagePrice, 0))}. Một sản phẩm gần mức này là {median.Product.ProductName}.",
                 [new ChatSourceDto("product", median.Product.ProductId, median.Product.ProductName, 100)],
                 false,
                 false);
@@ -207,7 +207,7 @@ public class ChatAssistantService : IChatAssistantService
             var averagePrice = pricedProducts.Average(x => x.Price);
             return new ChatAnswerDto(
                 normalizedQuery,
-                $"Gia lich hien tai dao dong tu {FormatMoney(min.Price)} den {FormatMoney(max.Price)}. Muc gia tham khao tam trung la khoang {FormatMoney(median.Price)}, con gia trung binh dang o muc {FormatMoney(decimal.Round(averagePrice, 0))}.",
+                $"Giá lịch hiện tại dao động từ {FormatMoney(min.Price)} đến {FormatMoney(max.Price)}. Mức giá tham khảo tầm trung là khoảng {FormatMoney(median.Price)}, còn giá trung bình đang ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.",
                 [
                     new ChatSourceDto("product", min.Product.ProductId, min.Product.ProductName, 100),
                     new ChatSourceDto("product", max.Product.ProductId, max.Product.ProductName, 99),
@@ -228,7 +228,7 @@ public class ChatAssistantService : IChatAssistantService
             {
                 return new ChatAnswerDto(
                     normalizedQuery,
-                    "Hien tai toi chua tim thay du lieu don hang gan day.",
+                    "Hiện tại tôi chưa tìm thấy dữ liệu đơn hàng gần đây.",
                     [],
                     false,
                     false);
@@ -236,8 +236,8 @@ public class ChatAssistantService : IChatAssistantService
 
             return new ChatAnswerDto(
                 normalizedQuery,
-                $"Don hang gan nhat trong he thong duoc ghi nhan vao {latestOrder.CreatedAt:dd/MM/yyyy HH:mm} voi trang thai {latestOrder.Status}.",
-                [new ChatSourceDto("order", latestOrder.OrderId, $"Don hang #{latestOrder.OrderId}", 100)],
+                $"Đơn hàng gần nhất trong hệ thống được ghi nhận vào {latestOrder.CreatedAt:dd/MM/yyyy HH:mm} với trạng thái {latestOrder.Status}.",
+                [new ChatSourceDto("order", latestOrder.OrderId, $"Đơn hàng #{latestOrder.OrderId}", 100)],
                 false,
                 false);
         }
@@ -341,11 +341,11 @@ public class ChatAssistantService : IChatAssistantService
         if (products.Count > 0)
         {
             var suggestions = string.Join(", ", products.Take(3).Select(x => $"\"{x.Product.ProductName}\""));
-            return $"Toi dang thay mot vai san pham gan dung: {suggestions}. Ban dang hoi san pham nao trong so nay?";
+            return $"Tôi đang thấy một vài sản phẩm gần đúng: {suggestions}. Bạn đang hỏi sản phẩm nào trong số này?";
         }
 
         var couponSuggestions = string.Join(", ", coupons.Take(3).Select(x => $"\"{x.Coupon.Code}\""));
-        return $"Toi dang thay mot vai coupon gan dung: {couponSuggestions}. Ban muon hoi coupon nao?";
+        return $"Tôi đang thấy một vài coupon gần đúng: {couponSuggestions}. Bạn muốn hỏi coupon nào?";
     }
 
     private string BuildFallbackAnswer(ProductCandidate? productCandidate, CouponCandidate? couponCandidate)
@@ -355,27 +355,27 @@ public class ChatAssistantService : IChatAssistantService
             var product = productCandidate.Product;
             var discountedPrice = _discountService.GetDiscountedPrice(product);
             var stockText = product.Status == "Active" && product.StockQuantity > 0
-                ? $"San pham hien con hang voi so luong {product.StockQuantity}."
-                : "San pham hien khong san sang de ban.";
+                ? $"Sản phẩm hiện còn hàng với số lượng {product.StockQuantity}."
+                : "Sản phẩm hiện không sẵn sàng để bán.";
 
             var priceText = discountedPrice < product.Price
-                ? $"Gia hien tai la {discountedPrice:N0} VND, gia goc {product.Price:N0} VND."
-                : $"Gia hien tai la {product.Price:N0} VND.";
+                ? $"Giá hiện tại là {discountedPrice:N0} VND, giá gốc {product.Price:N0} VND."
+                : $"Giá hiện tại là {product.Price:N0} VND.";
 
-            return $"{product.ProductName} thuoc danh muc {product.Category?.CategoryName ?? "chua ro"}, loai {product.CalendarType}. {priceText} {stockText}";
+            return $"{product.ProductName} thuộc danh mục {product.Category?.CategoryName ?? "chưa rõ"}, loại {product.CalendarType}. {priceText} {stockText}";
         }
 
         if (couponCandidate != null)
         {
             var coupon = couponCandidate.Coupon;
             var discountText = coupon.DiscountType == "Percent"
-                ? $"giam {coupon.DiscountValue:N0}%"
-                : $"giam {coupon.DiscountValue:N0} VND";
+                ? $"giảm {coupon.DiscountValue:N0}%"
+                : $"giảm {coupon.DiscountValue:N0} VND";
 
-            return $"Coupon {coupon.Code} hien dang hoat dong, {discountText}, ap dung cho don tu {coupon.MinOrderValue:N0} VND.";
+            return $"Coupon {coupon.Code} hiện đang hoạt động, {discountText}, áp dụng cho đơn từ {coupon.MinOrderValue:N0} VND.";
         }
 
-        return "Toi chua tim thay du lieu phu hop de tra loi cau hoi nay.";
+        return "Tôi chưa tìm thấy dữ liệu phù hợp để trả lời câu hỏi này.";
     }
 
     private static IReadOnlyList<ChatSourceDto> BuildSources(
@@ -425,21 +425,21 @@ public class ChatAssistantService : IChatAssistantService
         var contextJson = JsonSerializer.Serialize(context, new JsonSerializerOptions { WriteIndented = true });
 
         return $"""
-Ban la tro ly san pham cua Calendar Shop.
+Bạn là trợ lý sản phẩm của Calendar Shop.
 
-Quy tac:
-1. Chi duoc tra loi dua tren du lieu trong CONTEXT.
-2. Khong duoc tu bia gia, ton kho, coupon, loai lich hoac mo ta san pham.
-3. Neu CONTEXT khong du de tra loi, phai noi ro la khong tim thay du thong tin.
-4. Neu co nhieu ket qua gan giong nhau, phai yeu cau nguoi dung lam ro.
-5. Tra loi ngan gon, tu nhien, bang tieng Viet khong dau.
-6. Neu stockQuantity > 0 va status = Active, co the noi la con hang.
-7. Neu stockQuantity <= 0 hoac status khac Active, noi la hien khong san sang de ban.
+Quy tắc:
+1. Chỉ được trả lời dựa trên dữ liệu trong CONTEXT.
+2. Không được tự bịa giá, tồn kho, coupon, loại lịch hoặc mô tả sản phẩm.
+3. Nếu CONTEXT không đủ để trả lời, phải nói rõ là không tìm thấy đủ thông tin.
+4. Nếu có nhiều kết quả gần giống nhau, phải yêu cầu người dùng làm rõ.
+5. Trả lời ngắn gọn, tự nhiên, bằng tiếng Việt có dấu.
+6. Nếu stockQuantity > 0 và status = Active, có thể nói là còn hàng.
+7. Nếu stockQuantity <= 0 hoặc status khác Active, nói là hiện không sẵn sàng để bán.
 
 CONTEXT:
 {contextJson}
 
-CAU HOI:
+CÂU HỎI:
 {normalizedQuery}
 """;
     }

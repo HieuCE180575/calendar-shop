@@ -21,7 +21,7 @@ class AdminStatisticsPage extends ConsumerWidget {
       backgroundColor: const Color(0xFFF6F9FC),
       appBar: AppBar(
         title: const Text(
-          'Bao cao thong ke',
+          'Báo cáo thống kê',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: Colors.indigo.shade800,
@@ -31,7 +31,7 @@ class AdminStatisticsPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () => ref.invalidate(adminDashboardStatsProvider),
-            tooltip: 'Lam moi du lieu',
+            tooltip: 'Làm mới dữ liệu',
           ),
         ],
       ),
@@ -90,7 +90,7 @@ class _DashboardLoadingState extends StatelessWidget {
           CircularProgressIndicator(color: Colors.indigo),
           SizedBox(height: 16),
           Text(
-            'Dang tai so lieu thong ke...',
+            'Đang tải số liệu thống kê...',
             style: TextStyle(color: Colors.grey, fontSize: 16),
           ),
         ],
@@ -119,7 +119,7 @@ class _DashboardErrorState extends StatelessWidget {
             Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
             const SizedBox(height: 16),
             const Text(
-              'Loi tai so lieu',
+              'Lỗi tải số liệu',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -132,7 +132,7 @@ class _DashboardErrorState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Thu lai'),
+              label: const Text('Thử lại'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.indigo,
                 foregroundColor: Colors.white,

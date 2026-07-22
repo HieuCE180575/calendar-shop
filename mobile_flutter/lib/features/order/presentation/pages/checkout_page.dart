@@ -66,7 +66,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Khong the mo trang thanh toan VNPay'),
+                content: Text('Không thể mở trang thanh toán VNPay'),
               ),
             );
             context.go('/orders');
@@ -75,7 +75,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Dat hang thanh cong!')),
+            const SnackBar(content: Text('Đặt hàng thành công!')),
           );
           context.go('/orders');
         }
@@ -85,7 +85,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Dat hang that bai: $e')),
+          SnackBar(content: Text('Đặt hàng thất bại: $e')),
         );
       }
     } finally {
@@ -101,7 +101,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thanh toan'),
+        title: const Text('Thanh toán'),
         centerTitle: true,
       ),
       body: _isLoading
@@ -114,7 +114,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Thong tin giao hang',
+                      'Thông tin giao hàng',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -124,11 +124,11 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
-                        labelText: 'Ho ten',
+                        labelText: 'Họ tên',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) => value == null || value.isEmpty
-                          ? 'Vui long nhap ho ten'
+                          ? 'Vui lòng nhập họ tên'
                           : null,
                     ),
                     const SizedBox(height: 16),
@@ -136,35 +136,35 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
                       decoration: const InputDecoration(
-                        labelText: 'So dien thoai',
+                        labelText: 'Số điện thoại',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) => value == null || value.isEmpty
-                          ? 'Vui long nhap so dien thoai'
+                          ? 'Vui lòng nhập số điện thoại'
                           : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _addressController,
                       decoration: const InputDecoration(
-                        labelText: 'Dia chi giao hang',
+                        labelText: 'Địa chỉ giao hàng',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) => value == null || value.isEmpty
-                          ? 'Vui long nhap dia chi'
+                          ? 'Vui lòng nhập địa chỉ'
                           : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _noteController,
                       decoration: const InputDecoration(
-                        labelText: 'Ghi chu (tuy chon)',
+                        labelText: 'Ghi chú (tùy chọn)',
                         border: OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Phuong thuc thanh toan',
+                      'Phương thức thanh toán',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -194,8 +194,8 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                     const SizedBox(height: 12),
                     Text(
                       _paymentMethod == 'COD'
-                          ? 'Thanh toan khi nhan hang.'
-                          : 'Ban se duoc chuyen sang cong thanh toan VNPay sau khi tao don.',
+                          ? 'Thanh toán khi nhận hàng.'
+                          : 'Bạn sẽ được chuyển sang cổng thanh toán VNPay sau khi tạo đơn.',
                       style: TextStyle(
                         color: Colors.grey.shade700,
                       ),
@@ -210,7 +210,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                           backgroundColor: Colors.deepOrange,
                         ),
                         child: const Text(
-                          'Xac nhan dat hang',
+                          'Xác nhận đặt hàng',
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                       ),

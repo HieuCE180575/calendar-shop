@@ -19,11 +19,11 @@ class StatusBreakdownCard extends StatelessWidget {
     };
 
     final statusNameVi = <String, String>{
-      'Pending': 'Cho xu ly',
-      'Confirmed': 'Da xac nhan',
-      'Shipping': 'Dang giao hang',
-      'Delivered': 'Da giao thanh cong',
-      'Cancelled': 'Da huy don',
+      'Pending': 'Chờ xử lý',
+      'Confirmed': 'Đã xác nhận',
+      'Shipping': 'Đang giao hàng',
+      'Delivered': 'Đã giao thành công',
+      'Cancelled': 'Đã hủy đơn',
     };
 
     final totalOrders = stats.totalOrders > 0 ? stats.totalOrders : 1;
@@ -33,7 +33,7 @@ class StatusBreakdownCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Trang thai don hang',
+            'Trạng thái đơn hàng',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -79,7 +79,7 @@ class StatusBreakdownCard extends StatelessWidget {
                         ],
                       ),
                       Text(
-                        '${item.total} don (${(percentage * 100).toStringAsFixed(1)}%)',
+                        '${item.total} đơn (${(percentage * 100).toStringAsFixed(1)}%)',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,

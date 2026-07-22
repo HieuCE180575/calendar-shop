@@ -54,10 +54,10 @@ class MainScaffold extends ConsumerWidget {
     final selectedIndex = _calculateSelectedIndex(currentPath);
 
     String title = 'Calendar Shop';
-    if (currentPath.startsWith('/favorites')) title = 'San pham yeu thich';
-    if (currentPath.startsWith('/cart')) title = 'Gio hang ($cartCount)';
-    if (currentPath.startsWith('/orders')) title = 'Don hang cua toi';
-    if (currentPath.startsWith('/chat')) title = 'Tro ly cua hang';
+    if (currentPath.startsWith('/favorites')) title = 'Sản phẩm yêu thích';
+    if (currentPath.startsWith('/cart')) title = 'Giỏ hàng ($cartCount)';
+    if (currentPath.startsWith('/orders')) title = 'Đơn hàng của tôi';
+    if (currentPath.startsWith('/chat')) title = 'Trợ lý cửa hàng';
 
     return Scaffold(
       appBar: AppBar(
@@ -84,7 +84,7 @@ class MainScaffold extends ConsumerWidget {
                 color: AppColors.textPrimary,
               ),
             ),
-            tooltip: 'Thong bao',
+            tooltip: 'Thông báo',
           ),
           IconButton(
             onPressed: () => context.push('/chat'),
@@ -92,7 +92,7 @@ class MainScaffold extends ConsumerWidget {
               Icons.smart_toy_outlined,
               color: AppColors.primary,
             ),
-            tooltip: 'Tro ly cua hang',
+            tooltip: 'Trợ lý cửa hàng',
           ),
           IconButton(
             onPressed: () => context.push('/cart'),
@@ -116,7 +116,7 @@ class MainScaffold extends ConsumerWidget {
                 Icons.admin_panel_settings_outlined,
                 color: AppColors.primary,
               ),
-              tooltip: 'Trang quan tri',
+              tooltip: 'Trang quản trị',
             ),
           IconButton(
             onPressed: () => context.push('/profile'),
@@ -124,7 +124,7 @@ class MainScaffold extends ConsumerWidget {
               Icons.account_circle_outlined,
               color: AppColors.textPrimary,
             ),
-            tooltip: 'Ho so',
+            tooltip: 'Hồ sơ',
           ),
           IconButton(
             onPressed: () async {
@@ -134,7 +134,7 @@ class MainScaffold extends ConsumerWidget {
               }
             },
             icon: const Icon(Icons.logout, color: AppColors.textPrimary),
-            tooltip: 'Dang xuat',
+            tooltip: 'Đăng xuất',
           ),
           const SizedBox(width: 8),
         ],
@@ -166,12 +166,12 @@ class MainScaffold extends ConsumerWidget {
             const BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
               activeIcon: Icon(Icons.home),
-              label: 'Trang chu',
+              label: 'Trang chủ',
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.favorite_outline),
               activeIcon: Icon(Icons.favorite),
-              label: 'Yeu thich',
+              label: 'Yêu thích',
             ),
             BottomNavigationBarItem(
               icon: Badge(
@@ -192,12 +192,12 @@ class MainScaffold extends ConsumerWidget {
                 backgroundColor: AppColors.primary,
                 child: const Icon(Icons.shopping_cart),
               ),
-              label: 'Gio hang',
+              label: 'Giỏ hàng',
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.receipt_long_outlined),
               activeIcon: Icon(Icons.receipt_long),
-              label: 'Don hang',
+              label: 'Đơn hàng',
             ),
           ],
         ),

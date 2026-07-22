@@ -53,14 +53,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
         title: const Text(
-          'Tro ly cua hang',
+          'Trợ lý cửa hàng',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
             onPressed: () => ref.read(chatNotifierProvider.notifier).clearChat(),
             icon: const Icon(Icons.refresh),
-            tooltip: 'Lam moi doan chat',
+            tooltip: 'Làm mới đoạn chat',
           ),
         ],
       ),
@@ -76,7 +76,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               border: Border.all(color: AppColors.border),
             ),
             child: const Text(
-              'Ban co the hoi ve san pham, gia, ton kho, coupon va khuyen mai dang ap dung.',
+              'Bạn có thể hỏi về sản phẩm, giá, tồn kho, coupon và khuyến mãi đang áp dụng.',
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 13,
@@ -116,7 +116,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       maxLines: 4,
                       onSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        hintText: 'Hoi ve lich, ton kho, coupon...',
+                        hintText: 'Hỏi về lịch, tồn kho, coupon...',
                         filled: true,
                         fillColor: const Color(0xFFF3F5F8),
                         contentPadding: const EdgeInsets.symmetric(
@@ -234,7 +234,7 @@ class _TypingBubble extends StatelessWidget {
         child: Card(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Text('Dang tra loi...'),
+            child: Text('Đang trả lời...'),
           ),
         ),
       ),

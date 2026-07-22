@@ -49,7 +49,7 @@ try
             Scheme = "Bearer",
             BearerFormat = "JWT",
             In = ParameterLocation.Header,
-            Description = "Nhap JWT Token cua ban de xac thuc."
+            Description = "Nhập JWT Token của bạn để xác thực."
         });
         options.AddSecurityRequirement(new OpenApiSecurityRequirement
         {

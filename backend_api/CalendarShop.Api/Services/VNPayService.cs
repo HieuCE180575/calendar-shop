@@ -44,7 +44,7 @@ public class VNPayService : IVNPayService
         pay.AddRequestData("vnp_CurrCode", "VND");
         pay.AddRequestData("vnp_IpAddr", VNPayLibrary.GetIpAddress(context));
         pay.AddRequestData("vnp_Locale", "vn");
-        pay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang {order.OrderId}");
+        pay.AddRequestData("vnp_OrderInfo", $"Thanh toán đơn hàng {order.OrderId}");
         pay.AddRequestData("vnp_OrderType", "other");
         pay.AddRequestData("vnp_ReturnUrl", returnUrl);
         pay.AddRequestData("vnp_TxnRef", order.OrderId.ToString());

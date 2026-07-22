@@ -14,8 +14,8 @@ class DailyRevenueChartCard extends StatelessWidget {
   Widget build(BuildContext context) {
     if (data.isEmpty) {
       return const _EmptyChartCard(
-        title: 'Doanh thu theo ngay',
-        message: 'Chua co du lieu doanh thu theo ngay',
+        title: 'Doanh thu theo ngày',
+        message: 'Chưa có dữ liệu doanh thu theo ngày',
       );
     }
 
@@ -27,7 +27,7 @@ class DailyRevenueChartCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Doanh thu theo ngay (Gan day nhat)',
+            'Doanh thu theo ngày (Gần đây nhất)',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -103,8 +103,8 @@ class MonthlyRevenueChartCard extends StatelessWidget {
   Widget build(BuildContext context) {
     if (data.isEmpty) {
       return const _EmptyChartCard(
-        title: 'Doanh thu theo thang',
-        message: 'Chua co du lieu doanh thu theo thang',
+        title: 'Doanh thu theo tháng',
+        message: 'Chưa có dữ liệu doanh thu theo tháng',
       );
     }
 
@@ -116,7 +116,7 @@ class MonthlyRevenueChartCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Doanh thu theo thang',
+            'Doanh thu theo tháng',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

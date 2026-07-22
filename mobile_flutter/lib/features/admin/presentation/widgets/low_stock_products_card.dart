@@ -26,7 +26,7 @@ class LowStockProductsCard extends StatelessWidget {
                 Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700),
                 const SizedBox(width: 8),
                 const Text(
-                  'CANH BAO HET HANG',
+                  'CẢNH BÁO HẾT HÀNG',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -71,7 +71,7 @@ class LowStockProductsCard extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Ton: ${product.stockQuantity}',
+                      'Tồn: ${product.stockQuantity}',
                       style: TextStyle(
                         color: isCritical ? Colors.red.shade700 : Colors.orange.shade800,
                         fontWeight: FontWeight.bold,

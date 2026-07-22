@@ -16,7 +16,7 @@ class BestSellingProductsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'San pham ban chay nhat',
+              'Sản phẩm bán chạy nhất',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -26,7 +26,7 @@ class BestSellingProductsCard extends StatelessWidget {
             SizedBox(height: 20),
             Center(
               child: Text(
-                'Chua co du lieu ban chay',
+                'Chưa có dữ liệu bán chạy',
                 style: TextStyle(color: Colors.grey),
               ),
             ),
@@ -43,7 +43,7 @@ class BestSellingProductsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Top san pham ban chay',
+            'Top sản phẩm bán chạy',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class BestSellingProductsCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Da ban: ${product.totalSold} cuon',
+                              'Đã bán: ${product.totalSold} cuốn',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,

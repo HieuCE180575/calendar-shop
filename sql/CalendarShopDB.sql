@@ -33,6 +33,7 @@ CREATE TABLE dbo.Users (
     EmailConfirmationTokenHash NVARCHAR(500) NULL,
     EmailConfirmationTokenExpiredAt DATETIME2 NULL,
     EmailConfirmedAt DATETIME2 NULL,
+    FcmToken NVARCHAR(500) NULL,
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT CK_Users_EmailOrPhone CHECK (Email IS NOT NULL OR Phone IS NOT NULL),
