@@ -53,8 +53,13 @@ public class CartService : ICartService
 
     public async Task AddToCartAsync(int userId, AddToCartRequest request)
     {
-        var product = await _productRepository.GetByIdAsync(request.ProductId);
-        if (product == null || product.IsDeleted || product.Status != "Active")
+        var product = await _productRepository.Entities
+            .Include(x => x.Category)
+            .FirstOrDefaultAsync(x => x.ProductId == request.ProductId);
+        if (product == null ||
+            product.IsDeleted ||
+            product.Status != "Active" ||
+            product.Category?.Status != "Active")
         {
             throw new BadHttpRequestException("Sản phẩm không khả dụng.");
         }
@@ -93,8 +98,13 @@ public class CartService : ICartService
         }
 
         // Kiểm tra tồn kho sản phẩm trước khi cập nhật số lượng
-        var product = await _productRepository.GetByIdAsync(item.ProductId);
-        if (product == null || product.IsDeleted || product.Status != "Active")
+        var product = await _productRepository.Entities
+            .Include(x => x.Category)
+            .FirstOrDefaultAsync(x => x.ProductId == item.ProductId);
+        if (product == null ||
+            product.IsDeleted ||
+            product.Status != "Active" ||
+            product.Category?.Status != "Active")
         {
             throw new BadHttpRequestException("Sản phẩm không khả dụng.");
         }

@@ -19,14 +19,14 @@ public class ProductsController : AppControllerBase
     [EnableQuery]
     public ActionResult<IQueryable<ProductDto>> GetAll(bool includeHidden = false)
     {
-        var products = _productService.GetAllProductsQuery(includeHidden);
+        var products = _productService.GetAllProductsQuery(includeHidden && User.IsInRole("Admin"));
         return Ok(products);
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductDto>> GetById(int id)
     {
-        var product = await _productService.GetProductByIdAsync(id);
+        var product = await _productService.GetProductByIdAsync(id, User.IsInRole("Admin"));
         return Ok(product);
     }
 
