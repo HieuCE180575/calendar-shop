@@ -86,8 +86,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<String> confirmEmail({required String token}) async {
-    final result = await remoteDataSource.confirmEmail(token: token);
+  Future<String> confirmEmail({required String email, required String otp}) async {
+    final result = await remoteDataSource.confirmEmail(email: email, otp: otp);
     return result.message;
   }
 

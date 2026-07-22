@@ -69,7 +69,7 @@ public class AuthService : IAuthService
             throw new BadHttpRequestException("Email hoặc số điện thoại đã tồn tại.");
         }
 
-        var rawConfirmToken = GenerateSecurityToken();
+        var rawConfirmToken = GenerateOtpCode();
         var user = _mapper.Map<User>(request);
         user.FullName = request.FullName.Trim();
         user.Email = email;
@@ -211,7 +211,7 @@ public class AuthService : IAuthService
                 throw new BadHttpRequestException("Email là bắt buộc để xác nhận tài khoản.");
             }
 
-            var rawConfirmToken = GenerateSecurityToken();
+            var rawConfirmToken = GenerateOtpCode();
             user.Email = email;
             user.IsEmailConfirmed = false;
             user.EmailConfirmedAt = null;
@@ -409,16 +409,27 @@ public class AuthService : IAuthService
         await _passwordResetTokenRepository.SaveChangesAsync();
     }
 
-    public async Task<MessageResponse> ConfirmEmailAsync(string token)
+    public async Task<MessageResponse> ConfirmEmailAsync(ConfirmEmailRequest request)
     {
-        var rawToken = NormalizeNullable(token);
+        var email = NormalizeEmail(request.Email);
+        var rawToken = NormalizeNullable(request.Otp);
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new BadHttpRequestException("Email là bắt buộc để kích hoạt tài khoản.");
+        }
+
         if (string.IsNullOrWhiteSpace(rawToken))
         {
             throw new BadHttpRequestException("Token xác nhận email là bắt buộc.");
         }
 
+        if (rawToken.Length != 6 || !rawToken.All(char.IsDigit))
+        {
+            throw new BadHttpRequestException("Mã OTP kích hoạt tài khoản phải gồm đúng 6 chữ số.");
+        }
+
         var hashedToken = _passwordService.Hash(rawToken);
-        var user = await _userRepository.Entities.FirstOrDefaultAsync(x => x.EmailConfirmationTokenHash == hashedToken);
+        var user = await _userRepository.Entities.FirstOrDefaultAsync(x => x.Email == email && x.EmailConfirmationTokenHash == hashedToken);
         if (user == null)
         {
             throw new BadHttpRequestException("Token xác nhận email không hợp lệ.");
@@ -464,7 +475,7 @@ public class AuthService : IAuthService
             return new MessageResponse("Email này đã được xác nhận. Bạn có thể đăng nhập.");
         }
 
-        var rawConfirmToken = GenerateSecurityToken();
+        var rawConfirmToken = GenerateOtpCode();
         user.EmailConfirmationTokenHash = _passwordService.Hash(rawConfirmToken);
         user.EmailConfirmationTokenExpiredAt = DateTime.UtcNow.AddMinutes(EmailConfirmationMinutes);
         user.Status = "Pending";
@@ -544,9 +555,32 @@ public class AuthService : IAuthService
             return;
         }
 
-        var confirmUrl = $"{GetApiBaseUrl()}/api/auth/confirm-email?token={Uri.EscapeDataString(rawToken)}";
+        var otpName = WebUtility.HtmlEncode(user.FullName);
+        var otpCode = WebUtility.HtmlEncode(rawToken);
+        var otpHtml = $"""
+        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a">
+            <h2>Kích hoạt tài khoản Calendar Shop</h2>
+            <p>Xin chào <strong>{otpName}</strong>,</p>
+            <p>Bạn vừa đăng ký tài khoản tại Calendar Shop. Vui lòng nhập mã OTP 6 số này trong ứng dụng để kích hoạt tài khoản.</p>
+            <p style="font-size:28px;font-weight:bold;letter-spacing:6px;color:#2563eb;background:#f1f5f9;padding:16px;text-align:center;border-radius:8px">{otpCode}</p>
+            <p>Mã OTP hết hạn sau 24 giờ. Nếu bạn không đăng ký tài khoản, vui lòng bỏ qua email này.</p>
+        </div>
+        """;
+
+        try
+        {
+            await _emailService.SendAsync(user.Email, "Mã OTP kích hoạt tài khoản Calendar Shop", otpHtml, $"Mã OTP kích hoạt tài khoản: {rawToken}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Warning] Could not send confirmation email to {user.Email}: {ex.Message}");
+        }
+
+        return;
+
+        var confirmUrl = rawToken;
         var safeName = WebUtility.HtmlEncode(user.FullName);
-        var safeUrl = WebUtility.HtmlEncode(confirmUrl);
+        var safeUrl = WebUtility.HtmlEncode(rawToken);
         var html = $"""
         <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a">
             <h2>Xác nhận tài khoản Calendar Shop</h2>
@@ -662,5 +696,24 @@ public class AuthService : IAuthService
     {
         var trimmed = value?.Trim();
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+    }
+
+    public async Task<AvailabilityCheckResponse> CheckAvailabilityAsync(string? email, string? phone)
+    {
+        var normalizedEmail = NormalizeEmail(email);
+        var emailExists = false;
+        if (!string.IsNullOrWhiteSpace(normalizedEmail))
+        {
+            emailExists = await _userRepository.Entities.AnyAsync(x => x.Email != null && x.Email.ToLower() == normalizedEmail);
+        }
+
+        var normalizedPhone = NormalizePhone(phone);
+        var phoneExists = false;
+        if (!string.IsNullOrWhiteSpace(normalizedPhone))
+        {
+            phoneExists = await _userRepository.Entities.AnyAsync(x => x.Phone != null && x.Phone == normalizedPhone);
+        }
+
+        return new AvailabilityCheckResponse(emailExists, phoneExists);
     }
 }

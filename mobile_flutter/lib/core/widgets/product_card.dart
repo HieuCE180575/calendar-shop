@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../constants/api_constants.dart';
 import '../../features/favorite/presentation/providers/favorite_provider.dart';
 import '../../features/product/domain/entities/product.dart';
 import '../theme/app_colors.dart';
@@ -22,6 +23,7 @@ class ProductCard extends ConsumerWidget {
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
     final formattedPrice = currencyFormatter.format(product.price);
     final badgeText = product.categoryName ?? product.calendarType;
+    final resolvedImageUrl = ApiConstants.resolveImageUrl(product.imageUrl);
 
     return InkWell(
       onTap: onTap,
@@ -51,9 +53,9 @@ class ProductCard extends ConsumerWidget {
                     child: SizedBox(
                       width: double.infinity,
                       height: double.infinity,
-                      child: product.imageUrl != null && product.imageUrl!.startsWith('http')
+                      child: resolvedImageUrl.isNotEmpty
                           ? CachedNetworkImage(
-                              imageUrl: product.imageUrl!,
+                              imageUrl: resolvedImageUrl,
                               fit: BoxFit.cover,
                               placeholder: (_, __) => Container(
                                 color: AppColors.primaryLight,

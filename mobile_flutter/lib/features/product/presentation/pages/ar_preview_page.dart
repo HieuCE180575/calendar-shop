@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/product_provider.dart';
 
@@ -334,9 +335,9 @@ class _ARPreviewPageState extends ConsumerState<ARPreviewPage> {
           children: [
             // Ảnh bìa cuốn lịch
             Positioned.fill(
-              child: imageUrl != null && imageUrl.startsWith('http')
+              child: ApiConstants.resolveImageUrl(imageUrl).isNotEmpty
                   ? CachedNetworkImage(
-                      imageUrl: imageUrl,
+                      imageUrl: ApiConstants.resolveImageUrl(imageUrl),
                       fit: BoxFit.cover,
                     )
                   : Container(

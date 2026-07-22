@@ -22,7 +22,12 @@ NotificationRepository notificationRepository(NotificationRepositoryRef ref) {
 @riverpod
 class NotificationNotifier extends _$NotificationNotifier {
   @override
-  FutureOr<List<NotificationEntity>> build() {
+  Future<List<NotificationEntity>> build() async {
+    final token = await ref.watch(tokenStorageProvider).getToken();
+    if (token == null || token.isEmpty) {
+      return [];
+    }
+
     return ref.watch(notificationRepositoryProvider).getNotifications();
   }
 

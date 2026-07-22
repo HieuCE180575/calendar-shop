@@ -58,8 +58,10 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/confirm-email',
-      builder: (context, state) =>
-          ConfirmEmailPage(initialToken: state.uri.queryParameters['token']),
+      builder: (context, state) => ConfirmEmailPage(
+        initialToken: state.uri.queryParameters['token'],
+        initialEmail: state.uri.queryParameters['email'],
+      ),
     ),
     GoRoute(
       path: '/reset-password',

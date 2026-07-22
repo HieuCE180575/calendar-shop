@@ -21,9 +21,10 @@ public record ForgotPasswordRequest(string Login);
 public record ForgotPasswordResponse(string Message, DateTime? ExpiredAt);
 public record VerifyResetCodeRequest(string ResetCode);
 public record ResetPasswordRequest(string ResetToken, string NewPassword);
-public record ConfirmEmailRequest(string Token);
+public record ConfirmEmailRequest(string Email, string Otp);
 public record ResendEmailConfirmationRequest(string Email);
 public record MessageResponse(string Message);
+public record AvailabilityCheckResponse(bool EmailExists, bool PhoneExists);
 
 public record UserDto(
     int UserId,

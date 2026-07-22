@@ -42,7 +42,7 @@ public class AuthController : AppControllerBase
     {
         try
         {
-            var response = await _authService.ConfirmEmailAsync(token);
+            var response = await _authService.ConfirmEmailAsync(new ConfirmEmailRequest(string.Empty, token));
             var html = BuildConfirmEmailHtml("Xác nhận email thành công", response.Message, true);
             return Content(html, "text/html; charset=utf-8");
         }
@@ -56,7 +56,7 @@ public class AuthController : AppControllerBase
     [HttpPost("confirm-email")]
     public async Task<ActionResult<MessageResponse>> ConfirmEmail(ConfirmEmailRequest request)
     {
-        var response = await _authService.ConfirmEmailAsync(request.Token);
+        var response = await _authService.ConfirmEmailAsync(request);
         return Ok(response);
     }
 
@@ -64,6 +64,14 @@ public class AuthController : AppControllerBase
     public async Task<ActionResult<MessageResponse>> ResendEmailConfirmation(ResendEmailConfirmationRequest request)
     {
         var response = await _authService.ResendEmailConfirmationAsync(request);
+        return Ok(response);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("check-availability")]
+    public async Task<ActionResult<AvailabilityCheckResponse>> CheckAvailability([FromQuery] string? email, [FromQuery] string? phone)
+    {
+        var response = await _authService.CheckAvailabilityAsync(email, phone);
         return Ok(response);
     }
 
@@ -170,15 +178,45 @@ public class AuthController : AppControllerBase
     private static string BuildConfirmEmailHtml(string title, string message, bool success)
     {
         var color = success ? "#166534" : "#b91c1c";
+        var redirectScript = success ? """
+            <p style="color:#475569;font-size:14px;margin-top:16px;">
+                Đang tự động chuyển hướng về trang Đăng nhập sau <strong id="countdown">3</strong> giây...
+            </p>
+            <div style="margin-top:20px;">
+                <a id="loginLink" href="http://localhost:49344/#/login" style="display:inline-block;padding:12px 24px;background:#0056c6;color:#ffffff;text-decoration:none;border-radius:10px;font-size:15px;font-weight:600;box-shadow:0 4px 12px rgba(0,86,198,0.25);">
+                    Quay lại trang Đăng nhập ngay
+                </a>
+            </div>
+            <script>
+                var seconds = 3;
+                var countdownEl = document.getElementById('countdown');
+                var timer = setInterval(function() {
+                    seconds--;
+                    if (countdownEl) countdownEl.innerText = seconds;
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        window.location.href = "http://localhost:49344/#/login";
+                    }
+                }, 1000);
+            </script>
+        """ : string.Empty;
+
         return $"""
         <!doctype html>
         <html lang="vi">
-        <head><meta charset="utf-8"><title>{WebUtility.HtmlEncode(title)}</title></head>
-        <body style="font-family:Arial,sans-serif;padding:32px;background:#f8fafc;color:#0f172a">
-            <div style="max-width:560px;margin:auto;background:#fff;border-radius:12px;padding:24px;box-shadow:0 8px 24px rgba(15,23,42,.08)">
-                <h2 style="color:{color};margin-top:0">{WebUtility.HtmlEncode(title)}</h2>
-                <p>{WebUtility.HtmlEncode(message)}</p>
-                <p>Bạn có thể quay lại ứng dụng Calendar Shop để đăng nhập.</p>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>{WebUtility.HtmlEncode(title)} - Calendar Shop</title>
+        </head>
+        <body style="font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;padding:32px;background:#f8fafc;color:#0f172a;margin:0;">
+            <div style="max-width:500px;margin:40px auto;background:#ffffff;border-radius:16px;padding:32px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.08);border:1px solid #e2e8f0;text-align:center;">
+                <div style="width:60px;height:60px;margin:0 auto 16px;background:{(success ? "#f0fdf4" : "#fef2f2")};border-radius:50%;line-height:60px;font-size:28px;color:{(success ? "#166534" : "#b91c1c")};">
+                    {(success ? "✓" : "✕")}
+                </div>
+                <h2 style="color:{color};margin-top:0;font-size:22px;margin-bottom:8px;">{WebUtility.HtmlEncode(title)}</h2>
+                <p style="color:#64748b;font-size:15px;line-height:1.5;margin-bottom:16px;">{WebUtility.HtmlEncode(message)}</p>
+                {redirectScript}
             </div>
         </body>
         </html>

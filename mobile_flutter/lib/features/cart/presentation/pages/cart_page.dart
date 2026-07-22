@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/quantity_selector.dart';
@@ -373,8 +374,8 @@ class _CartPageState extends ConsumerState<CartPage> {
             child: SizedBox(
               width: 64,
               height: 64,
-              child: item.imageUrl != null && item.imageUrl!.startsWith('http')
-                  ? CachedNetworkImage(imageUrl: item.imageUrl!, fit: BoxFit.cover)
+              child: ApiConstants.resolveImageUrl(item.imageUrl).isNotEmpty
+                  ? CachedNetworkImage(imageUrl: ApiConstants.resolveImageUrl(item.imageUrl), fit: BoxFit.cover)
                   : Container(color: AppColors.primaryLight, child: const Icon(Icons.calendar_today, color: AppColors.primary)),
             ),
           ),
