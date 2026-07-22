@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/create_order_input.dart';
 import '../providers/order_provider.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../widgets/map_picker_dialog.dart';
 
 class CheckoutPage extends ConsumerStatefulWidget {
   const CheckoutPage({super.key});
@@ -146,9 +148,25 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _addressController,
-                      decoration: const InputDecoration(
+                      maxLines: null,
+                      decoration: InputDecoration(
                         labelText: 'Địa chỉ giao hàng',
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.map_outlined, color: AppColors.primary),
+                          tooltip: 'Chọn trên bản đồ',
+                          onPressed: () async {
+                            final selectedAddress = await showDialog<String>(
+                              context: context,
+                              builder: (context) => const MapPickerDialog(),
+                            );
+                            if (selectedAddress != null && mounted) {
+                              setState(() {
+                                _addressController.text = selectedAddress;
+                              });
+                            }
+                          },
+                        ),
                       ),
                       validator: (value) => value == null || value.isEmpty
                           ? 'Vui lòng nhập địa chỉ'
