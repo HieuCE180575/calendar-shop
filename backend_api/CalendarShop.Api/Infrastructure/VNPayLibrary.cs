@@ -116,16 +116,18 @@ public class VNPayLibrary
                 }
 
                 if (remoteIpAddress != null) ipAddress = remoteIpAddress.ToString();
-
-                return ipAddress;
             }
         }
         catch (Exception)
         {
-            return "127.0.0.1";
+            // Ignore
         }
 
-        return "127.0.0.1";
+        if (string.IsNullOrEmpty(ipAddress) || ipAddress == "::1")
+        {
+            ipAddress = "127.0.0.1";
+        }
+        return ipAddress;
     }
 
     private static string HmacSHA512(string key, string inputData)

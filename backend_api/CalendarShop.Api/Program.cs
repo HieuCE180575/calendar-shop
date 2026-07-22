@@ -98,6 +98,11 @@ try
     builder.Services.AddScoped<ICouponService, CouponService>();
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IVNPayService, VNPayService>();
+<<<<<<< Updated upstream
+=======
+    builder.Services.AddScoped<IDiscountService, DiscountService>();
+    builder.Services.AddScoped<IAddressService, AddressService>();
+>>>>>>> Stashed changes
 
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -174,5 +179,10 @@ static Microsoft.OData.Edm.IEdmModel GetEdmModel()
     builder.EntitySet<OrderDto>("Orders").EntityType.HasKey(x => x.OrderId);
     builder.EntitySet<CartItemDto>("Cart").EntityType.HasKey(x => x.CartItemId);
     builder.EntitySet<CouponDto>("Coupons").EntityType.HasKey(x => x.CouponId);
+<<<<<<< Updated upstream
+=======
+    builder.EntitySet<DiscountDto>("Discounts").EntityType.HasKey(x => x.DiscountId);
+    builder.EntitySet<AddressDto>("Addresses").EntityType.HasKey(x => x.AddressId);
+>>>>>>> Stashed changes
     return builder.GetEdmModel();
 }

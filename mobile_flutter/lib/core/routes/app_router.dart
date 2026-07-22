@@ -72,9 +72,23 @@ final appRouter = GoRouter(
         return ProductDetailPage(productId: id);
       },
     ),
+<<<<<<< Updated upstream
     GoRoute(path: '/cart', builder: (context, state) => const CartPage()),
     GoRoute(path: '/checkout', builder: (context, state) => const CheckoutPage()),
     GoRoute(path: '/orders', builder: (context, state) => const MyOrdersPage()),
+=======
+    GoRoute(
+      path: '/checkout',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return CheckoutPage(
+          couponCode: extra?['couponCode'] as String?,
+          discountAmount: extra?['discountAmount'] as double? ?? 0.0,
+          cartTotal: extra?['cartTotal'] as double? ?? 0.0,
+        );
+      },
+    ),
+>>>>>>> Stashed changes
     GoRoute(
       path: '/vnpay-waiting/:id',
       builder: (context, state) {

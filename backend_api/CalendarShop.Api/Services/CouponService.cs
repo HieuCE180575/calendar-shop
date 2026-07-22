@@ -94,6 +94,35 @@ public class CouponService : ICouponService
         await _couponRepository.SaveChangesAsync();
     }
 
+    public async Task<CouponDto> CheckCouponAsync(string code, decimal subTotal)
+    {
+        var normalizedCode = NormalizeCode(code);
+        var coupon = await _couponRepository.Entities
+            .FirstOrDefaultAsync(x => x.Code == normalizedCode && x.Status == "Active");
+
+        if (coupon == null)
+        {
+            throw new InvalidOperationException("Mã giảm giá không tồn tại hoặc không hợp lệ.");
+        }
+
+        if (DateTime.UtcNow < coupon.StartDate || DateTime.UtcNow > coupon.EndDate)
+        {
+            throw new InvalidOperationException("Mã giảm giá đã hết hạn hoặc chưa có hiệu lực.");
+        }
+
+        if (subTotal < coupon.MinOrderValue)
+        {
+            throw new InvalidOperationException("Đơn hàng chưa đạt giá trị tối thiểu để sử dụng mã này.");
+        }
+
+        if (coupon.UsageLimit.HasValue && coupon.UsedCount >= coupon.UsageLimit.Value)
+        {
+            throw new InvalidOperationException("Mã giảm giá đã hết lượt sử dụng.");
+        }
+
+        return _mapper.Map<CouponDto>(coupon);
+    }
+
     private async Task EnsureCouponCodeUniqueAsync(string code, int? excludeCouponId)
     {
         var exists = await _couponRepository.Entities.AnyAsync(x =>

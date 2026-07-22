@@ -18,6 +18,11 @@ public class AppDbContext : DbContext
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+<<<<<<< Updated upstream
+=======
+    public DbSet<Discount> Discounts => Set<Discount>();
+    public DbSet<UserAddress> UserAddresses => Set<UserAddress>();
+>>>>>>> Stashed changes
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

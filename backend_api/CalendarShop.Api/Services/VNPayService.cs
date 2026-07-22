@@ -34,8 +34,13 @@ public class VNPayService : IVNPayService
         pay.AddRequestData("vnp_Locale", "vn");
         pay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang {order.OrderId}");
         pay.AddRequestData("vnp_OrderType", "other");
+<<<<<<< Updated upstream
         pay.AddRequestData("vnp_ReturnUrl", _configuration["VNPay:ReturnUrl"] ?? string.Empty);
         pay.AddRequestData("vnp_TxnRef", order.OrderId.ToString());
+=======
+        pay.AddRequestData("vnp_ReturnUrl", returnUrl);
+        pay.AddRequestData("vnp_TxnRef", $"{order.OrderId}_{timeNow.Ticks}");
+>>>>>>> Stashed changes
 
         var paymentUrl = pay.CreateRequestUrl(_configuration["VNPay:Url"] ?? string.Empty, _configuration["VNPay:HashSecret"] ?? string.Empty);
 

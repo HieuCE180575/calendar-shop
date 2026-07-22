@@ -241,10 +241,90 @@ public class OrderService : IOrderService
 
     public async Task HandlePaymentCallbackAsync(int orderId, bool isSuccess)
     {
+<<<<<<< Updated upstream
         var order = await _orderRepository.Entities.Include(x => x.OrderItems).FirstOrDefaultAsync(x => x.OrderId == orderId);
         if (order == null) return;
         
         if (order.Status != "Pending") return;
+=======
+        _logger.LogInformation("VNPay callback received.");
+
+        var pay = new VNPayLibrary();
+        foreach (var (key, value) in vnpayData)
+        {
+            if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
+            {
+                pay.AddResponseData(key, value);
+            }
+        }
+
+        var vnp_TxnRef = pay.GetResponseData("vnp_TxnRef");
+        var vnp_SecureHash = vnpayData.TryGetValue("vnp_SecureHash", out var hash) ? hash : string.Empty;
+        var vnp_ResponseCode = pay.GetResponseData("vnp_ResponseCode");
+        var vnp_TransactionStatus = pay.GetResponseData("vnp_TransactionStatus");
+        var vnp_Amount = pay.GetResponseData("vnp_Amount");
+        var vnp_TmnCode = pay.GetResponseData("vnp_TmnCode");
+        var expectedTmnCode = _configuration["VNPay:TmnCode"] ?? string.Empty;
+
+        bool isSignatureValid = pay.ValidateSignature(vnp_SecureHash, _configuration["VNPay:HashSecret"] ?? string.Empty);
+
+        _logger.LogInformation("VNPay signature validation result: {IsValid}", isSignatureValid);
+
+        if (!isSignatureValid)
+        {
+            return (false, false);
+        }
+
+        var txnRefParts = vnp_TxnRef?.Split('_');
+        if (txnRefParts == null || txnRefParts.Length == 0 || !int.TryParse(txnRefParts[0], out int orderId))
+        {
+            _logger.LogWarning("Invalid orderId from VNPay callback.");
+            return (true, false);
+        }
+
+        if (!string.IsNullOrWhiteSpace(expectedTmnCode) && vnp_TmnCode != expectedTmnCode)
+        {
+            _logger.LogWarning("VNPay callback rejected because terminal code does not match for OrderId {OrderId}.", orderId);
+            return (true, false);
+        }
+
+        bool isSuccess = vnp_ResponseCode == "00" && vnp_TransactionStatus == "00";
+        if (isSuccess)
+        {
+            _logger.LogInformation("Payment success for OrderId {OrderId}.", orderId);
+        }
+        else
+        {
+            _logger.LogInformation("Payment failed/cancelled for OrderId {OrderId}.", orderId);
+        }
+
+        var order = await _orderRepository.Entities
+            .Include(x => x.OrderItems)
+            .FirstOrDefaultAsync(x => x.OrderId == orderId);
+        if (order == null)
+        {
+            _logger.LogWarning("Order {OrderId} not found.", orderId);
+            return (true, isSuccess);
+        }
+
+        if (order.PaymentMethod != "VNPay")
+        {
+            _logger.LogWarning("VNPay callback rejected for non-VNPay OrderId {OrderId}.", orderId);
+            return (true, false);
+        }
+
+        if (!IsVNPayAmountValid(vnp_Amount, order.TotalAmount))
+        {
+            _logger.LogWarning("VNPay callback amount mismatch for OrderId {OrderId}.", orderId);
+            return (true, false);
+        }
+
+        if (order.Status != "Pending")
+        {
+            _logger.LogInformation("Order {OrderId} status is {Status}, no update needed.", orderId, order.Status);
+            return (true, isSuccess);
+        }
+>>>>>>> Stashed changes
 
         if (isSuccess)
         {

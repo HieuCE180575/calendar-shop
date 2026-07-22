@@ -37,4 +37,9 @@ class ApiConstants {
   static const String coupons = '/coupons';
   static const String favorites = '/favorites';
   static const String reviews = '/reviews';
+<<<<<<< Updated upstream
+=======
+  static const String discounts = '/discounts';
+  static const String addresses = '/addresses';
+>>>>>>> Stashed changes
 }

@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/providers/core_providers.dart';
 import '../../../../core/widgets/quantity_selector.dart';
 import '../../domain/entities/cart_item.dart';
 import '../providers/cart_provider.dart';
@@ -22,7 +24,53 @@ class _CartPageState extends ConsumerState<CartPage> {
   double _discountAmount = 0;
   String _paymentMethod = 'COD';
 
-  void _showCouponBottomSheet(BuildContext context) {
+  Future<void> _checkCoupon(String code, double cartTotal) async {
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final response = await apiClient.dio.get('/coupons/check', queryParameters: {
+        'code': code,
+        'subTotal': cartTotal,
+      });
+      final data = response.data;
+      final type = data['discountType'];
+      final value = data['discountValue'] as num;
+
+      double discount = 0;
+      if (type == 'Percent') {
+        discount = cartTotal * (value / 100);
+      } else {
+        discount = value.toDouble();
+      }
+
+      setState(() {
+        _couponCode = code;
+        _discountAmount = discount;
+      });
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đã áp dụng mã $code'), backgroundColor: AppColors.success),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        String errorMessage = 'Có lỗi xảy ra khi kiểm tra mã';
+        if (e is DioException && e.response?.data != null) {
+          final data = e.response!.data;
+          errorMessage = data is String ? data : data.toString();
+        } else {
+          errorMessage = e.toString();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage), backgroundColor: AppColors.danger),
+        );
+      }
+    }
+  }
+
+  void _showCouponBottomSheet(BuildContext context, double cartTotal) {
     final couponController = TextEditingController(text: _couponCode);
 
     showModalBottomSheet(
@@ -75,6 +123,7 @@ class _CartPageState extends ConsumerState<CartPage> {
                   onPressed: () {
                     final code = couponController.text.trim().toUpperCase();
                     if (code.isNotEmpty) {
+<<<<<<< Updated upstream
                       setState(() {
                         _couponCode = code;
                         _discountAmount = 15000;
@@ -86,6 +135,9 @@ class _CartPageState extends ConsumerState<CartPage> {
                           backgroundColor: AppColors.success,
                         ),
                       );
+=======
+                      _checkCoupon(code, cartTotal);
+>>>>>>> Stashed changes
                     }
                   },
                   child: const Text('Áp dụng'),
@@ -255,7 +307,7 @@ class _CartPageState extends ConsumerState<CartPage> {
                       ),
                       const SizedBox(height: 12),
                       InkWell(
-                        onTap: () => _showCouponBottomSheet(context),
+                        onTap: () => _showCouponBottomSheet(context, cartTotal),
                         borderRadius: BorderRadius.circular(10),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -461,11 +513,24 @@ class _CartPageState extends ConsumerState<CartPage> {
             backgroundColor: AppColors.primary,
             minimumSize: const Size.fromHeight(50),
           ),
+<<<<<<< Updated upstream
           onPressed: cartTotal > 0 ? () => context.push('/checkout') : null,
           child: const Text(
             'Thanh toán',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
+=======
+          onPressed: cartTotal > 0
+              ? () {
+                  context.push('/checkout', extra: {
+                    'couponCode': _couponCode,
+                    'discountAmount': _discountAmount,
+                    'cartTotal': cartTotal,
+                  });
+                }
+              : null,
+          child: const Text('Thanh toán', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+>>>>>>> Stashed changes
         ),
       ),
     );
