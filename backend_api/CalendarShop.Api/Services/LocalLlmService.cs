@@ -44,7 +44,7 @@ public class LocalLlmService : ILocalLlmService
             temperature = 0.2,
             messages = new object[]
             {
-                new { role = "system", content = "Ban la tro ly san pham cua Calendar Shop." },
+                new { role = "system", content = "Bạn là trợ lý sản phẩm của Calendar Shop. Luôn trả lời bằng tiếng Việt có dấu và copy chính xác tên sản phẩm từ dữ liệu được cung cấp, không tự dịch hoặc đổi tên sản phẩm." },
                 new { role = "user", content = prompt }
             }
         };

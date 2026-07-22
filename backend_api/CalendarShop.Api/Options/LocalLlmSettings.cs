@@ -8,6 +8,8 @@ public class LocalLlmSettings
     public string? ApiKey { get; set; } = "ollama";
     public string Model { get; set; } = "qwen/qwen3-4b";
     public int TimeoutSeconds { get; set; } = 30;
-    public int MaxProductCandidates { get; set; } = 3;
-    public int MaxCouponCandidates { get; set; } = 2;
+    public int MaxProductCandidates { get; set; } = 5;
+    public int MaxCouponCandidates { get; set; } = 5;
+    public int MaxOverviewProducts { get; set; } = 50;
+    public int MaxOverviewCoupons { get; set; } = 20;
 }

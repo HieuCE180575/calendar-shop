@@ -17,7 +17,7 @@ public class ChatAssistantService : IChatAssistantService
     [
         "co", "khong", "la", "nay", "kia", "do", "cua", "toi", "minh", "ma", "no",
         "gi", "nao", "o", "va", "hay", "cho", "xin", "tu", "mot", "nhung", "nhi",
-        "voi", "ve", "duoc", "khach", "hang", "shop", "calendar", "hien", "tai"
+        "voi", "ve", "duoc", "khach", "hang", "shop", "calendar", "hien", "tai", "dang"
     ];
 
     private static readonly Dictionary<string, string> PhraseSynonyms = new()
@@ -27,29 +27,33 @@ public class ChatAssistantService : IChatAssistantService
         ["ma giam"] = "coupon",
         ["giam gia"] = "coupon",
         ["khuyen mai"] = "coupon",
+        ["sale"] = "sale",
+        ["dang sale"] = "sale",
+        ["uu dai"] = "sale",
         ["treo tuong"] = "wall",
         ["de ban"] = "desk",
         ["con hang"] = "stock_available",
         ["het hang"] = "stock_unavailable",
         ["ton kho"] = "inventory",
-        ["san pham nao"] = "product_list",
-        ["co gi"] = "product_list",
-        ["gia bao nhieu"] = "price_range",
-        ["tam gia"] = "price_range",
-        ["khoang gia"] = "price_range",
         ["gia thap nhat"] = "min_price",
         ["gia cao nhat"] = "max_price",
+        ["thap nhat"] = "min_price",
+        ["cao nhat"] = "max_price",
         ["re nhat"] = "min_price",
         ["dat nhat"] = "max_price",
+        ["mac nhat"] = "max_price",
+        ["gia mac"] = "max_price",
         ["tam trung"] = "mid_range",
-        ["trung binh"] = "mid_range",
-        ["gia tam trung"] = "mid_range",
-        ["ban gan day"] = "recent_sales",
-        ["thoi gian ban"] = "recent_sales",
-        ["don gan nhat"] = "recent_sales",
-        ["gan nhat"] = "latest",
-        ["moi nhat"] = "latest"
+        ["trung binh"] = "mid_range"
     };
+
+    private static readonly HashSet<string> ControlTokens =
+    [
+        "lich", "product", "list", "price", "range", "min_price", "max_price", "mid_range",
+        "min", "max", "mid", "gia", "thap", "cao", "nhat", "re", "dat", "mac",
+        "tam", "trung", "binh", "stock_available", "stock_unavailable", "inventory",
+        "stock", "available", "unavailable", "con", "het", "ton", "kho", "sale"
+    ];
 
     private readonly IRepository<Product> _productRepository;
     private readonly IRepository<Coupon> _couponRepository;
@@ -81,30 +85,28 @@ public class ChatAssistantService : IChatAssistantService
 
         var normalizedQuery = NormalizeText(message);
         var queryTokens = ExtractTokens(normalizedQuery);
-
-        var allProducts = await _productRepository.Entities
-            .Include(x => x.Category)
-            .Include(x => x.Discount)
-            .Where(x => !x.IsDeleted && x.Category != null && x.Category.Status == "Active")
-            .ToListAsync(cancellationToken);
-
-        var aggregateAnswer = await TryBuildAggregateAnswerAsync(
-            normalizedQuery,
-            queryTokens,
-            allProducts,
-            cancellationToken);
-        if (aggregateAnswer != null)
-        {
-            return aggregateAnswer;
-        }
-
         if (queryTokens.Count == 0)
         {
             throw new BadHttpRequestException("Câu hỏi chưa đủ thông tin để tìm sản phẩm hoặc coupon.");
         }
 
-        var productCandidates = GetProductCandidates(normalizedQuery, queryTokens, allProducts);
+        if (IsRestrictedOrderQuestion(normalizedQuery))
+        {
+            return new ChatAnswerDto(
+                "Tôi không thể cung cấp thông tin đơn hàng trong khung chat công khai. Bạn có thể xem đơn hàng của mình trong mục Đơn hàng, hoặc xem báo cáo trong trang quản trị nếu là admin.");
+        }
+
+        var products = await _productRepository.Entities
+            .Include(x => x.Category)
+            .Include(x => x.Discount)
+            .Where(x => !x.IsDeleted && x.Category != null && x.Category.Status == "Active")
+            .ToListAsync(cancellationToken);
+
+        var productCandidates = GetProductCandidates(normalizedQuery, queryTokens, products);
+        productCandidates = EnsureGeneralProductContext(normalizedQuery, productCandidates, products);
+
         var couponCandidates = await GetCouponCandidatesAsync(normalizedQuery, queryTokens, cancellationToken);
+        couponCandidates = EnsureGeneralCouponContext(normalizedQuery, couponCandidates);
 
         if (productCandidates.Count == 0 && couponCandidates.Count == 0)
         {
@@ -112,139 +114,11 @@ public class ChatAssistantService : IChatAssistantService
                 "Tôi chưa tìm thấy dữ liệu phù hợp trong cửa hàng. Bạn có thể nhập rõ tên sản phẩm, danh mục hoặc mã coupon được không?");
         }
 
-        if (NeedsClarification(normalizedQuery, productCandidates, couponCandidates))
-        {
-            return new ChatAnswerDto(BuildClarificationAnswer(productCandidates, couponCandidates));
-        }
-
         var fallbackAnswer = BuildFallbackAnswer(productCandidates.FirstOrDefault(), couponCandidates.FirstOrDefault());
-        var prompt = BuildPrompt(normalizedQuery, productCandidates, couponCandidates);
+        var prompt = BuildPrompt(message, productCandidates, couponCandidates);
         var llmAnswer = await _localLlmService.GenerateAnswerAsync(prompt, cancellationToken);
-        var finalAnswer = string.IsNullOrWhiteSpace(llmAnswer) ? fallbackAnswer : llmAnswer!;
 
-        return new ChatAnswerDto(finalAnswer);
-    }
-
-    private async Task<ChatAnswerDto?> TryBuildAggregateAnswerAsync(
-        string normalizedQuery,
-        IReadOnlyList<string> queryTokens,
-        IReadOnlyList<Product> allProducts,
-        CancellationToken cancellationToken)
-    {
-        if (allProducts.Count == 0)
-        {
-            return null;
-        }
-
-        var filteredProducts = FilterProductsForAggregate(allProducts, queryTokens);
-        if (filteredProducts.Count == 0)
-        {
-            filteredProducts = allProducts.ToList();
-        }
-
-        var inStockProducts = filteredProducts
-            .Where(x => x.Status == "Active" && x.StockQuantity > 0)
-            .OrderByDescending(x => x.StockQuantity)
-            .ToList();
-
-        var outOfStockProducts = filteredProducts
-            .Where(x => x.Status == "OutOfStock" || x.StockQuantity <= 0)
-            .OrderBy(x => x.ProductName)
-            .ToList();
-
-        var pricedProducts = filteredProducts
-            .Select(product => new
-            {
-                Product = product,
-                Price = _discountService.GetDiscountedPrice(product)
-            })
-            .OrderBy(x => x.Price)
-            .ToList();
-
-        if (IsProductListIntent(normalizedQuery))
-        {
-            var sellableProducts = filteredProducts
-                .Where(x => x.Status == "Active" && x.StockQuantity > 0)
-                .ToList();
-            var examples = sellableProducts.Take(4).ToList();
-            var names = string.Join(", ", examples.Select(x => x.ProductName));
-            var answer = sellableProducts.Count switch
-            {
-                0 => "Hiện tôi chưa thấy sản phẩm nào phù hợp với mô tả này.",
-                <= 4 => $"Hiện cửa hàng có {sellableProducts.Count} sản phẩm phù hợp: {names}.",
-                _ => $"Hiện cửa hàng có {sellableProducts.Count} sản phẩm phù hợp. Một vài sản phẩm tiêu biểu là: {names}."
-            };
-
-            return new ChatAnswerDto(answer);
-        }
-
-        if (IsOutOfStockIntent(normalizedQuery))
-        {
-            if (outOfStockProducts.Count == 0)
-            {
-                return new ChatAnswerDto("Hiện tôi chưa thấy sản phẩm nào hết hàng trong nhóm bạn đang hỏi.");
-            }
-
-            var examples = outOfStockProducts.Take(3).ToList();
-            var exampleText = string.Join(", ", examples.Select(x => x.ProductName));
-            return new ChatAnswerDto(
-                $"Hiện có {outOfStockProducts.Count} sản phẩm hết hàng trong nhóm này. Ví dụ: {exampleText}.");
-        }
-
-        if (IsInventoryIntent(normalizedQuery))
-        {
-            if (inStockProducts.Count == 0)
-            {
-                return new ChatAnswerDto("Hiện chưa có sản phẩm nào còn hàng trong nhóm bạn đang hỏi.");
-            }
-
-            var examples = inStockProducts.Take(3).ToList();
-            var exampleText = string.Join(
-                "; ",
-                examples.Select(x => $"{x.ProductName}: còn {x.StockQuantity}"));
-
-            return new ChatAnswerDto(
-                $"Hiện có {inStockProducts.Count} sản phẩm còn hàng. Một vài sản phẩm có tồn kho là: {exampleText}.");
-        }
-
-        if (pricedProducts.Count == 0)
-        {
-            return null;
-        }
-
-        if (IsMinMaxPriceIntent(normalizedQuery))
-        {
-            var min = pricedProducts.First();
-            var max = pricedProducts.Last();
-            return new ChatAnswerDto(
-                $"Giá thấp nhất hiện tại là {FormatMoney(min.Price)} cho sản phẩm {min.Product.ProductName}. Giá cao nhất là {FormatMoney(max.Price)} cho sản phẩm {max.Product.ProductName}.");
-        }
-
-        if (IsMidRangeIntent(normalizedQuery))
-        {
-            var averagePrice = pricedProducts.Average(x => x.Price);
-            var median = pricedProducts[pricedProducts.Count / 2];
-            return new ChatAnswerDto(
-                $"Nếu xét tầm giá trung bình cho lịch, mức tham khảo phổ biến là khoảng {FormatMoney(median.Price)}. Giá trung bình toàn bộ nhóm này đang ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.");
-        }
-
-        if (IsPriceRangeIntent(normalizedQuery))
-        {
-            var min = pricedProducts.First();
-            var max = pricedProducts.Last();
-            var median = pricedProducts[pricedProducts.Count / 2];
-            var averagePrice = pricedProducts.Average(x => x.Price);
-            return new ChatAnswerDto(
-                $"Giá lịch hiện tại dao động từ {FormatMoney(min.Price)} đến {FormatMoney(max.Price)}. Mức giá tham khảo tầm trung là khoảng {FormatMoney(median.Price)}, còn giá trung bình ở mức {FormatMoney(decimal.Round(averagePrice, 0))}.");
-        }
-
-        if (IsLatestSalesIntent(normalizedQuery))
-        {
-            return new ChatAnswerDto(
-                "Tôi không thể cung cấp thông tin đơn hàng gần đây trong khung chat công khai. Bạn có thể xem đơn hàng của mình trong mục Đơn hàng, hoặc xem báo cáo trong trang quản trị nếu là admin.");
-        }
-
-        return null;
+        return new ChatAnswerDto(string.IsNullOrWhiteSpace(llmAnswer) ? fallbackAnswer : llmAnswer!);
     }
 
     private List<ProductCandidate> GetProductCandidates(
@@ -278,6 +152,44 @@ public class ChatAssistantService : IChatAssistantService
             .ToList();
     }
 
+    private List<ProductCandidate> EnsureGeneralProductContext(
+        string normalizedQuery,
+        List<ProductCandidate> productCandidates,
+        IReadOnlyList<Product> products)
+    {
+        if (productCandidates.Count > 0 || !ShouldUseOverviewProductContext(normalizedQuery))
+        {
+            return productCandidates;
+        }
+
+        return products
+            .Where(x => x.Status == "Active" && x.StockQuantity > 0)
+            .OrderByDescending(x => ShouldPrioritizeSaleProducts(normalizedQuery) && IsProductOnSale(x))
+            .ThenByDescending(x => x.StockQuantity)
+            .ThenBy(x => _discountService.GetDiscountedPrice(x))
+            .Take(Math.Max(1, _llmSettings.MaxOverviewProducts))
+            .Select(product => new ProductCandidate(product, 1))
+            .ToList();
+    }
+
+    private List<CouponCandidate> EnsureGeneralCouponContext(
+        string normalizedQuery,
+        List<CouponCandidate> couponCandidates)
+    {
+        if (couponCandidates.Count > 0 || !ShouldUseOverviewCouponContext(normalizedQuery))
+        {
+            return couponCandidates;
+        }
+
+        return _couponRepository.Entities
+            .Where(x => x.Status == "Active" && x.StartDate <= DateTime.UtcNow && x.EndDate >= DateTime.UtcNow)
+            .OrderByDescending(x => x.DiscountValue)
+            .Take(Math.Max(1, _llmSettings.MaxOverviewCoupons))
+            .AsEnumerable()
+            .Select(coupon => new CouponCandidate(coupon, 1))
+            .ToList();
+    }
+
     private static int ScoreProduct(Product product, string normalizedQuery, IReadOnlyCollection<string> queryTokens)
     {
         var score = 0;
@@ -290,16 +202,13 @@ public class ChatAssistantService : IChatAssistantService
         if (!string.IsNullOrWhiteSpace(description) && description.Contains(normalizedQuery, StringComparison.Ordinal)) score += 7;
         if (!string.IsNullOrWhiteSpace(category) && category.Contains(normalizedQuery, StringComparison.Ordinal)) score += 8;
 
-        foreach (var token in queryTokens)
+        foreach (var token in queryTokens.Where(token => !ControlTokens.Contains(token)))
         {
             if (name.Contains(token, StringComparison.Ordinal)) score += 5;
             if (!string.IsNullOrWhiteSpace(description) && description.Contains(token, StringComparison.Ordinal)) score += 3;
             if (!string.IsNullOrWhiteSpace(category) && category.Contains(token, StringComparison.Ordinal)) score += 4;
             if (!string.IsNullOrWhiteSpace(calendarType) && calendarType.Contains(token, StringComparison.Ordinal)) score += 3;
         }
-
-        if (product.Status == "Active") score += 1;
-        if (product.StockQuantity > 0) score += 1;
 
         return score;
     }
@@ -313,7 +222,7 @@ public class ChatAssistantService : IChatAssistantService
         if (code.Contains(normalizedQuery, StringComparison.Ordinal)) score += 12;
         if (!string.IsNullOrWhiteSpace(description) && description.Contains(normalizedQuery, StringComparison.Ordinal)) score += 7;
 
-        foreach (var token in queryTokens)
+        foreach (var token in queryTokens.Where(token => !ControlTokens.Contains(token)))
         {
             if (code.Contains(token, StringComparison.Ordinal)) score += 5;
             if (!string.IsNullOrWhiteSpace(description) && description.Contains(token, StringComparison.Ordinal)) score += 3;
@@ -321,41 +230,6 @@ public class ChatAssistantService : IChatAssistantService
 
         if (normalizedQuery.Contains("coupon", StringComparison.Ordinal)) score += 2;
         return score;
-    }
-
-    private static bool NeedsClarification(
-        string normalizedQuery,
-        IReadOnlyList<ProductCandidate> products,
-        IReadOnlyList<CouponCandidate> coupons)
-    {
-        if (IsGenericInventoryQuestion(normalizedQuery))
-        {
-            return false;
-        }
-
-        if (products.Count >= 2 && Math.Abs(products[0].Score - products[1].Score) <= 2)
-        {
-            return true;
-        }
-
-        if (products.Count == 0 && coupons.Count >= 2 && Math.Abs(coupons[0].Score - coupons[1].Score) <= 2)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private static string BuildClarificationAnswer(IReadOnlyList<ProductCandidate> products, IReadOnlyList<CouponCandidate> coupons)
-    {
-        if (products.Count > 0)
-        {
-            var suggestions = string.Join(", ", products.Take(3).Select(x => $"\"{x.Product.ProductName}\""));
-            return $"Tôi đang thấy một vài sản phẩm gần đúng: {suggestions}. Bạn đang hỏi sản phẩm nào trong số này?";
-        }
-
-        var couponSuggestions = string.Join(", ", coupons.Take(3).Select(x => $"\"{x.Coupon.Code}\""));
-        return $"Tôi đang thấy một vài coupon gần đúng: {couponSuggestions}. Bạn muốn hỏi coupon nào?";
     }
 
     private string BuildFallbackAnswer(ProductCandidate? productCandidate, CouponCandidate? couponCandidate)
@@ -388,26 +262,74 @@ public class ChatAssistantService : IChatAssistantService
         return "Tôi chưa tìm thấy dữ liệu phù hợp để trả lời câu hỏi này.";
     }
 
+    private object BuildProductContext(Product product)
+    {
+        var currentPrice = _discountService.GetDiscountedPrice(product);
+        var discount = product.Discount;
+        var isOnSale = IsProductOnSale(product);
+
+        return new
+        {
+            product.ProductId,
+            product.ProductName,
+            ExactProductName = product.ProductName,
+            CategoryName = product.Category?.CategoryName,
+            product.CalendarType,
+            CurrentPrice = currentPrice,
+            OriginalPrice = product.Price,
+            IsOnSale = isOnSale,
+            DiscountName = isOnSale ? discount?.Name : null,
+            DiscountType = isOnSale ? discount?.DiscountType : null,
+            DiscountValue = isOnSale ? discount?.DiscountValue : null,
+            product.StockQuantity,
+            product.Status,
+            product.Description
+        };
+    }
+
+    private bool IsProductOnSale(Product product)
+    {
+        var discount = product.Discount;
+        return discount != null &&
+               discount.Status == "Active" &&
+               discount.StartDate <= DateTime.UtcNow &&
+               discount.EndDate >= DateTime.UtcNow &&
+               _discountService.GetDiscountedPrice(product) < product.Price;
+    }
+
     private string BuildPrompt(
-        string normalizedQuery,
+        string userQuestion,
         IReadOnlyList<ProductCandidate> products,
         IReadOnlyList<CouponCandidate> coupons)
     {
+        var normalizedQuestion = NormalizeText(userQuestion);
+        var productContexts = products.Select(x => BuildProductContext(x.Product)).ToList();
+        var saleProductContexts = products
+            .Where(x => IsProductOnSale(x.Product))
+            .Select(x => BuildProductContext(x.Product))
+            .ToList();
+
+        var productLimitNote = products.Count >= Math.Max(1, _llmSettings.MaxOverviewProducts)
+            ? $"Product context may be capped at {_llmSettings.MaxOverviewProducts} items."
+            : "Product context is not capped.";
+        var couponLimitNote = coupons.Count >= Math.Max(1, _llmSettings.MaxOverviewCoupons)
+            ? $"Coupon context may be capped at {_llmSettings.MaxOverviewCoupons} items."
+            : "Coupon context is not capped.";
+
         var context = new
         {
-            query = normalizedQuery,
-            products = products.Select(x => new
+            notes = new[]
             {
-                x.Product.ProductId,
-                x.Product.ProductName,
-                CategoryName = x.Product.Category?.CategoryName,
-                x.Product.CalendarType,
-                CurrentPrice = _discountService.GetDiscountedPrice(x.Product),
-                OriginalPrice = x.Product.Price,
-                x.Product.StockQuantity,
-                x.Product.Status,
-                x.Product.Description
-            }),
+                productLimitNote,
+                couponLimitNote
+            },
+            questionHints = new
+            {
+                IsSaleQuestion = ShouldPrioritizeSaleProducts(normalizedQuestion)
+            },
+            activeSaleProductCount = saleProductContexts.Count,
+            saleProducts = saleProductContexts,
+            products = productContexts,
             coupons = coupons.Select(x => new
             {
                 x.Coupon.CouponId,
@@ -428,20 +350,28 @@ public class ChatAssistantService : IChatAssistantService
 Bạn là trợ lý sản phẩm của Calendar Shop.
 
 Quy tắc:
-1. Chỉ được trả lời dựa trên dữ liệu trong CONTEXT.
-2. Không được tự bịa giá, tồn kho, coupon, loại lịch hoặc mô tả sản phẩm.
-3. Nếu CONTEXT không đủ để trả lời, phải nói rõ là không tìm thấy đủ thông tin.
-4. Nếu có nhiều kết quả gần giống nhau, chỉ hỏi làm rõ khi người dùng đang hỏi về một sản phẩm cụ thể.
-5. Nếu người dùng hỏi chung chung kiểu "có sản phẩm nào không", "có tồn kho nào", hãy tóm tắt ngắn gọn thay vì bắt làm rõ.
-6. Trả lời ngắn gọn, tự nhiên, bằng tiếng Việt có dấu.
-7. Nếu stockQuantity > 0 và status = Active, có thể nói là còn hàng.
-8. Nếu stockQuantity <= 0 hoặc status khác Active, nói là hiện không sẵn sàng để bán.
+1. Chỉ trả lời dựa trên dữ liệu trong CONTEXT.
+2. Không tự bịa giá, tồn kho, coupon, loại lịch hoặc mô tả sản phẩm.
+3. Nếu CONTEXT không đủ để trả lời, nói rõ là chưa tìm thấy đủ thông tin.
+4. Nếu có nhiều sản phẩm phù hợp, hãy gợi ý ngắn gọn 2-3 lựa chọn tốt nhất thay vì bắt người dùng hỏi lại.
+5. Khi nhắc tên sản phẩm, phải copy chính xác ExactProductName/ProductName từ CONTEXT.
+6. Không được dịch, sửa chính tả, tự đoán, hoặc thay đổi tên sản phẩm. Ví dụ ProductName là "Lịch để bàn mini 2026" thì phải giữ đúng như vậy.
+7. Không dùng CalendarType để tạo tên sản phẩm mới.
+8. Nếu questionHints.IsSaleQuestion = true, hãy ưu tiên đọc saleProducts trước.
+9. Nếu activeSaleProductCount > 0, phải trả lời là có sản phẩm đang sale và liệt kê từ saleProducts.
+10. Nếu activeSaleProductCount = 0, mới được nói là chưa có sản phẩm đang sale.
+11. Nếu IsOnSale = true, sản phẩm đó đang áp dụng khuyến mãi/đang sale.
+12. Nếu IsOnSale = false, không được nói sản phẩm đó đang sale.
+13. Nếu CurrentPrice < OriginalPrice thì đây cũng là dấu hiệu sản phẩm đang được bán với giá ưu đãi.
+14. Nếu stockQuantity > 0 và status = Active, có thể nói là còn hàng.
+15. Nếu stockQuantity <= 0 hoặc status khác Active, nói là hiện không sẵn sàng để bán.
+16. Trả lời tự nhiên, ngắn gọn, bằng tiếng Việt có dấu.
 
 CONTEXT:
 {contextJson}
 
 CÂU HỎI:
-{normalizedQuery}
+{userQuestion}
 """;
     }
 
@@ -475,7 +405,7 @@ CÂU HỎI:
             normalized = normalized.Replace(pair.Key, pair.Value, StringComparison.Ordinal);
         }
 
-        normalized = Regex.Replace(normalized, @"[^a-z0-9\s]", " ");
+        normalized = Regex.Replace(normalized, @"[^a-z0-9_\s]", " ");
         normalized = Regex.Replace(normalized, @"\s+", " ").Trim();
         return normalized;
     }
@@ -489,112 +419,35 @@ CÂU HỎI:
             .ToList();
     }
 
-    private static List<Product> FilterProductsForAggregate(IReadOnlyList<Product> products, IReadOnlyList<string> queryTokens)
+    private static bool ShouldUseOverviewProductContext(string normalizedQuery)
     {
-        var controlTokens = new HashSet<string>
-        {
-            "price", "range", "min", "max", "mid", "recent", "sales", "thap", "cao",
-            "nhat", "tam", "trung", "binh", "gia", "ban", "gan", "day", "thoi", "gian",
-            "latest", "moi", "re", "dat", "muc", "inventory", "stock", "available",
-            "product", "list"
-        };
-
-        var filterTokens = queryTokens.Where(token => !controlTokens.Contains(token)).ToList();
-        if (filterTokens.Count == 0)
-        {
-            return products.ToList();
-        }
-
-        return products.Where(product =>
-        {
-            var name = NormalizeText(product.ProductName);
-            var description = NormalizeText(product.Description);
-            var category = NormalizeText(product.Category?.CategoryName);
-            var type = NormalizeText(product.CalendarType);
-
-            return filterTokens.All(token =>
-                name.Contains(token, StringComparison.Ordinal) ||
-                description.Contains(token, StringComparison.Ordinal) ||
-                category.Contains(token, StringComparison.Ordinal) ||
-                type.Contains(token, StringComparison.Ordinal));
-        }).ToList();
-    }
-
-    private static bool IsProductListIntent(string normalizedQuery)
-    {
-        return normalizedQuery.Contains("product_list", StringComparison.Ordinal) ||
-               (normalizedQuery.Contains("san pham", StringComparison.Ordinal) &&
-                (normalizedQuery.Contains("co", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("nao", StringComparison.Ordinal))) ||
-               normalizedQuery == "lich";
-    }
-
-    private static bool IsInventoryIntent(string normalizedQuery)
-    {
-        return normalizedQuery.Contains("inventory", StringComparison.Ordinal) ||
+        return normalizedQuery.Contains("lich", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("san pham", StringComparison.Ordinal) ||
                normalizedQuery.Contains("stock_available", StringComparison.Ordinal) ||
                normalizedQuery.Contains("stock_unavailable", StringComparison.Ordinal) ||
-               normalizedQuery.Contains("ton kho", StringComparison.Ordinal) ||
-               normalizedQuery.Contains("con hang", StringComparison.Ordinal);
+               normalizedQuery.Contains("inventory", StringComparison.Ordinal);
     }
 
-    private static bool IsOutOfStockIntent(string normalizedQuery)
+    private static bool ShouldUseOverviewCouponContext(string normalizedQuery)
     {
-        return normalizedQuery.Contains("stock_unavailable", StringComparison.Ordinal) ||
-               normalizedQuery.Contains("het hang", StringComparison.Ordinal);
+        return normalizedQuery.Contains("coupon", StringComparison.Ordinal);
     }
 
-    private static bool IsGenericInventoryQuestion(string normalizedQuery)
+    private static bool ShouldPrioritizeSaleProducts(string normalizedQuery)
     {
-        return IsProductListIntent(normalizedQuery) || IsInventoryIntent(normalizedQuery);
+        return normalizedQuery.Contains("sale", StringComparison.Ordinal) ||
+               normalizedQuery.Contains("coupon", StringComparison.Ordinal);
     }
 
-    private static bool IsPriceRangeIntent(string normalizedQuery)
+    private static bool IsRestrictedOrderQuestion(string normalizedQuery)
     {
-        return normalizedQuery.Contains("price_range", StringComparison.Ordinal) ||
-               ((normalizedQuery.Contains("gia", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("lich", StringComparison.Ordinal)) &&
-                (normalizedQuery.Contains("bao nhieu", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("khoang", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("tam", StringComparison.Ordinal)));
-    }
-
-    private static bool IsMidRangeIntent(string normalizedQuery)
-    {
-        return normalizedQuery.Contains("mid_range", StringComparison.Ordinal) ||
-               ((normalizedQuery.Contains("gia", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("price_range", StringComparison.Ordinal)) &&
-                (normalizedQuery.Contains("trung binh", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("tam trung", StringComparison.Ordinal)));
-    }
-
-    private static bool IsMinMaxPriceIntent(string normalizedQuery)
-    {
-        return normalizedQuery.Contains("min_price", StringComparison.Ordinal) ||
-               normalizedQuery.Contains("max_price", StringComparison.Ordinal) ||
-               ((normalizedQuery.Contains("gia", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("price_range", StringComparison.Ordinal)) &&
-                (normalizedQuery.Contains("thap nhat", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("cao nhat", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("re nhat", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("dat nhat", StringComparison.Ordinal))) ||
-               (normalizedQuery.Contains("thap nhat", StringComparison.Ordinal) &&
-                normalizedQuery.Contains("cao nhat", StringComparison.Ordinal));
-    }
-
-    private static bool IsLatestSalesIntent(string normalizedQuery)
-    {
-        return normalizedQuery.Contains("recent_sales", StringComparison.Ordinal) ||
-               ((normalizedQuery.Contains("ban", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("don", StringComparison.Ordinal)) &&
-                (normalizedQuery.Contains("latest", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("gan day", StringComparison.Ordinal) ||
-                 normalizedQuery.Contains("moi nhat", StringComparison.Ordinal)));
-    }
-
-    private static string FormatMoney(decimal amount)
-    {
-        return $"{amount:N0} VND";
+        return (normalizedQuery.Contains("don", StringComparison.Ordinal) ||
+                normalizedQuery.Contains("order", StringComparison.Ordinal) ||
+                normalizedQuery.Contains("ban gan day", StringComparison.Ordinal)) &&
+               (normalizedQuery.Contains("gan day", StringComparison.Ordinal) ||
+                normalizedQuery.Contains("moi nhat", StringComparison.Ordinal) ||
+                normalizedQuery.Contains("latest", StringComparison.Ordinal) ||
+                normalizedQuery.Contains("thoi gian", StringComparison.Ordinal));
     }
 
     private sealed record ProductCandidate(Product Product, int Score);

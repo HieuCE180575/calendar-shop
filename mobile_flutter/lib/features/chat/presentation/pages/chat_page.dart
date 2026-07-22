@@ -183,19 +183,74 @@ class _MessageBubble extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                message.text,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 14,
-                  height: 1.45,
-                ),
+              _FormattedMessageText(
+                text: message.text,
+                color: textColor,
+                enableMarkdown: !message.isUser,
               ),
             ],
           ),
         ),
       ),
     );
+  }
+}
+
+class _FormattedMessageText extends StatelessWidget {
+  final String text;
+  final Color color;
+  final bool enableMarkdown;
+
+  const _FormattedMessageText({
+    required this.text,
+    required this.color,
+    required this.enableMarkdown,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final baseStyle = TextStyle(
+      color: color,
+      fontSize: 14,
+      height: 1.45,
+    );
+
+    if (!enableMarkdown || !text.contains('**')) {
+      return Text(text, style: baseStyle);
+    }
+
+    return Text.rich(
+      TextSpan(
+        style: baseStyle,
+        children: _buildMarkdownSpans(text, baseStyle),
+      ),
+    );
+  }
+
+  List<TextSpan> _buildMarkdownSpans(String value, TextStyle baseStyle) {
+    final spans = <TextSpan>[];
+    final boldPattern = RegExp(r'\*\*([\s\S]+?)\*\*');
+    var currentIndex = 0;
+
+    for (final match in boldPattern.allMatches(value)) {
+      if (match.start > currentIndex) {
+        spans.add(TextSpan(text: value.substring(currentIndex, match.start)));
+      }
+
+      spans.add(
+        TextSpan(
+          text: match.group(1),
+          style: baseStyle.copyWith(fontWeight: FontWeight.w700),
+        ),
+      );
+      currentIndex = match.end;
+    }
+
+    if (currentIndex < value.length) {
+      spans.add(TextSpan(text: value.substring(currentIndex)));
+    }
+
+    return spans;
   }
 }
 
