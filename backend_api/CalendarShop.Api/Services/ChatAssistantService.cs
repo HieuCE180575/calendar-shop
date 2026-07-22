@@ -60,19 +60,22 @@ public class ChatAssistantService : IChatAssistantService
     private readonly IDiscountService _discountService;
     private readonly ILocalLlmService _localLlmService;
     private readonly LocalLlmSettings _llmSettings;
+    private readonly ILogger<ChatAssistantService> _logger;
 
     public ChatAssistantService(
         IRepository<Product> productRepository,
         IRepository<Coupon> couponRepository,
         IDiscountService discountService,
         ILocalLlmService localLlmService,
-        IOptions<LocalLlmSettings> llmSettings)
+        IOptions<LocalLlmSettings> llmSettings,
+        ILogger<ChatAssistantService> logger)
     {
         _productRepository = productRepository;
         _couponRepository = couponRepository;
         _discountService = discountService;
         _localLlmService = localLlmService;
         _llmSettings = llmSettings.Value;
+        _logger = logger;
     }
 
     public async Task<ChatAnswerDto> AskAsync(ChatAskRequest request, CancellationToken cancellationToken = default)
@@ -85,13 +88,21 @@ public class ChatAssistantService : IChatAssistantService
 
         var normalizedQuery = NormalizeText(message);
         var queryTokens = ExtractTokens(normalizedQuery);
+        _logger.LogInformation(
+            "ChatAssistantService.AskAsync normalized query. OriginalLength={OriginalLength}, NormalizedQuery={NormalizedQuery}, Tokens={Tokens}",
+            message.Length,
+            normalizedQuery,
+            string.Join(", ", queryTokens));
+
         if (queryTokens.Count == 0)
         {
+            _logger.LogWarning("ChatAssistantService.AskAsync rejected because no useful tokens were found.");
             throw new BadHttpRequestException("Câu hỏi chưa đủ thông tin để tìm sản phẩm hoặc coupon.");
         }
 
         if (IsRestrictedOrderQuestion(normalizedQuery))
         {
+            _logger.LogInformation("ChatAssistantService.AskAsync handled as restricted order question.");
             return new ChatAnswerDto(
                 "Tôi không thể cung cấp thông tin đơn hàng trong khung chat công khai. Bạn có thể xem đơn hàng của mình trong mục Đơn hàng, hoặc xem báo cáo trong trang quản trị nếu là admin.");
         }
@@ -102,25 +113,48 @@ public class ChatAssistantService : IChatAssistantService
             .Where(x => !x.IsDeleted && x.Category != null && x.Category.Status == "Active")
             .ToListAsync(cancellationToken);
 
+        _logger.LogInformation("ChatAssistantService.AskAsync loaded products. Count={ProductCount}", products.Count);
+
         var productCandidates = GetProductCandidates(normalizedQuery, queryTokens, products);
         productCandidates = EnsureGeneralProductContext(normalizedQuery, productCandidates, products);
+        _logger.LogInformation(
+            "ChatAssistantService.AskAsync selected product candidates. Count={CandidateCount}, Candidates={Candidates}",
+            productCandidates.Count,
+            string.Join(" | ", productCandidates.Select(x => $"{x.Product.ProductId}:{x.Product.ProductName}:score={x.Score}")));
 
         var couponCandidates = await GetCouponCandidatesAsync(normalizedQuery, queryTokens, cancellationToken);
         couponCandidates = EnsureGeneralCouponContext(normalizedQuery, couponCandidates);
+        _logger.LogInformation(
+            "ChatAssistantService.AskAsync selected coupon candidates. Count={CandidateCount}, Candidates={Candidates}",
+            couponCandidates.Count,
+            string.Join(" | ", couponCandidates.Select(x => $"{x.Coupon.CouponId}:{x.Coupon.Code}:score={x.Score}")));
 
         if (productCandidates.Count == 0 && couponCandidates.Count == 0)
         {
+            _logger.LogInformation("ChatAssistantService.AskAsync returned no-context answer.");
             return new ChatAnswerDto(
                 "Tôi chưa tìm thấy dữ liệu phù hợp trong cửa hàng. Bạn có thể nhập rõ tên sản phẩm, danh mục hoặc mã coupon được không?");
         }
 
         var prompt = BuildPrompt(message, productCandidates, couponCandidates);
+        _logger.LogInformation(
+            "ChatAssistantService.AskAsync calling local LLM. PromptLength={PromptLength}, ProductCandidates={ProductCandidates}, CouponCandidates={CouponCandidates}",
+            prompt.Length,
+            productCandidates.Count,
+            couponCandidates.Count);
+
         var llmAnswer = await _localLlmService.GenerateAnswerAsync(prompt, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(llmAnswer))
         {
+            _logger.LogError("ChatAssistantService.AskAsync local LLM returned empty answer.");
             throw new InvalidOperationException("Không nhận được phản hồi từ mô hình AI.");
         }
+
+        _logger.LogInformation(
+            "ChatAssistantService.AskAsync completed from local LLM. AnswerLength={AnswerLength}, AnswerPreview={AnswerPreview}",
+            llmAnswer.Length,
+            Preview(llmAnswer));
 
         return new ChatAnswerDto(llmAnswer);
     }
@@ -422,6 +456,12 @@ CÂU HỎI:
                 normalizedQuery.Contains("moi nhat", StringComparison.Ordinal) ||
                 normalizedQuery.Contains("latest", StringComparison.Ordinal) ||
                 normalizedQuery.Contains("thoi gian", StringComparison.Ordinal));
+    }
+
+    private static string Preview(string value, int maxLength = 240)
+    {
+        var singleLine = Regex.Replace(value, @"\s+", " ").Trim();
+        return singleLine.Length <= maxLength ? singleLine : singleLine[..maxLength] + "...";
     }
 
     private sealed record ProductCandidate(Product Product, int Score);
