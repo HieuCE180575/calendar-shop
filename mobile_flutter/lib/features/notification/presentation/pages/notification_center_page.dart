@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -190,14 +191,49 @@ class NotificationCenterPage extends ConsumerWidget {
                     itemCount: notifications.length,
                     itemBuilder: (context, index) {
                       final item = notifications[index];
-                      return _NotificationTile(
-                        item: item,
-                        icon: _getIconForType(item.type),
-                        color: _getColorForType(item.type),
-                        formattedTime: _formatDateTime(item.createdAt),
-                        onTap: () => ref
-                            .read(notificationNotifierProvider.notifier)
-                            .markAsRead(item.notificationId),
+                      return Dismissible(
+                        key: Key('notification_${item.notificationId}'),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          color: Colors.red,
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        onDismissed: (direction) {
+                          ref.read(notificationNotifierProvider.notifier).deleteNotification(item.notificationId);
+                        },
+                        child: _NotificationTile(
+                          item: item,
+                          icon: _getIconForType(item.type),
+                          color: _getColorForType(item.type),
+                          formattedTime: _formatDateTime(item.createdAt),
+                          onTap: () {
+                            if (!item.isRead) {
+                              ref.read(notificationNotifierProvider.notifier).markAsRead(item.notificationId);
+                            }
+                            
+                            // Navigate to order detail if it's an order notification
+                            if (item.type == 'OrderUpdate') {
+                              final regex = RegExp(r'#(\d+)');
+                              final match = regex.firstMatch(item.content) ?? regex.firstMatch(item.title);
+                              if (match != null) {
+                                final orderIdStr = match.group(1);
+                                if (orderIdStr != null) {
+                                  // If admin, go to admin order detail, otherwise user order detail
+                                  if (isAdmin) {
+                                    // Notice: we need admin order entity to pass, or use id path
+                                    // Current route expects state.extra as AdminOrder which we don't have.
+                                    // It's safer to let them stay or handle admin routing differently.
+                                    // But user side:
+                                  } else {
+                                    context.push('/orders/$orderIdStr');
+                                  }
+                                }
+                              }
+                            }
+                          },
+                        ),
                       );
                     },
                   ),
@@ -247,7 +283,7 @@ class _NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: item.isRead ? null : onTap,
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

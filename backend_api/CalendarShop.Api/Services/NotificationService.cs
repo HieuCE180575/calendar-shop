@@ -182,4 +182,14 @@ public class NotificationService : INotificationService
         if (date.Month == 12 && date.Day == 25) return "Ngày Giáng Sinh (Noel)";
         return null;
     }
+
+    public async Task DeleteNotificationAsync(int notificationId, int userId)
+    {
+        var notification = await _notificationRepository.GetByIdAsync(notificationId);
+        if (notification != null && notification.UserId == userId)
+        {
+            _notificationRepository.Delete(notification);
+            await _notificationRepository.SaveChangesAsync();
+        }
+    }
 }
