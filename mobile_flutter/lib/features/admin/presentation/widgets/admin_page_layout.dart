@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../notification/presentation/providers/notification_provider.dart';
 
 class AdminPageLayout extends ConsumerWidget {
   final String title;
@@ -22,6 +23,8 @@ class AdminPageLayout extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final unreadNotifications = ref.watch(unreadNotificationsCountProvider);
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -30,6 +33,22 @@ class AdminPageLayout extends ConsumerWidget {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: actions ?? [
+          IconButton(
+            onPressed: () => context.push('/notifications'),
+            icon: Badge(
+              isLabelVisible: unreadNotifications > 0,
+              label: Text(
+                '$unreadNotifications',
+                style: const TextStyle(color: Colors.white, fontSize: 10),
+              ),
+              backgroundColor: AppColors.primary,
+              child: const Icon(
+                Icons.notifications_none_outlined,
+                color: AppColors.primary,
+              ),
+            ),
+            tooltip: 'Thông báo',
+          ),
           IconButton(
             icon: const Icon(Icons.storefront_outlined, color: AppColors.primary),
             tooltip: 'Trang bán hàng',

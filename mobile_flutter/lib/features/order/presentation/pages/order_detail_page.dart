@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../providers/order_provider.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
 import 'my_orders_page.dart' as my_orders;
 
 class OrderDetailPage extends ConsumerStatefulWidget {
@@ -492,6 +493,7 @@ class _OrderDetailPageState extends ConsumerState<OrderDetailPage>
   Future<void> _reorder(BuildContext context, WidgetRef ref, int orderId) async {
     try {
       await ref.read(reorderActionProvider.notifier).reorder(orderId);
+      ref.invalidate(cartProvider);
       if (context.mounted) {
         context.push('/cart');
       }

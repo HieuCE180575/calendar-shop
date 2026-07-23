@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../notification/presentation/providers/notification_provider.dart';
 import '../providers/admin_dashboard_provider.dart';
 import '../widgets/overview_metrics_section.dart';
 import '../widgets/revenue_chart_card.dart';
@@ -27,6 +28,7 @@ class AdminHomePage extends ConsumerWidget {
         data: (stats) => RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(adminDashboardStatsProvider);
+            ref.invalidate(notificationNotifierProvider);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
